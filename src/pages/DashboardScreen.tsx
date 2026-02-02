@@ -45,7 +45,7 @@ const TotalBalanceCard: React.FC = () => {
     const { stakingBTC, totalBTC, walletUsd } = balance;
 
     return (
-        <div className="p-4 pt-2">
+        <div id="balance-card" className="p-4 pt-2">
             <div className="bg-gradient-to-br from-[#FFD700] to-[#E6B800] p-5 rounded-[24px] shadow-2xl relative overflow-hidden ring-1 ring-white/20">
                 <div className="flex justify-between items-start mb-5 relative z-10">
                     <div>

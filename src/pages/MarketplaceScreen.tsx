@@ -161,14 +161,15 @@ const MarketplaceScreen: React.FC = () => {
             </div>
             <div className="p-4 space-y-4">
                 {sortedCards.length > 0 ? (
-                    sortedCards.map((card) => (
-                        <CardItem 
-                            key={card.id} 
-                            card={card} 
-                            onBuyRequest={handleBuyRequest} 
-                            canAfford={balance.walletUsd >= card.priceUSDT} 
-                            isLoading={isBuying}
-                        />
+                    sortedCards.map((card, index) => (
+                        <div key={card.id} id={index === 0 ? 'market-first-card' : undefined}>
+                            <CardItem 
+                                card={card} 
+                                onBuyRequest={handleBuyRequest} 
+                                canAfford={balance.walletUsd >= card.priceUSDT} 
+                                isLoading={isBuying}
+                            />
+                        </div>
                     ))
                 ) : (
                     <div className="flex flex-col items-center justify-center pt-20 text-white/40 space-y-4">

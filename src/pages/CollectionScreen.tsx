@@ -188,9 +188,9 @@ const CollectionScreen: React.FC = () => {
                 </span>
             </div>
 
-            <div className="space-y-4">
+            {/* ДОБАВЛЕНО: Оборачиваем список или пустое состояние в ID */}
+            <div id="collection-content" className="space-y-4">
                 {cards && cards.length > 0 ? (
-                    // Сортировка: Inactive -> Active -> Cooling -> Finished
                     [...cards].sort((a, b) => {
                         const priority: Record<string, number> = { 'Inactive': 0, 'Active': 1, 'Cooling': 2, 'Finished': 3 };
                         return (priority[a.status] ?? 4) - (priority[b.status] ?? 4);

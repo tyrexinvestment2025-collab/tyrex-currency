@@ -1,21 +1,21 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-// import { useTelegram } from '../../hooks/useTelegram'; 
-
 import { Home, Store, Repeat2, Wallet, User } from 'lucide-react'; 
+
 const ACTIVE_ICON_COLOR = 'text-tyrex-ultra-gold-glow'; 
 const ACTIVE_LABEL_COLOR = 'text-tyrex-ultra-gold-glow'; 
 
 const INACTIVE_ICON_COLOR = 'text-white';
 const INACTIVE_LABEL_COLOR = 'text-white'; 
 
+// Добавил поле id для каждого элемента навигации
 const navItems = [
-    { path: '/', icon: Home, label: 'Home' }, 
-    { path: '/marketplace', icon: Store, label: 'Market' }, 
-    { path: '/collection', icon: Repeat2, label: 'Cards', isCenter: true }, 
-    { path: '/referral', icon: Wallet, label: 'Partner' }, 
-    { path: '/profile', icon: User, label: 'Profile' }, 
+    { path: '/', icon: Home, label: 'Home', id: 'nav-home' }, 
+    { path: '/marketplace', icon: Store, label: 'Market', id: 'nav-market' }, 
+    { path: '/collection', icon: Repeat2, label: 'Cards', isCenter: true, id: 'nav-collection' }, 
+    { path: '/referral', icon: Wallet, label: 'Partner', id: 'nav-partner' }, 
+    { path: '/profile', icon: User, label: 'Profile', id: 'nav-profile' }, 
 ];
 
 const BottomNav: React.FC = () => {
@@ -37,6 +37,7 @@ const BottomNav: React.FC = () => {
     return (
       <button
         key={item.path}
+        id={item.id} // <--- ВАЖНО: Добавил ID сюда
         onClick={() => handleNavClick(item.path)}
         className={`${baseClasses}`}
       >
@@ -51,14 +52,13 @@ const BottomNav: React.FC = () => {
   const centerItem = navItems.find(i => i.isCenter) || navItems[2];
 
   return (
- <div 
-            // Фон Dark Black и тонкая темная граница СВЕРХУ
-            className="fixed bottom-0 left-0 right-0 z-50 border-t border-tyrex-graphite/30" 
-            style={{ 
-                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
-                backgroundColor: '#0A0A0A', // Dark Black
-            }}
-        >
+    <div 
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-tyrex-graphite/30" 
+        style={{ 
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+            backgroundColor: '#0A0A0A', 
+        }}
+    >
       <div className="flex justify-around items-center h-16">
         
         <div className="flex w-2/5 justify-around">
@@ -69,12 +69,13 @@ const BottomNav: React.FC = () => {
         {/* Центральная Кнопка (Collection) */}
         <div className="w-1/5 flex justify-center -mt-5 z-20">
           <button
+            id={centerItem.id} // <--- ВАЖНО: Добавил ID сюда
             onClick={() => handleNavClick(centerItem.path)} 
             className={clsx(
               "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
               location.pathname === centerItem.path 
-                ? "bg-tyrex-ultra-gold-glow text-tyrex-dark-black shadow-gold-glow scale-105" // Золотая подсветка (Активна)
-                : "bg-purple-700 text-white shadow-lg" // Фиолетовая (Неактивна)
+                ? "bg-tyrex-ultra-gold-glow text-tyrex-dark-black shadow-gold-glow scale-105" 
+                : "bg-purple-700 text-white shadow-lg" 
             )}
           >
             <centerItem.icon className="w-8 h-8" strokeWidth={2.5} />
@@ -84,7 +85,7 @@ const BottomNav: React.FC = () => {
         {/* Правая часть */}
         <div className="flex w-2/5 justify-around">
             {renderNavItem(navItems[3])} {/* Partner */}
-            {renderNavItem(navItems[4])} {/* Support */}
+            {renderNavItem(navItems[4])} {/* Profile */}
         </div>
 
       </div>
