@@ -1,6 +1,6 @@
 
 // src/api/tyrexApi.ts
-const API_URL = 'http://localhost:5000/api/v1'; // ПРОВЕРЬ, ЧТО ПОРТ ВЕРНЫЙ
+const API_URL = ( import.meta.env.VITE_API_URL ||'http://localhost:5000/api/v1'); // ПРОВЕРЬ, ЧТО ПОРТ ВЕРНЫЙ
 const TOKEN_STORAGE_KEY = 'authToken';
 
 const getAuthHeader = (): Record<string, string> => {
