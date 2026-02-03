@@ -6,6 +6,7 @@ import {
     Loader2, RefreshCw, Wallet, LayoutGrid,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import UsersTab from '../components/UsersTab'; // <--- Добавьте эту строку
 
 type TabType = 'STATS' | 'FINANCE' | 'USERS' | 'MARKET';
 
@@ -157,7 +158,7 @@ const AdminDashboardScreen: React.FC = () => {
                     </div>
                 )}
                 {activeTab === 'FINANCE' && <FinanceTab />}
-                {/* {activeTab === 'USERS' && <UsersTab />} */}
+    {activeTab === 'USERS' && <UsersTab />} {/* <--- Добавьте эту строку */}
                 {/* {activeTab === 'MARKET' && <div>Market management...</div>} */}
             </div>
         </div>

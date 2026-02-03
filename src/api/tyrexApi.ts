@@ -1,6 +1,5 @@
-
 // src/api/tyrexApi.ts
-const API_URL = ( import.meta.env.VITE_API_URL ||'http://localhost:5000/api/v1'); // ПРОВЕРЬ, ЧТО ПОРТ ВЕРНЫЙ
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'); 
 const TOKEN_STORAGE_KEY = 'authToken';
 
 const getAuthHeader = (): Record<string, string> => {
@@ -33,6 +32,7 @@ export const authApi = {
 };
 
 export const cardsApi = {
+    // Получить список коллекций
     getMarketTypes: async () => {
         try {
             const response = await fetch(`${API_URL}/cards/types`);
@@ -41,6 +41,18 @@ export const cardsApi = {
         } catch (e) {
             console.error("Market fetch error", e);
             return [];
+        }
+    },
+
+    // НОВОЕ: Получить статус всех номеров в коллекции
+    getCollectionItems: async (typeId: string) => {
+        try {
+            const response = await fetch(`${API_URL}/cards/types/${typeId}/items`);
+            if (!response.ok) throw new Error('Failed to fetch items');
+            return await response.json();
+        } catch (e) {
+            console.error("Collection items fetch error", e);
+            throw e;
         }
     },
 
@@ -56,12 +68,13 @@ export const cardsApi = {
         }
     },
 
-    buyCard: async (cardTypeId: string) => {
+    // ОБНОВЛЕНО: Теперь передаем serialNumber
+    buyCard: async (cardTypeId: string, serialNumber: number) => {
         const headers = getAuthHeader();
         const response = await fetch(`${API_URL}/cards/buy`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...headers },
-            body: JSON.stringify({ cardTypeId }),
+            body: JSON.stringify({ cardTypeId, serialNumber }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Error buying card');
@@ -88,6 +101,29 @@ export const cardsApi = {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Error stopping card');
         return data;
+    },
+
+sellCardBack: async (cardId: string) => {
+        const headers = getAuthHeader();
+        const response = await fetch(`${API_URL}/cards/${cardId}/sell-back`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...headers }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Error selling card');
+        return data;
+    },
+
+    // Получить историю по номеру
+    getHistoryBySerial: async (typeId: string, serial: number) => {
+        try {
+             // Можно без хедера, если история публичная, или с хедером если приватная
+            const response = await fetch(`${API_URL}/cards/history/${typeId}/${serial}`);
+            if (!response.ok) return [];
+            return await response.json();
+        } catch (e) {
+            return [];
+        }
     }
 };
 
@@ -100,7 +136,7 @@ export const userApi = {
             return await response.json();
         } catch (e) {
             console.error("Profile fetch error", e);
-            return null; // Возвращаем null, чтобы не ломать UI ошибкой парсинга
+            return null;
         }
     },
 
@@ -139,14 +175,11 @@ export const referralApi = {
 };
 
 export const adminApi = {
-    // --- Аналитика ---
     getStats: async () => {
         const headers = getAuthHeader();
         const response = await fetch(`${API_URL}/admin/stats`, { headers });
         return response.json();
     },
-
-    // --- Финансы (старые методы) ---
     getPendingDeposits: async () => {
         const headers = getAuthHeader();
         const response = await fetch(`${API_URL}/admin/deposits/pending`, { headers });
@@ -173,14 +206,10 @@ export const adminApi = {
         });
         return response.json();
     },
-
-    // --- Управление пользователями (НОВОЕ) ---
     getUsers: async (page = 1, search = '') => {
         const headers = getAuthHeader();
-        // Формируем query параметры
         const query = new URLSearchParams({ page: page.toString(), limit: '10' });
         if (search) query.append('search', search);
-        
         const response = await fetch(`${API_URL}/admin/users?${query.toString()}`, { headers });
         return response.json();
     },
@@ -197,8 +226,6 @@ export const adminApi = {
         });
         return response.json();
     },
-
-    // --- Маркетплейс (НОВОЕ) ---
     updateCardType: async (typeId: string, data: any) => {
         const headers = getAuthHeader();
         const response = await fetch(`${API_URL}/admin/card-types/${typeId}`, {

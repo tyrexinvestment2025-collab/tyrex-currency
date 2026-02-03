@@ -9,10 +9,12 @@ export interface TyrexCard {
   purchasePriceUsd: number; 
   clientAPY: number;
   referralAPY: number;
-  status: 'Inactive' | 'Active' | 'Cooling' | 'Finished';
+  status: 'Inactive' | 'Active' | 'Cooling' | 'Finished' | 'OnSale'; // <--- Добавили OnSale
   boughtAtTimestamp: number;
   currentProfitUsd: number; 
   unlockTimestamp?: number;
+  serialNumber?: number; 
+  listingPriceUsd?: number; // <--- НОВОЕ
 }
 
 export interface TyrexCardType {
@@ -24,6 +26,7 @@ export interface TyrexCardType {
     clientAPY: string;
     referralAPY: string;       
     available: number;
+    maxSupply: number; // НОВОЕ
     isAvailable: boolean;
 }
 
@@ -31,8 +34,8 @@ interface TyrexState {
   btcPrice: number; 
   balance: {
     walletUsd: number;      
-    stakingBTC: number; // Только то, что работает (Active)
-    totalBTC: number;   // НОВОЕ: Всё вместе (Active + Inactive)
+    stakingBTC: number;
+    totalBTC: number;
     totalProfitUsd: number;
     pendingWithdrawalUsd: number;
   };
@@ -62,7 +65,7 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
   balance: {
     walletUsd: 0,
     stakingBTC: 0,
-    totalBTC: 0, // Инициализация
+    totalBTC: 0,
     pendingWithdrawalUsd: 0,
     totalProfitUsd: 0,
   },
@@ -86,6 +89,7 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
               clientAPY: `${type.clientAPY}%`, 
               referralAPY: `${type.referralAPY || 0}%`,
               available: type.available,
+              maxSupply: type.maxSupply || 100,
               isAvailable: type.isActive && type.available > 0,
           };
       });
@@ -104,9 +108,8 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
 
     const userCards = Array.isArray(userData.cards) ? userData.cards : [];
     
-    // Переменные для подсчета
-    let miningBTC = 0; // То, что работает
-    let allBTC = 0;    // То, что куплено (работает + лежит)
+    let miningBTC = 0; 
+    let allBTC = 0;    
 
     const updatedCards = userCards.map((card: any) => {
           const cardType = (card.cardTypeId && typeof card.cardTypeId === 'object') 
@@ -116,13 +119,10 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
           const nominalSats = parseVal(card.nominalSats);
           const nominalBtc = nominalSats / SATS_IN_BTC;
 
-          // 1. Считаем АКТИВНЫЕ для "В майнинге"
           if (card.status === 'Active') {
               miningBTC += nominalBtc;
           }
 
-          // 2. Считаем ВСЕ купленные (Active + Inactive) для Главного баланса
-          // Cooling и Finished обычно уже не считаются "текущим" капиталом, но Inactive - это ваши деньги
           if (card.status === 'Active' || card.status === 'Inactive') {
               allBTC += nominalBtc;
           }
@@ -138,6 +138,7 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
               boughtAtTimestamp: new Date(card.createdAt).getTime(),
               currentProfitUsd: parseVal(card.currentProfitUsd),
               unlockTimestamp: card.unlockAt ? new Date(card.unlockAt).getTime() : undefined,
+              serialNumber: card.serialNumber // Добавили серийный номер
           };
     });
     
@@ -145,8 +146,8 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
           btcPrice: price,
           balance: {
               walletUsd: wUsd,
-              stakingBTC: miningBTC, // Маленькая цифра (только майнинг)
-              totalBTC: allBTC,      // Большая цифра (все купленные)
+              stakingBTC: miningBTC, 
+              totalBTC: allBTC,      
               pendingWithdrawalUsd: pUsd,
               totalProfitUsd: profitUsd
           }, 
