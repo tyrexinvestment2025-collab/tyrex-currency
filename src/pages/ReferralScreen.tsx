@@ -1,232 +1,230 @@
-// src/pages/ReferralScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { Copy, Zap, Users, User, Loader2 } from 'lucide-react'; // Добавили Loader2
-import { useTelegram } from '../hooks/useTelegram';
-import { referralApi } from '../api/tyrexApi'; // Импортируем наш новый API
+import { Copy, Users, Lock, Share2, Wallet, RefreshCw, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { referralApi } from '../api/tyrexApi';
+import clsx from 'clsx';
 
-// --- Константы ---
-const SATOSHI_IN_BTC = 100000000; // Добавьте, если нет в глобальном доступе
-
-// --- Интерфейсы для данных с бэкенда ---
-interface ReferralInfo {
-    referralLink: string;
-    totalEarnedSats: string; // Приходит как строка Decimal128
-    stats: {
+// Интерфейсы
+interface ReferralData {
+    isLocked?: boolean;
+    referralLink?: string;
+    totalEarnedSats?: number;
+    stats?: {
         totalInvited: number;
-        activeReferralsCount: number;
+        activeMiners: number;
     };
 }
-
-interface ReferralPartner {
-    username: string;
-    tgId: number;
-    registeredAt: string;
-    status: 'Active' | 'Inactive';
-    // На данный момент бэкенд не возвращает capitalBTC и inactiveBTC для каждого реферала в списке /list.
-    // Если нужно, потребуется изменить эндпоинт /list или делать дополнительный запрос для каждого реферала.
-}
-
-// --- Вспомогательная функция для форматирования сатоши в BTC ---
-const formatSatsToBtc = (satsString: string | number): string => {
-    const sats = parseFloat(satsString.toString());
-    if (isNaN(sats)) return '0.00000000';
-    return (sats / SATOSHI_IN_BTC).toFixed(8);
-};
-
-// --- Компонент для отображения статистики (Золотой Акцент) ---
-interface StatBoxProps {
-    label: string;
-    value: string;
-    subValue?: string; // Изменил btcLabel на subValue для универсальности
-    icon?: React.FC<any>;
-    iconColor: string;
-}
-
-const StatBox: React.FC<StatBoxProps> = ({ label, value, subValue, icon: Icon, iconColor }) => (
-    <div className="flex-1 bg-tyrex-graphite/50 p-3 rounded-lg shadow-inner border border-tyrex-graphite/50">
-        <div className="flex items-center mb-1">
-            {Icon && <Icon className={`w-4 h-4 mr-1 ${iconColor}`} />}
-            <p className="text-xs text-white/70">{label}</p>
-        </div>
-        <p className="text-lg font-extrabold text-tyrex-ultra-gold-glow leading-snug">{value}</p>
-        {subValue && <p className="text-[10px] text-white/50 mt-0.5">{subValue}</p>}
-    </div>
-);
-
-// --- Компонент для отображения одного партнера ---
-interface PartnerItemProps {
-    partner: ReferralPartner;
-}
-
-const PartnerItem: React.FC<PartnerItemProps> = ({ partner }) => {
-    const statusColor = partner.status === 'Active' ? 'text-green-500' : 'text-yellow-500';
-    
-    return (
-        <div className="flex items-center justify-between bg-tyrex-graphite/30 p-3 rounded-lg hover:bg-tyrex-graphite/50 transition-colors border-l-4 border-purple-700">
-            <div className="flex items-center space-x-3">
-                <div className="p-1 bg-tyrex-graphite rounded-full">
-                    <User className="w-5 h-5 text-white/80"/>
-                </div>
-                <div>
-                    <p className="text-white font-semibold leading-tight">@{partner.username || 'N/A'}</p>
-                    <p className="text-xs text-white/60">
-                        Регистрация {new Date(partner.registeredAt).toLocaleDateString()}
-                    </p>
-                </div>
-            </div>
-            <div className="text-right">
-                <p className={`text-sm font-bold ${statusColor}`}>Статус: {partner.status === 'Active' ? 'Активен' : 'Неактивен'}</p>
-                {/* Капитал партнера в /list эндпоинте не приходит. Если нужен, модифицируйте бэкенд */}
-                {/* <p className="text-xs text-red-400">Не в работе {partner.inactiveBTC}</p> */}
-            </div>
-        </div>
-    );
-};
-
 
 const ReferralScreen: React.FC = () => {
-    const { tg } = useTelegram();
-    const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
-    const [referralList, setReferralList] = useState<ReferralPartner[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+    
+    const [data, setData] = useState<ReferralData | null>(null);
+    const [partners, setPartners] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'PARTNERS'>('OVERVIEW');
 
     useEffect(() => {
-        const fetchReferralData = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                // Убедимся, что пользователь авторизован перед запросом
-                if (!localStorage.getItem('authToken')) {
-                    throw new Error('Пользователь не авторизован.');
-                }
+        loadData();
+    }, []);
 
-                const info = await referralApi.getReferralInfo();
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const info = await referralApi.getReferralInfo();
+            setData(info);
+            
+            if (!info.isLocked) {
                 const list = await referralApi.getReferralList();
-
-                setReferralInfo(info);
-                setReferralList(list);
-            } catch (err: any) {
-                console.error("Ошибка загрузки реферальных данных:", err);
-                setError(err.message || "Не удалось загрузить данные партнерской программы.");
-            } finally {
-                setIsLoading(false);
+                setPartners(list);
             }
-        };
-
-        if (tg.initDataUnsafe?.user) { // Загружаем данные, когда Telegram инициализируется
-            fetchReferralData();
-        }
-    }, [tg.initDataUnsafe?.user]);
-
-    // Копирование ссылки
-    const handleCopyLink = () => {
-        if (referralInfo?.referralLink) {
-            navigator.clipboard.writeText(referralInfo.referralLink);
-            alert(`Реферальная ссылка скопирована: ${referralInfo.referralLink}`);
-        } else {
-            alert("Ссылка пока недоступна.");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (isLoading) {
+    const copyLink = () => {
+        if (data?.referralLink) {
+            navigator.clipboard.writeText(data.referralLink);
+            // Тут можно добавить тост уведомление
+            alert("Link copied to clipboard");
+        }
+    };
+
+    // --- ЭКРАН ЗАГРУЗКИ ---
+    if (loading) {
         return (
-            <div className="min-h-screen bg-tyrex-dark-black flex items-center justify-center text-white">
-                <Loader2 className="w-10 h-10 animate-spin text-tyrex-ultra-gold-glow" />
-                <p className="ml-3">Загрузка данных...</p>
+            <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+                <RefreshCw className="w-8 h-8 text-tyrex-ultra-gold-glow animate-spin opacity-50" />
             </div>
         );
     }
 
-    if (error) {
+    // --- ЭКРАН БЛОКИРОВКИ (Пользователь не купил карту) ---
+    if (data?.isLocked) {
         return (
-            <div className="min-h-screen bg-tyrex-dark-black flex items-center justify-center text-red-500 p-4 text-center">
-                <p>Ошибка: {error}</p>
-            </div>
-        );
-    }
-    
-    // Данные для отображения
-    const currentTotalEarnedBtc = referralInfo ? formatSatsToBtc(referralInfo.totalEarnedSats) : '0.00000000';
-    const currentTotalInvited = referralInfo?.stats?.totalInvited || 0;
-    const currentActiveReferrals = referralInfo?.stats?.activeReferralsCount || 0;
+            <div className="min-h-screen bg-[#080808] text-white p-6 flex flex-col justify-center items-center text-center relative overflow-hidden">
+                {/* Background Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/5 blur-[80px] rounded-full pointer-events-none" />
 
-    return (
-        <div className="min-h-screen bg-tyrex-dark-black text-white p-4">
-            
-            <h1 className="text-2xl font-bold mb-4 text-white pt-4">Партнерская Программа</h1>
+                <div className="relative z-10 bg-[#121213] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center">
+                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5">
+                        <Lock className="w-8 h-8 text-white/30" />
+                    </div>
+                    
+                    <h1 className="text-2xl font-black uppercase italic tracking-tighter mb-3">Pool Locked</h1>
+                    <p className="text-white/40 text-[11px] font-medium uppercase tracking-widest max-w-[220px] leading-relaxed mb-8">
+                        Purchase at least one mining node to activate your referral network.
+                    </p>
 
-            {/* 1. Ваша Реферальная Ссылка */}
-            <div className="bg-purple-800/50 p-4 rounded-xl mb-5 shadow-lg border border-purple-700">
-                <p className="text-sm text-white/80 mb-2">Ваша Реферальная ссылка</p>
-                <div className="flex justify-between items-center bg-tyrex-dark-black p-3 rounded-lg border border-tyrex-ultra-gold-glow/50">
-                    <code className="text-lg font-mono text-tyrex-ultra-gold-glow break-all">
-                        {referralInfo?.referralLink || 'Загрузка...'}
-                    </code>
                     <button 
-                        onClick={handleCopyLink}
-                        disabled={!referralInfo?.referralLink}
-                        className="ml-3 p-2 bg-tyrex-ultra-gold-glow rounded-lg hover:bg-tyrex-ultra-gold-glow/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => navigate('/marketplace')}
+                        className="w-full py-4 bg-tyrex-ultra-gold-glow text-black rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-[0_10px_30px_rgba(253,185,49,0.15)] active:scale-95 transition-all"
                     >
-                        <Copy className="w-5 h-5 text-tyrex-dark-black" />
+                        Go to Market
                     </button>
                 </div>
             </div>
+        );
+    }
 
-            {/* 2. Основная Статистика (Метрики) */}
-            <div className="mb-5">
-                <div className="flex space-x-3 mb-3">
-                    <StatBox 
-                        label="Ваш доход от Партнерки" 
-                        value={currentTotalEarnedBtc} 
-                        subValue="BTC" 
-                        icon={Zap} 
-                        iconColor="text-green-500"
-                    />
-                    {/* APY Партнерки пока не возвращается бэкендом, можно убрать или сделать заглушку */}
-                    <StatBox 
-                        label="Ваш APR по Партнерке"
-                        value="Расчет в разработке" // Заглушка
-                        iconColor="text-tyrex-ultra-gold-glow"
-                    />
-                </div>
-                <div className="flex space-x-3">
-                    <StatBox 
-                        label="Всего приглашено" 
-                        value={currentTotalInvited.toString()} 
-                        icon={Users} 
-                        iconColor="text-blue-400"
-                    />
-                    <StatBox 
-                        label="Активных рефералов" 
-                        value={currentActiveReferrals.toString()} 
-                        icon={Users} 
-                        iconColor="text-green-400"
-                    />
-                </div>
-            </div>
-
-            {/* 3. Список Партнеров */}
-            <div className="mb-5">
-                <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-xl font-bold text-white">Партнеры</h3>
-                    <p className="text-sm text-white/70">Всего: {currentTotalInvited} / Активных: {currentActiveReferrals}</p>
-                </div>
-
-                <div className="space-y-3">
-                    {referralList.length > 0 ? (
-                        referralList.map((partner) => (
-                            <PartnerItem key={partner.tgId} partner={partner} />
-                        ))
-                    ) : (
-                        <div className="text-center p-5 text-white/50 bg-tyrex-graphite/30 rounded-xl">
-                            У вас пока нет приглашенных партнеров.
-                        </div>
-                    )}
-                </div>
-            </div>
+    // --- ЭКРАН АКТИВНОГО ПУЛА ---
+    return (
+        <div className="min-h-screen bg-[#080808] text-white pb-24 font-sans">
             
-            <div className="h-20"></div> {/* Отступ для навигации */}
+            {/* Header */}
+            <div className="sticky top-0 z-20 bg-[#080808]/90 backdrop-blur-xl border-b border-white/5 px-6 py-6 flex justify-between items-center">
+                <h1 className="text-xl font-black uppercase italic tracking-tighter">Mining Pool</h1>
+                <div className="bg-tyrex-ultra-gold-glow/10 border border-tyrex-ultra-gold-glow/20 rounded-full px-3 py-1 flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 bg-tyrex-ultra-gold-glow rounded-full animate-pulse" />
+                    <span className="text-[9px] font-black text-tyrex-ultra-gold-glow uppercase tracking-widest">Active</span>
+                </div>
+            </div>
+
+            <div className="p-5">
+                {/* Balance Card */}
+                <div className="bg-[#121213] border border-white/5 rounded-[2.5rem] p-6 mb-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-tyrex-ultra-gold-glow/5 blur-[60px] rounded-full pointer-events-none" />
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center space-x-2 mb-3 opacity-40">
+                            <Wallet className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Pool Revenue</span>
+                        </div>
+                        <div className="flex items-baseline space-x-2">
+                            <span className="text-4xl font-black text-white italic tracking-tighter">
+                                {data?.totalEarnedSats?.toLocaleString()}
+                            </span>
+                            <span className="text-xs font-black text-tyrex-ultra-gold-glow uppercase tracking-widest">SATS</span>
+                        </div>
+                        <p className="text-[9px] text-white/20 mt-2 font-bold uppercase tracking-wider">
+                            ≈ ${( (data?.totalEarnedSats || 0) * 0.00069 ).toFixed(2)} USD
+                        </p>
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex p-1 bg-white/5 rounded-2xl mb-6">
+                    <button 
+                        onClick={() => setActiveTab('OVERVIEW')}
+                        className={clsx(
+                            "flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                            activeTab === 'OVERVIEW' ? "bg-white/10 text-white shadow-lg" : "text-white/30"
+                        )}
+                    >
+                        Overview
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('PARTNERS')}
+                        className={clsx(
+                            "flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                            activeTab === 'PARTNERS' ? "bg-white/10 text-white shadow-lg" : "text-white/30"
+                        )}
+                    >
+                        Partners
+                    </button>
+                </div>
+
+                {/* CONTENT: OVERVIEW */}
+                {activeTab === 'OVERVIEW' && (
+                    <div className="space-y-4 animate-fade-in">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white/[0.03] p-5 rounded-[2rem] border border-white/5 flex flex-col justify-between h-32">
+                                <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center">
+                                    <Users className="w-4 h-4 text-white/40" />
+                                </div>
+                                <div>
+                                    <span className="text-2xl font-black text-white">{data?.stats?.totalInvited}</span>
+                                    <span className="text-[9px] font-black text-white/30 uppercase tracking-widest block mt-1">Total Invited</span>
+                                </div>
+                            </div>
+                            <div className="bg-white/[0.03] p-5 rounded-[2rem] border border-white/5 flex flex-col justify-between h-32 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-green-500/5" />
+                                <div className="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center relative z-10">
+                                    <Zap className="w-4 h-4 text-green-400" />
+                                </div>
+                                <div className="relative z-10">
+                                    <span className="text-2xl font-black text-green-400">{data?.stats?.activeMiners}</span>
+                                    <span className="text-[9px] font-black text-green-400/50 uppercase tracking-widest block mt-1">Active Miners</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-[#161617] border border-white/10 p-5 rounded-[2rem] mt-6">
+                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Your Invite Link</p>
+                            <button 
+                                onClick={copyLink}
+                                className="w-full bg-black/40 border border-white/5 py-4 px-5 rounded-2xl flex items-center justify-between active:bg-black/60 transition-all group"
+                            >
+                                <span className="text-xs font-bold text-white/70 truncate mr-4 italic font-mono">
+                                    {data?.referralLink}
+                                </span>
+                                <Copy className="w-4 h-4 text-tyrex-ultra-gold-glow group-active:scale-90" />
+                            </button>
+                            <button 
+                                onClick={copyLink}
+                                className="w-full mt-3 py-3 bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-white/50 flex items-center justify-center space-x-2 hover:bg-white/10"
+                            >
+                                <Share2 className="w-3 h-3" />
+                                <span>Share Link</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* CONTENT: PARTNERS LIST */}
+                {activeTab === 'PARTNERS' && (
+                    <div className="space-y-3 animate-fade-in">
+                        {partners.length === 0 ? (
+                            <div className="text-center py-20 opacity-30">
+                                <Users className="w-10 h-10 mx-auto mb-3" />
+                                <p className="text-[10px] font-black uppercase tracking-widest">No partners found</p>
+                            </div>
+                        ) : (
+                            partners.map((p: any) => (
+                                <div key={p.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xs font-bold text-white/40">
+                                            {p.username[0].toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-white">{p.username}</p>
+                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-wider">{new Date(p.registeredAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className={clsx(
+                                        "px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider",
+                                        p.isActive ? "bg-green-500/10 text-green-400" : "bg-white/5 text-white/20"
+                                    )}>
+                                        {p.isActive ? 'Mining' : 'Idle'}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

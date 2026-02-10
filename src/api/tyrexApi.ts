@@ -44,7 +44,7 @@ export const cardsApi = {
         }
     },
 
-    // НОВОЕ: Получить статус всех номеров в коллекции
+    // Получить статус всех номеров в коллекции
     getCollectionItems: async (typeId: string) => {
         try {
             const response = await fetch(`${API_URL}/cards/types/${typeId}/items`);
@@ -55,7 +55,7 @@ export const cardsApi = {
             throw e;
         }
     },
-
+    
     getMyCards: async () => {
         try {
             const headers = getAuthHeader();

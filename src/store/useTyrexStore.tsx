@@ -38,6 +38,8 @@ interface TyrexState {
     walletUsd: number;      
     stakingBTC: number;
     totalBTC: number;
+    walletSats: number;    
+    referralSats: number;   
     totalProfitUsd: number;
     pendingWithdrawalUsd: number;
   };
@@ -64,14 +66,15 @@ const parseVal = (value: any): number => {
 export const useTyrexStore = create<TyrexState>((set, _get) => ({
   btcPrice: 96500, 
   
-  balance: {
+ balance: {
     walletUsd: 0,
+    walletSats: 0,
+    referralSats: 0,
     stakingBTC: 0,
     totalBTC: 0,
     pendingWithdrawalUsd: 0,
     totalProfitUsd: 0,
   },
-  
   cards: [],
   marketCardTypes: [],
   
@@ -104,13 +107,13 @@ setInitialData: (userData, currentBtcPrice) => set((state) => {
     
     const balanceObj = userData.balance || {};
     const price = (currentBtcPrice && currentBtcPrice > 0) ? currentBtcPrice : state.btcPrice;
-    
     const userCards = Array.isArray(userData.cards) ? userData.cards : [];
     
-    const updatedCards = userCards.map((card: any) => {
+    const updatedCards: TyrexCard[] = userCards.map((card: any) => {
+        // Добавляем imageUrl в объект по умолчанию на случай ошибки
         const cardType = (card.cardTypeId && typeof card.cardTypeId === 'object') 
             ? card.cardTypeId 
-            : { name: 'Miner', clientAPY: 0, referralAPY: 0 };
+            : { name: 'Miner', clientAPY: 0, referralAPY: 0, imageUrl: '' };
 
         const nominalSats = parseVal(card.nominalSats);
         const nominalBtc = nominalSats / SATS_IN_BTC;
@@ -127,17 +130,22 @@ setInitialData: (userData, currentBtcPrice) => set((state) => {
             currentProfitUsd: parseVal(card.currentProfitUsd),
             unlockTimestamp: card.unlockAt ? new Date(card.unlockAt).getTime() : undefined,
             serialNumber: card.serialNumber,
-            // ВАЖНО: берем imageUrl из самой карты (UserCard), а не из типа
-            imageUrl: card.imageUrl || (cardType.imageUrl || '') 
+            // Сначала смотрим картинку в самой карте (UserCard), потом в типе (CardType)
+            imageUrl: card.imageUrl || cardType.imageUrl || '' 
         };
     });
     
     return { 
         btcPrice: price,
         balance: {
+            
             walletUsd: parseVal(balanceObj.walletUsd),
-            stakingBTC: updatedCards.filter((c: { status: string; }) => c.status === 'Active').reduce((sum: any, c: { nominalBtc: any; }) => sum + c.nominalBtc, 0),
-            totalBTC: updatedCards.reduce((sum: any, c: { nominalBtc: any; }) => sum + c.nominalBtc, 0),
+            walletSats: balanceObj.walletSats || 0,     // НОВОЕ
+            referralSats: balanceObj.referralSats || 0, // НОВОЕ
+            stakingBTC: updatedCards
+                .filter(c => c.status === 'Active')
+                .reduce((sum, c) => sum + c.nominalBtc, 0),
+            totalBTC: updatedCards.reduce((sum, c) => sum + c.nominalBtc, 0),
             pendingWithdrawalUsd: parseVal(balanceObj.pendingWithdrawalUsd),
             totalProfitUsd: parseVal(balanceObj.totalProfitUsd)
         }, 
