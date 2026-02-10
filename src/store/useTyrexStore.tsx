@@ -14,6 +14,7 @@ export interface TyrexCard {
   currentProfitUsd: number; 
   unlockTimestamp?: number;
   serialNumber?: number; 
+  imageUrl?: string;
   listingPriceUsd?: number; // <--- НОВОЕ
 }
 
@@ -28,6 +29,7 @@ export interface TyrexCardType {
     available: number;
     maxSupply: number; // НОВОЕ
     isAvailable: boolean;
+    imageUrl?: string;
 }
 
 interface TyrexState {
@@ -83,6 +85,7 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
           return {
               id: type._id,
               name: type.name,
+              imageUrl: type.imageUrl,
               nominalBtcDisplay: `${nominalBtc.toFixed(8)} BTC`, 
               nominalSats: nominalSats,
               priceUSDT: parseVal(type.priceUSDT) || (nominalBtc * price), 
@@ -96,64 +99,51 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
       return { marketCardTypes: marketCards, btcPrice: price };
   }),
 
-  setInitialData: (userData, currentBtcPrice) => set((state) => {
+setInitialData: (userData, currentBtcPrice) => set((state) => {
     if (!userData) return {};
-      
+    
     const balanceObj = userData.balance || {};
     const price = (currentBtcPrice && currentBtcPrice > 0) ? currentBtcPrice : state.btcPrice;
     
-    const wUsd = parseVal(balanceObj.walletUsd);
-    const pUsd = parseVal(balanceObj.pendingWithdrawalUsd);
-    const profitUsd = parseVal(balanceObj.totalProfitUsd);
-
     const userCards = Array.isArray(userData.cards) ? userData.cards : [];
     
-    let miningBTC = 0; 
-    let allBTC = 0;    
-
     const updatedCards = userCards.map((card: any) => {
-          const cardType = (card.cardTypeId && typeof card.cardTypeId === 'object') 
-              ? card.cardTypeId 
-              : { name: 'Miner', clientAPY: 0, referralAPY: 0 };
+        const cardType = (card.cardTypeId && typeof card.cardTypeId === 'object') 
+            ? card.cardTypeId 
+            : { name: 'Miner', clientAPY: 0, referralAPY: 0 };
 
-          const nominalSats = parseVal(card.nominalSats);
-          const nominalBtc = nominalSats / SATS_IN_BTC;
+        const nominalSats = parseVal(card.nominalSats);
+        const nominalBtc = nominalSats / SATS_IN_BTC;
 
-          if (card.status === 'Active') {
-              miningBTC += nominalBtc;
-          }
-
-          if (card.status === 'Active' || card.status === 'Inactive') {
-              allBTC += nominalBtc;
-          }
-
-          return {
-              id: card._id,
-              name: cardType.name || 'Unknown',
-              nominalBtc: nominalBtc,
-              purchasePriceUsd: parseVal(card.purchasePriceUsd),
-              clientAPY: parseVal(cardType.clientAPY),
-              referralAPY: parseVal(cardType.referralAPY),
-              status: card.status,
-              boughtAtTimestamp: new Date(card.createdAt).getTime(),
-              currentProfitUsd: parseVal(card.currentProfitUsd),
-              unlockTimestamp: card.unlockAt ? new Date(card.unlockAt).getTime() : undefined,
-              serialNumber: card.serialNumber // Добавили серийный номер
-          };
+        return {
+            id: card._id,
+            name: cardType.name || 'Unknown',
+            nominalBtc: nominalBtc,
+            purchasePriceUsd: parseVal(card.purchasePriceUsd),
+            clientAPY: parseVal(cardType.clientAPY),
+            referralAPY: parseVal(cardType.referralAPY),
+            status: card.status,
+            boughtAtTimestamp: new Date(card.createdAt).getTime(),
+            currentProfitUsd: parseVal(card.currentProfitUsd),
+            unlockTimestamp: card.unlockAt ? new Date(card.unlockAt).getTime() : undefined,
+            serialNumber: card.serialNumber,
+            // ВАЖНО: берем imageUrl из самой карты (UserCard), а не из типа
+            imageUrl: card.imageUrl || (cardType.imageUrl || '') 
+        };
     });
     
     return { 
-          btcPrice: price,
-          balance: {
-              walletUsd: wUsd,
-              stakingBTC: miningBTC, 
-              totalBTC: allBTC,      
-              pendingWithdrawalUsd: pUsd,
-              totalProfitUsd: profitUsd
-          }, 
-          cards: updatedCards 
+        btcPrice: price,
+        balance: {
+            walletUsd: parseVal(balanceObj.walletUsd),
+            stakingBTC: updatedCards.filter((c: { status: string; }) => c.status === 'Active').reduce((sum: any, c: { nominalBtc: any; }) => sum + c.nominalBtc, 0),
+            totalBTC: updatedCards.reduce((sum: any, c: { nominalBtc: any; }) => sum + c.nominalBtc, 0),
+            pendingWithdrawalUsd: parseVal(balanceObj.pendingWithdrawalUsd),
+            totalProfitUsd: parseVal(balanceObj.totalProfitUsd)
+        }, 
+        cards: updatedCards 
     };
-  }),
+}),
   
   simulateDailyInterest: () => set((state) => { return state; }),
 }));

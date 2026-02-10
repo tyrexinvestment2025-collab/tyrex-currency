@@ -1,5 +1,5 @@
 {
-  "name": "my-twa",
+  "name": "tyrex-currency",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@twa-dev/sdk": "^8.0.2",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.34.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
