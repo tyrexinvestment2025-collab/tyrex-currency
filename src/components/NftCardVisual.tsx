@@ -6,10 +6,10 @@ interface Props {
   imageUrl?: string;
   name: string;
   sizeClass?: string; 
-  serialNumber?: number; // Добавили серийник внутрь для красоты
+  serialNumber?: number;
 }
 
-const NftCardVisual: React.FC<Props> = ({ imageUrl, name, sizeClass = "w-56", serialNumber }) => {
+const NftCardVisual: React.FC<Props> = ({ imageUrl, name, sizeClass = "w-64", serialNumber }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -33,9 +33,9 @@ const NftCardVisual: React.FC<Props> = ({ imageUrl, name, sizeClass = "w-56", se
   };
 
   return (
-    <div className="flex justify-center items-center py-4 relative" style={{ perspective: "1200px" }}>
-        {/* Фоновое свечение стало ярче */}
-        <div className="absolute w-40 h-40 bg-tyrex-ultra-gold-glow/20 rounded-full blur-[50px] pointer-events-none animate-pulse" />
+    <div className="flex justify-center items-center py-2 relative" style={{ perspective: "1200px" }}>
+        {/* Фонове світіння під монетою */}
+        <div className="absolute w-2/3 h-2/3 bg-tyrex-ultra-gold-glow/20 rounded-full blur-[40px] pointer-events-none animate-pulse" />
         
         <motion.div
             ref={cardRef}
@@ -43,25 +43,26 @@ const NftCardVisual: React.FC<Props> = ({ imageUrl, name, sizeClass = "w-56", se
             onMouseLeave={() => { x.set(0); y.set(0); }}
             style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
             className={clsx(
-                "relative aspect-[2/3] rounded-[2.5rem] bg-[#050505] border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden cursor-grab active:cursor-grabbing",
+                // ЗМІНА ТУТ: aspect-square замість aspect-[2/3]
+                "relative aspect-square rounded-[2rem] bg-[#050505] border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden cursor-grab active:cursor-grabbing",
                 sizeClass
             )}
         >
-            {/* Сама монета */}
+            {/* ЗМІНА ТУТ: Прибрав padding (p-4), тепер p-0 або відсутній */}
             <img 
                 src={imageUrl || undefined} 
-                className="w-full h-full object-contain p-4 drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]" 
+                className="w-full h-full object-cover transform scale-105" // scale-105 щоб точно не було щілин
                 alt={name} 
             />
             
-            {/* Серийный номер в углу карточки */}
+            {/* Номер (серійник) */}
             {serialNumber && (
-                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg z-20">
+                <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg z-20 shadow-lg">
                     <span className="text-[10px] font-black text-tyrex-ultra-gold-glow uppercase tracking-tighter">#{serialNumber}</span>
                 </div>
             )}
 
-            {/* Эффект блика */}
+            {/* Блік */}
             <motion.div 
                 style={{ 
                     background: `linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) ${shineX}, transparent 100%)`,
@@ -70,8 +71,7 @@ const NftCardVisual: React.FC<Props> = ({ imageUrl, name, sizeClass = "w-56", se
                 className="absolute inset-0 pointer-events-none"
             />
             
-            {/* Глянцевая рамка */}
-            <div className="absolute inset-0 border border-white/5 rounded-[2.5rem] pointer-events-none" />
+            <div className="absolute inset-0 border border-white/5 rounded-[2rem] pointer-events-none" />
         </motion.div>
     </div>
   );
