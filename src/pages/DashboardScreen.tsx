@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Импорт для навигации
 import { useTelegram } from '../hooks/useTelegram'; 
 import { useTyrexStore } from '../store/useTyrexStore';
 import { userApi } from '../api/tyrexApi';
-import { RefreshCw, Copy, X, Loader2 } from 'lucide-react';
+import { Copy, X, Loader2, Bell } from 'lucide-react'; // Добавили Bell
 import TyrexModal from '../components/common/TyrexModal';
 
 const ADMIN_WALLET_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; 
@@ -17,12 +18,17 @@ const DollarSmallIcon = () => <svg className="w-3 h-3 text-tyrex-dark-black" fil
 // --- Components ---
 
 const UserHeader: React.FC = () => {
-    const { user, refreshAllData } = useTelegram();
+    const { user } = useTelegram();
+    const navigate = useNavigate(); // 2. Хук навигации
     const userName = user?.username || 'MINER'; 
 
     return (
         <div className="p-4 pt-6 flex justify-between items-center bg-tyrex-dark-black">
-            <div className="flex items-center space-x-3">
+            {/* 3. Обернули в div с onClick для перехода в профиль */}
+            <div 
+                className="flex items-center space-x-3 cursor-pointer active:opacity-70 transition-opacity"
+                onClick={() => navigate('/profile')}
+            >
                 <div className="w-10 h-10 bg-gradient-to-tr from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-tyrex-dark-black font-extrabold text-sm shadow-md border border-white/10">
                     {userName[0]?.toUpperCase() || 'M'}
                 </div>
@@ -33,8 +39,10 @@ const UserHeader: React.FC = () => {
                     </p>
                 </div>
             </div>
-            <button onClick={refreshAllData} className="p-2 bg-tyrex-graphite/40 rounded-full active:scale-90 transition-transform">
-                <RefreshCw className="w-5 h-5 text-white/70" />
+            
+            {/* 4. Заменили Refresh на Bell (Уведомления) */}
+            <button className="p-2 bg-tyrex-graphite/40 rounded-full active:scale-90 transition-transform hover:bg-tyrex-graphite/60">
+                <Bell className="w-5 h-5 text-white/70" />
             </button>
         </div>
     );

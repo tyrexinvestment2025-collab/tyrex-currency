@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { Home, Store, Repeat2, Wallet, User } from 'lucide-react'; 
+import { Home, Store, Repeat2, Wallet, BarChart3 } from 'lucide-react'; // Импортировали BarChart3 вместо User
 
 const ACTIVE_ICON_COLOR = 'text-tyrex-ultra-gold-glow'; 
 const ACTIVE_LABEL_COLOR = 'text-tyrex-ultra-gold-glow'; 
@@ -9,13 +9,12 @@ const ACTIVE_LABEL_COLOR = 'text-tyrex-ultra-gold-glow';
 const INACTIVE_ICON_COLOR = 'text-white';
 const INACTIVE_LABEL_COLOR = 'text-white'; 
 
-// Добавил поле id для каждого элемента навигации
 const navItems = [
     { path: '/', icon: Home, label: 'Home', id: 'nav-home' }, 
     { path: '/marketplace', icon: Store, label: 'Market', id: 'nav-market' }, 
     { path: '/collection', icon: Repeat2, label: 'Cards', isCenter: true, id: 'nav-collection' }, 
     { path: '/referral', icon: Wallet, label: 'Partner', id: 'nav-partner' }, 
-    { path: '/profile', icon: User, label: 'Profile', id: 'nav-profile' }, 
+    { path: '/analytics', icon: BarChart3, label: 'Analytics', id: 'nav-analytics' }, // Изменили тут
 ];
 
 const BottomNav: React.FC = () => {
@@ -37,7 +36,7 @@ const BottomNav: React.FC = () => {
     return (
       <button
         key={item.path}
-        id={item.id} // <--- ВАЖНО: Добавил ID сюда
+        id={item.id}
         onClick={() => handleNavClick(item.path)}
         className={`${baseClasses}`}
       >
@@ -69,7 +68,7 @@ const BottomNav: React.FC = () => {
         {/* Центральная Кнопка (Collection) */}
         <div className="w-1/5 flex justify-center -mt-5 z-20">
           <button
-            id={centerItem.id} // <--- ВАЖНО: Добавил ID сюда
+            id={centerItem.id} 
             onClick={() => handleNavClick(centerItem.path)} 
             className={clsx(
               "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
@@ -85,7 +84,7 @@ const BottomNav: React.FC = () => {
         {/* Правая часть */}
         <div className="flex w-2/5 justify-around">
             {renderNavItem(navItems[3])} {/* Partner */}
-            {renderNavItem(navItems[4])} {/* Profile */}
+            {renderNavItem(navItems[4])} {/* Analytics (Бывший Profile) */}
         </div>
 
       </div>

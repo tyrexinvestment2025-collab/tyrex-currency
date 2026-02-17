@@ -6,6 +6,7 @@ import MarketplaceScreen from './pages/MarketplaceScreen';
 import CollectionScreen from './pages/CollectionScreen';
 import ReferralScreen  from './pages/ReferralScreen';
 import ProfileScreen  from './pages/ProfileScreen';
+import AnalyticsScreen  from './pages/AnalyticsScreen';
 import BottomNav from './components/layout/BottomNav';
 import AdminDashboardScreen from './pages/AdminDashboardScreen';
 import { useOnboarding } from './hooks/useOnboarding';
@@ -54,6 +55,7 @@ const AppContent: React.FC = () => {
             <Route path="/referral" element={<ReferralScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
             <Route path="/admin" element={<AdminDashboardScreen />} />
+            <Route path="/analytics" element={<AnalyticsScreen />} />
           </Routes>
         </main>
         

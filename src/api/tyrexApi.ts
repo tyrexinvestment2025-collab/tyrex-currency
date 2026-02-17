@@ -239,3 +239,20 @@ export const adminApi = {
         return response.json();
     }
 };
+
+export const analyticsApi = {
+    getDashboard: async () => {
+        const headers = getAuthHeader();
+        const response = await fetch(`${API_URL}/analytics/dashboard`, { headers });
+        return response.json();
+    },
+    submitQuiz: async (questionId: number, answerIndex: number) => {
+        const headers = getAuthHeader();
+        const response = await fetch(`${API_URL}/analytics/quiz/submit`, { 
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ questionId, answerIndex })
+        });
+        return response.json();
+    }
+};
