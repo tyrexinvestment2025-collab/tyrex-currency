@@ -140,24 +140,46 @@ export const userApi = {
         }
     },
 
-    requestWithdrawal: async (amountSats: number, walletAddress: string) => {
+    requestWithdrawal: async (amountUsd: number, walletAddress: string) => {
         const headers = getAuthHeader();
         const response = await fetch(`${API_URL}/user/withdraw`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...headers },
-            body: JSON.stringify({ amountSats, walletAddress }),
+            body: JSON.stringify({ amountUsd, walletAddress }),
         });
-        return response.json();
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Error');
+        return data;
     },
     
-    requestDeposit: async (amountSats: number, txHash: string) => {
+    requestDeposit: async (amountUsd: number, txHash: string) => {
         const headers = getAuthHeader();
         const response = await fetch(`${API_URL}/user/deposit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...headers },
-            body: JSON.stringify({ amountSats, txHash }),
+            body: JSON.stringify({ amountUsd, txHash }), 
         });
-        return response.json();
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Error');
+        return data;
+    },
+
+    getHistory: async () => {
+        const headers = getAuthHeader();
+        const response = await fetch(`${API_URL}/user/history`, { headers });
+        if (!response.ok) throw new Error('Failed to fetch history');
+        return await response.json();
+    },
+
+    getNotifications: async () => {
+    const headers = getAuthHeader();
+    const response = await fetch(`${API_URL}/user/notifications`, { headers });
+    return response.json();
+    },
+
+    markNotificationsRead: async () => {
+        const headers = getAuthHeader();
+        await fetch(`${API_URL}/user/notifications/read`, { method: 'POST', headers });
     }
 };
 
@@ -237,7 +259,25 @@ export const adminApi = {
             body: JSON.stringify(data)
         });
         return response.json();
-    }
+    },
+     rejectDeposit: async (id: string, adminComment: string) => {
+        const headers = getAuthHeader();
+        const response = await fetch(`${API_URL}/admin/deposit/${id}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...headers },
+            body: JSON.stringify({ adminComment })
+        });
+        return response.json();
+    },
+    rejectWithdrawal: async (id: string, adminComment: string) => {
+        const headers = getAuthHeader();
+        const response = await fetch(`${API_URL}/admin/withdrawal/${id}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...headers },
+            body: JSON.stringify({ adminComment })
+        });
+        return response.json();
+    },
 };
 
 export const analyticsApi = {

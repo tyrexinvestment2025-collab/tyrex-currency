@@ -12,7 +12,7 @@ type TabType = 'STATS' | 'FINANCE' | 'USERS' | 'MARKET';
 
 const StatCard = ({ label, value, subValue, icon: Icon }: any) => (
     <div className="bg-tyrex-graphite/50 p-3 rounded-xl border border-white/5">
-        <div className="text-white/50 text-xs mb-1 flex items-center">{Icon && <Icon className="w-3 h-3 mr-1" />} {label}</div>
+        <div className="text-white/50 text-xs mb-1 flex items-center">{Icon && <Icon className="w-3.5 h-3.5 mr-1" />} {label}</div>
         <div className="text-xl font-bold text-white">{value}</div>
         {subValue && <div className="text-xs text-white/40 mt-1">{subValue}</div>}
     </div>
@@ -41,6 +41,7 @@ const FinanceTab = () => {
 
     useEffect(() => { loadData(); }, []);
 
+    // Метод подтверждения
     const handleAction = async (id: string, apiCall: Function, type: 'DEP' | 'WD') => {
         if(!window.confirm("Вы уверены?")) return;
         setProcessingId(id);
@@ -49,6 +50,19 @@ const FinanceTab = () => {
             if (type === 'DEP') setDeposits(prev => prev.filter(d => d._id !== id));
             else setWithdrawals(prev => prev.filter(w => w._id !== id));
         } catch (e) { alert("Ошибка выполнения"); } finally { setProcessingId(null); }
+    };
+
+    // Метод отклонения
+    const handleReject = async (id: string, apiCall: Function, type: 'DEP' | 'WD') => {
+        const reason = window.prompt("Введите причину отказа (будет видна пользователю):");
+        if (reason === null) return; // Если нажали "Отмена"
+
+        setProcessingId(id);
+        try {
+            await apiCall(id, reason || "Invalid data provided");
+            if (type === 'DEP') setDeposits(prev => prev.filter(d => d._id !== id));
+            else setWithdrawals(prev => prev.filter(w => w._id !== id));
+        } catch (e) { alert("Ошибка при отклонении"); } finally { setProcessingId(null); }
     };
 
     if (loading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin text-tyrex-ultra-gold-glow"/></div>;
@@ -72,12 +86,18 @@ const FinanceTab = () => {
                                 <p className="text-[10px] text-white/50">ID: {d.userId?.tgId}</p>
                                 <p className="text-xs text-white/50 w-32 truncate mt-1" title={d.txHash}>{d.txHash}</p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex flex-col items-end">
                                 <p className="text-green-400 font-mono text-sm font-bold">+${safeToFixed(d.amountUsd)}</p>
-                                <button disabled={!!processingId} onClick={() => handleAction(d._id, adminApi.confirmDeposit, 'DEP')}
-                                    className="text-[10px] bg-green-700 px-3 py-1.5 rounded text-white mt-2 hover:bg-green-600 font-bold">
-                                    {processingId === d._id ? '...' : 'Подтвердить'}
-                                </button>
+                                <div className="flex space-x-1 mt-2">
+                                    <button disabled={!!processingId} onClick={() => handleAction(d._id, adminApi.confirmDeposit, 'DEP')}
+                                        className="text-[10px] bg-green-700 px-3 py-1.5 rounded text-white hover:bg-green-600 font-bold">
+                                        {processingId === d._id ? '...' : 'Принять'}
+                                    </button>
+                                    <button disabled={!!processingId} onClick={() => handleReject(d._id, adminApi.rejectDeposit, 'DEP')}
+                                        className="text-[10px] bg-red-900 px-3 py-1.5 rounded text-white hover:bg-red-800 font-bold">
+                                        Отказать
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -95,12 +115,18 @@ const FinanceTab = () => {
                                 <p className="text-[10px] text-white/50">Баланс: ${safeToFixed(w.userId?.balance?.walletUsd)}</p>
                                 <p className="text-xs text-white/50 w-32 truncate mt-1" title={w.walletAddress}>{w.walletAddress}</p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex flex-col items-end">
                                 <p className="text-red-400 font-mono text-sm font-bold">-${safeToFixed(w.amountUsd)}</p>
-                                <button disabled={!!processingId} onClick={() => handleAction(w._id, adminApi.processWithdrawal, 'WD')}
-                                    className="text-[10px] bg-red-700 px-3 py-1.5 rounded text-white mt-2 hover:bg-red-600 font-bold">
-                                    {processingId === w._id ? '...' : 'Выплачено'}
-                                </button>
+                                <div className="flex space-x-1 mt-2">
+                                    <button disabled={!!processingId} onClick={() => handleAction(w._id, adminApi.processWithdrawal, 'WD')}
+                                        className="text-[10px] bg-blue-700 px-3 py-1.5 rounded text-white hover:bg-blue-600 font-bold">
+                                        {processingId === w._id ? '...' : 'Выплачено'}
+                                    </button>
+                                    <button disabled={!!processingId} onClick={() => handleReject(w._id, adminApi.rejectWithdrawal, 'WD')}
+                                        className="text-[10px] bg-red-900 px-3 py-1.5 rounded text-white hover:bg-red-800 font-bold">
+                                        Отказать
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -111,7 +137,7 @@ const FinanceTab = () => {
 };
 
 // =========================================================
-// ОСНОВНОЙ КОМПОНЕНТ (Без изменений, но полный код для целостности)
+// ОСНОВНОЙ КОМПОНЕНТ
 // =========================================================
 const AdminDashboardScreen: React.FC = () => {
     const navigate = useNavigate();
@@ -134,12 +160,11 @@ const AdminDashboardScreen: React.FC = () => {
                 <button onClick={() => navigate('/profile')} className="text-sm text-white/50 hover:text-white">Exit</button>
             </div>
 
-            <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+            <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
                 {[
                     { id: 'STATS', label: 'Overview', icon: LayoutGrid },
                     { id: 'FINANCE', label: 'Finance', icon: Wallet },
                     { id: 'USERS', label: 'Users', icon: Users },
-                    // { id: 'MARKET', label: 'Market', icon: RefreshCw }, // Можно раскомментировать
                 ].map((tab) => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id as TabType)}
                         className={clsx("flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all",
@@ -158,8 +183,7 @@ const AdminDashboardScreen: React.FC = () => {
                     </div>
                 )}
                 {activeTab === 'FINANCE' && <FinanceTab />}
-    {activeTab === 'USERS' && <UsersTab />} {/* <--- Добавьте эту строку */}
-                {/* {activeTab === 'MARKET' && <div>Market management...</div>} */}
+                {activeTab === 'USERS' && <UsersTab />}
             </div>
         </div>
     );
