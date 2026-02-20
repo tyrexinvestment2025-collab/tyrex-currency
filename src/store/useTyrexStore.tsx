@@ -9,13 +9,13 @@ export interface TyrexCard {
   purchasePriceUsd: number; 
   clientAPY: number;
   referralAPY: number;
-  status: 'Inactive' | 'Active' | 'Cooling' | 'Finished' | 'OnSale'; // <--- Добавили OnSale
+  status: 'Inactive' | 'Active' | 'Cooling' | 'Finished' | 'OnSale'; 
   boughtAtTimestamp: number;
   currentProfitUsd: number; 
   unlockTimestamp?: number;
   serialNumber?: number; 
   imageUrl?: string;
-  listingPriceUsd?: number; // <--- НОВОЕ
+  listingPriceUsd?: number; 
 }
 
 export interface TyrexCardType {
@@ -27,7 +27,7 @@ export interface TyrexCardType {
     clientAPY: string;
     referralAPY: string;       
     available: number;
-    maxSupply: number; // НОВОЕ
+    maxSupply: number; 
     isAvailable: boolean;
     imageUrl?: string;
 }
@@ -46,6 +46,8 @@ interface TyrexState {
   cards: TyrexCard[];
   marketCardTypes: TyrexCardType[];
 
+  // НОВЫЙ МЕТОД: Обновление цены и автоматический пересчет цен в маркете
+  updateBtcPrice: (price: number) => void;
   setInitialData: (userData: any, currentBtcPrice?: number) => void;
   loadCardTypes: (typesData: any[], currentBtcPrice: number) => void;
   simulateDailyInterest: () => void;
@@ -64,7 +66,7 @@ const parseVal = (value: any): number => {
 };
 
 export const useTyrexStore = create<TyrexState>((set, _get) => ({
-  btcPrice: 96500, 
+  btcPrice: 0, // УБРАЛИ ХАРДКОД. Начальное состояние - 0 (загрузка)
   
  balance: {
     walletUsd: 0,
@@ -77,6 +79,19 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
   },
   cards: [],
   marketCardTypes: [],
+
+  // ЛОГИКА ОБНОВЛЕНИЯ: Когда цена меняется, мы сразу обновляем btcPrice 
+  // и пересчитываем priceUSDT для всех типов карт в магазине
+  updateBtcPrice: (price: number) => set((state) => {
+      if (!price || price === state.btcPrice) return {};
+      
+      const updatedMarket = state.marketCardTypes.map(type => ({
+          ...type,
+          priceUSDT: Math.round((type.nominalSats / SATS_IN_BTC) * price)
+      }));
+
+      return { btcPrice: price, marketCardTypes: updatedMarket };
+  }),
   
   loadCardTypes: (typesData: any[], currentBtcPrice: number) => set((state) => {
       if (!Array.isArray(typesData)) return {};
@@ -86,12 +101,13 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
           const nominalSats = parseVal(type.nominalSats);
           const nominalBtc = nominalSats / SATS_IN_BTC;
           return {
-              id: type._id,
+              id: type._id || type.id,
               name: type.name,
               imageUrl: type.imageUrl,
               nominalBtcDisplay: `${nominalBtc.toFixed(8)} BTC`, 
               nominalSats: nominalSats,
-              priceUSDT: parseVal(type.priceUSDT) || (nominalBtc * price), 
+              // Если цена BTC уже есть в системе, считаем стоимость сразу
+              priceUSDT: price > 0 ? Math.round(nominalBtc * price) : (parseVal(type.priceUSDT) || 0), 
               clientAPY: `${type.clientAPY}%`, 
               referralAPY: `${type.referralAPY || 0}%`,
               available: type.available,
@@ -110,7 +126,6 @@ setInitialData: (userData, currentBtcPrice) => set((state) => {
     const userCards = Array.isArray(userData.cards) ? userData.cards : [];
     
     const updatedCards: TyrexCard[] = userCards.map((card: any) => {
-        // Добавляем imageUrl в объект по умолчанию на случай ошибки
         const cardType = (card.cardTypeId && typeof card.cardTypeId === 'object') 
             ? card.cardTypeId 
             : { name: 'Miner', clientAPY: 0, referralAPY: 0, imageUrl: '' };
@@ -130,7 +145,6 @@ setInitialData: (userData, currentBtcPrice) => set((state) => {
             currentProfitUsd: parseVal(card.currentProfitUsd),
             unlockTimestamp: card.unlockAt ? new Date(card.unlockAt).getTime() : undefined,
             serialNumber: card.serialNumber,
-            // Сначала смотрим картинку в самой карте (UserCard), потом в типе (CardType)
             imageUrl: card.imageUrl || cardType.imageUrl || '' 
         };
     });
@@ -138,10 +152,9 @@ setInitialData: (userData, currentBtcPrice) => set((state) => {
     return { 
         btcPrice: price,
         balance: {
-            
             walletUsd: parseVal(balanceObj.walletUsd),
-            walletSats: balanceObj.walletSats || 0,     // НОВОЕ
-            referralSats: balanceObj.referralSats || 0, // НОВОЕ
+            walletSats: balanceObj.walletSats || 0,
+            referralSats: balanceObj.referralSats || 0,
             stakingBTC: updatedCards
                 .filter(c => c.status === 'Active')
                 .reduce((sum, c) => sum + c.nominalBtc, 0),

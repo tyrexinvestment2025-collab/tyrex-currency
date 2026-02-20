@@ -1,120 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram'; 
 import { useTyrexStore } from '../store/useTyrexStore';
 import { userApi } from '../api/tyrexApi';
 import { 
     Copy, X, Loader2, Bell, Plus, 
-    ArrowUpRight, 
-    Clock, CheckCircle, XCircle, Info, MessageCircle, ChevronRight, Bitcoin,
-    Users
+    ArrowUpRight, History, Clock, CheckCircle, 
+    XCircle, Info, MessageCircle, Bitcoin,
+    QrCode, ArrowDown, Users, Zap
 } from 'lucide-react';
 import TyrexModal from '../components/common/TyrexModal';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ADMIN_WALLET_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; 
+const ADMIN_WALLET_ADDRESS = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"; 
 const SATS_IN_BTC = 100000000;
 
 // --- 1. ВСПОМОГАТЕЛЬНЫЙ КОМПОНЕНТ: СТАТУС ТРАНЗАКЦИИ ---
 const StatusIcon = ({ status }: { status: string }) => {
     switch (status) {
-        case 'PENDING': return <Clock className="w-3 h-3 text-yellow-500" />;
+        case 'PENDING': return <Clock size={12} className="text-amber-500" />;
         case 'CONFIRMED': 
-        case 'PROCESSED': return <CheckCircle className="w-3 h-3 text-green-500" />;
-        case 'REJECTED': return <XCircle className="w-3 h-3 text-red-500" />;
+        case 'PROCESSED': return <CheckCircle size={12} className="text-emerald-500" />;
+        case 'REJECTED': return <XCircle size={12} className="text-rose-500" />;
         default: return null;
     }
 };
 
-// --- 2. КОМПОНЕНТ: ДЕТАЛЬНЫЙ ОБЗОР ТРАНЗАКЦИИ (ЧЕК) ---
-const TransactionDetailModal = ({ tx, onClose }: { tx: any, onClose: () => void }) => {
-    if (!tx) return null;
-    const copyText = (text: string) => {
-        navigator.clipboard.writeText(text);
-        alert("Скопировано!");
-    };
-
-    return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in">
-            <div className="bg-[#0D0D0E] border border-white/10 w-full max-w-sm rounded-[3.5rem] p-8 shadow-2xl relative">
-                <button onClick={onClose} className="absolute top-8 right-8 p-2 bg-white/5 rounded-full border border-white/10 active:scale-90 transition-all">
-                    <X className="w-4 h-4 text-white/50"/>
-                </button>
-                
-                <div className="text-center mb-8">
-                    <div className={clsx("w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4", 
-                        tx.type === 'DEPOSIT' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500")}>
-                        {tx.type === 'DEPOSIT' ? <Plus className="w-8 h-8" /> : <ArrowUpRight className="w-8 h-8" />}
-                    </div>
-                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">
-                        {tx.type === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'}
-                    </h3>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="bg-white/5 rounded-3xl p-6 text-center border border-white/5">
-                        <p className="text-[10px] text-white/40 uppercase font-black mb-1">Total Amount</p>
-                        <p className={clsx("text-3xl font-black italic", tx.type === 'DEPOSIT' ? "text-green-400" : "text-white")}>
-                            ${tx.amount.toFixed(2)}
-                        </p>
-                    </div>
-
-                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                         <p className="text-[8px] text-white/30 uppercase font-black mb-1">Status Report</p>
-                         <p className={clsx("text-xs font-bold", tx.status === 'REJECTED' ? "text-red-400" : "text-white/70")}>
-                            {tx.adminComment || (tx.status === 'PENDING' ? "Ожидает подтверждения" : "Успешно завершено")}
-                         </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col items-center">
-                            <p className="text-[8px] text-white/30 uppercase font-black mb-1">Status</p>
-                            <div className="flex items-center space-x-1">
-                                <StatusIcon status={tx.status} />
-                                <span className={clsx("text-[10px] font-black uppercase", tx.status === 'REJECTED' ? 'text-red-500' : 'text-green-500')}>
-                                    {tx.status}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="bg-white/5 rounded-2xl p-3 border border-white/5 flex flex-col items-center">
-                            <p className="text-[8px] text-white/30 uppercase font-black mb-1">Date</p>
-                            <p className="text-[10px] text-white font-bold">{new Date(tx.date).toLocaleDateString()}</p>
-                        </div>
-                    </div>
-
-                    {tx.status === 'REJECTED' && (
-                        <button 
-                            onClick={() => window.open('https://t.me/tyrex_support')}
-                            className="w-full py-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center space-x-2 text-red-400 font-black text-xs uppercase active:scale-95 transition-all"
-                        >
-                            <MessageCircle className="w-4 h-4" />
-                            <span>Написать в поддержку</span>
-                        </button>
-                    )}
-
-                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                        <p className="text-[8px] text-white/30 uppercase font-black mb-1">{tx.type === 'DEPOSIT' ? 'TxHash' : 'Wallet'}</p>
-                        <div onClick={() => copyText(tx.meta)} className="flex items-center justify-between cursor-pointer active:opacity-50">
-                            <p className="text-[9px] text-tyrex-ultra-gold-glow font-mono truncate mr-2">{tx.meta}</p>
-                            <Copy className="w-3.5 h-3.5 text-white/30 shrink-0"/>
-                        </div>
-                    </div>
-                </div>
-                <button onClick={onClose} className="w-full mt-8 py-5 bg-white/5 rounded-2xl text-xs font-black uppercase tracking-widest text-white/40 active:text-white transition-colors">Close Receipt</button>
-            </div>
-        </div>
-    );
-};
-
-// --- 3. ГЛАВНЫЙ ЭКРАН ---
 const DashboardScreen: React.FC = () => {
     const navigate = useNavigate();
     const { tg, refreshAllData, user } = useTelegram();
-    const { simulateDailyInterest, balance, btcPrice } = useTyrexStore();
+    const { simulateDailyInterest, balance, btcPrice, cards } = useTyrexStore();
 
     // Состояния
     const [isDepositOpen, setDepositOpen] = useState(false);
+    const [isWithdrawOpen, setWithdrawOpen] = useState(false);
     const [isHistoryOpen, setHistoryOpen] = useState(false);
     const [isNotifOpen, setNotifOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
@@ -125,7 +45,7 @@ const DashboardScreen: React.FC = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [criticalAlert, setCriticalAlert] = useState<any>(null);
-    const [resultModal, setResultModal] = useState({ isOpen: false, title: '', message: '', isError: false });
+    const [resultModal, setResultModal] = useState({ isOpen: false, title: '', message: '' });
 
     useEffect(() => {
         if (tg) tg.ready();
@@ -156,231 +76,339 @@ const DashboardScreen: React.FC = () => {
         } catch (e) { console.error(e); }
     };
 
-    const inWorkPercent = balance.totalBTC > 0 
-        ? Math.min(100, Math.round((balance.stakingBTC / balance.totalBTC) * 100)) 
-        : 0;
-
-    const handleDepositSubmit = async () => {
-        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return alert("Enter valid amount");
-        if (!walletOrHash) return alert("Enter Hash");
+    const handleAction = async (method: any) => {
         setLoading(true);
         try {
-            await userApi.requestDeposit(Number(amount), walletOrHash);
-            setDepositOpen(false);
-            setResultModal({ isOpen: true, title: 'Success', message: 'Request submitted.', isError: false });
-            setAmount(''); setWalletOrHash('');
+            await method();
+            setDepositOpen(false); setWithdrawOpen(false);
             loadHistorySilently();
         } catch (error: any) {
-            setResultModal({ isOpen: true, title: 'Error', message: error.message, isError: true });
+            alert(error.message);
         } finally { setLoading(false); refreshAllData(); }
     };
 
+    // --- РАСЧЕТЫ КОНЦЕПЦИИ "BTC KING" ---
+    const btcStats = useMemo(() => {
+        const activeCards = cards.filter(c => c.status === 'Active');
+        const walletBtc = balance.walletUsd / btcPrice;
+        const totalEquityBtc = balance.totalBTC + walletBtc;
+        const totalEquityUsd = totalEquityBtc * btcPrice;
+        const dailyProfitBtc = activeCards.reduce((acc, c) => acc + (c.nominalBtc * (c.clientAPY / 100) / 365), 0);
+        const totalProfitBtc = balance.totalProfitUsd / btcPrice;
+        const referralBtcTotal = balance.referralSats / SATS_IN_BTC;
+        const dailyRefBtc = referralBtcTotal > 0 ? (referralBtcTotal / 30) : 0;
+
+        const averageApy = activeCards.length > 0 
+            ? (activeCards.reduce((a, b) => a + b.clientAPY, 0) / activeCards.length).toFixed(1) 
+            : "25.0";
+
+        return {
+            totalEquityBtc, totalEquityUsd, dailyProfitBtc,
+            totalProfitBtc, averageApy, activeCount: activeCards.length,
+            referralBtcTotal, dailyRefBtc
+        };
+    }, [cards, balance, btcPrice]);
+
     return (
-        <div className="min-h-screen bg-black text-white font-sans pb-32">
+        <div className="min-h-screen bg-[#050505] text-white font-sans pb-32 relative overflow-hidden">
             
-            {/* КРИТИЧЕСКИЙ АЛЕРТ */}
+            {/* Глубокое свечение */}
+            <div className="fixed top-[-10%] left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#FDB931] opacity-[0.02] blur-[120px] rounded-full pointer-events-none" />
+
             <AnimatePresence>
                 {criticalAlert && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-                        <div className="absolute inset-0 bg-red-950/90 backdrop-blur-xl" />
-                        <div className="relative z-10 bg-[#121213] border border-red-500/20 w-full max-w-sm rounded-[3rem] p-8 text-center shadow-2xl">
-                            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-                            <h2 className="text-2xl font-black uppercase italic text-white mb-2">{criticalAlert.title}</h2>
-                            <p className="text-white/60 text-sm leading-relaxed mb-8">{criticalAlert.message}</p>
-                            <div className="space-y-3">
-                                <button onClick={() => { setCriticalAlert(null); userApi.markNotificationsRead(); refreshAllData(); }} 
-                                    className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase text-xs active:scale-95 transition-all">Попробовать снова</button>
-                                <button onClick={() => window.open('https://t.me/tyrex_support')} 
-                                    className="w-full py-4 bg-white/5 text-white/40 rounded-2xl font-bold uppercase text-[10px] flex items-center justify-center space-x-2"><MessageCircle className="w-4 h-4"/> <span>Поддержка</span></button>
-                            </div>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-xl">
+                        <div className="relative z-10 bg-[#121212] border border-rose-500/20 w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl">
+                            <XCircle className="w-16 h-16 text-rose-500 mx-auto mb-6" />
+                            <h2 className="text-2xl font-bold text-white mb-2">{criticalAlert.title}</h2>
+                            <p className="text-slate-400 text-sm leading-relaxed mb-8">{criticalAlert.message}</p>
+                            <button onClick={() => { setCriticalAlert(null); userApi.markNotificationsRead(); refreshAllData(); }} 
+                                className="w-full py-5 bg-white text-black rounded-2xl font-bold uppercase text-xs active:scale-95 transition-all">OK</button>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* ШАПКА */}
-            <header className="p-6 pt-8 flex justify-between items-center">
-                <div onClick={() => navigate('/profile')} className="flex items-center space-x-3 cursor-pointer active:opacity-60 transition-opacity">
-                    <div className="w-10 h-10 bg-tyrex-ultra-gold-glow rounded-full flex items-center justify-center text-black font-black text-sm shadow-[0_0_20px_rgba(255,215,0,0.2)]">
-                        {user?.username?.[0]?.toUpperCase()}
+            {/* --- 1. HEADER --- */}
+            <header className="px-6 pt-8 flex justify-between items-center">
+                <div onClick={() => navigate('/profile')} className="flex items-center space-x-3 cursor-pointer active:opacity-60">
+                    <div className="w-10 h-10 bg-white/[0.03] border border-white/[0.08] rounded-full flex items-center justify-center shadow-inner">
+                        <span className="text-tyrex-ultra-gold-glow font-bold">{user?.username?.[0]?.toUpperCase()}</span>
                     </div>
-                    <div>
-                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none mb-1">Welcome back,</p>
-                        <h2 className="text-base font-black tracking-tight">@{user?.username || 'Miner'}</h2>
-                    </div>
+                    <span className="text-sm font-semibold text-slate-200">@{user?.username || 'Miner'}</span>
                 </div>
-                <button onClick={() => setNotifOpen(true)} className="relative p-2 bg-white/5 rounded-full border border-white/10 active:scale-90 transition-all">
-                    <Bell className="w-5 h-5 text-white/70" />
-                    {unreadCount > 0 && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black" />}
-                </button>
+                <div className="flex space-x-3">
+                    <button className="p-2.5 bg-white/[0.03] rounded-full border border-white/[0.08] active:scale-90 transition-all"><QrCode size={20} className="text-slate-400" /></button>
+                    <button onClick={() => setNotifOpen(true)} className="relative p-2.5 bg-white/[0.03] rounded-full border border-white/[0.08] active:scale-90 transition-all">
+                        <Bell size={20} className="text-white/70" />
+                        {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#050505]" />}
+                    </button>
+                </div>
             </header>
 
-            <main className="px-5 space-y-6">
+            <main className="mt-10 space-y-10">
                 
-                {/* 1. BTC ПОРТФЕЛЬ (КНОПКА) */}
-                <div 
-                    onClick={() => navigate('/collection')}
-                    className="bg-[#111112] border border-white/5 rounded-[2.5rem] p-7 shadow-2xl relative overflow-hidden active:scale-[0.98] transition-all cursor-pointer group"
-                >
-                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-active:opacity-[0.08] transition-opacity"><Bitcoin className="w-32 h-32" /></div>
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-3">BTC ПОРТФЕЛЬ</p>
-                    <h1 className="text-[40px] font-black italic tracking-tighter leading-none mb-6">
-                        {balance.totalBTC.toFixed(8)} <span className="text-sm not-italic opacity-20 uppercase font-sans">BTC</span>
+                {/* --- 2. HERO BALANCE SECTION --- */}
+                <section className="px-8 flex flex-col items-center text-center">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-4">Total Assets</p>
+                    <h1 className="text-[42px] font-mono font-bold tracking-tighter leading-none mb-3 text-white flex items-center justify-center">
+                        <span className="text-tyrex-ultra-gold-glow mr-3">₿</span>
+                        {btcStats.totalEquityBtc.toFixed(8)}
                     </h1>
-                    <div className="space-y-3">
-                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${inWorkPercent}%` }} className="h-full bg-tyrex-ultra-gold-glow shadow-[0_0_15px_rgba(255,215,0,0.3)]" />
-                        </div>
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wide">
-                            <span className="text-tyrex-ultra-gold-glow">В работе: {inWorkPercent}%</span>
-                            <span className="text-white/20">На кошельке: {100 - inWorkPercent}%</span>
-                        </div>
-                    </div>
-                </div>
+                    <p className="text-[17px] font-medium text-slate-500 mb-8 tabular-nums tracking-tight">
+                        <span className="opacity-20 font-sans mr-1">≈</span>
+                        <span className="opacity-20 font-sans">$</span>
+                        {btcStats.totalEquityUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </p>
 
-                {/* 2. USD КОШЕЛЕК (КЛИКАБЕЛЬНАЯ ЦИФРА) */}
-                <section className="bg-white/[0.03] border border-white/5 rounded-[2rem] p-5 flex items-center justify-between">
-                    <div 
-                        onClick={() => setHistoryOpen(true)}
-                        className="active:opacity-50 transition-opacity cursor-pointer pr-4"
-                    >
-                        <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-1">Баланс для покупок</p>
-                        <h3 className="text-xl font-black tabular-nums tracking-tight">
-                            ${balance.walletUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </h3>
+                    <div className="bg-white/[0.03] border border-white/[0.08] px-6 py-3 rounded-full flex items-center space-x-4 shadow-xl">
+                        <div className="flex items-center space-x-2">
+                            <span className="text-emerald-500 font-mono font-bold text-[13px]">+{btcStats.dailyProfitBtc.toFixed(8)}</span>
+                            <span className="text-white/20 text-[8px] font-black uppercase tracking-widest">today</span>
+                        </div>
+                        <div className="w-[1px] h-3 bg-white/10" />
+                        <div className="flex items-center space-x-2">
+                            <span className="text-slate-200 font-mono font-bold text-[13px]">{btcStats.totalProfitBtc.toFixed(6)}</span>
+                            <span className="text-white/20 text-[8px] font-black uppercase tracking-widest">all time</span>
+                        </div>
                     </div>
-                    <button 
-                        onClick={() => setDepositOpen(true)}
-                        className="bg-tyrex-ultra-gold-glow text-black p-4 rounded-2xl shadow-xl active:scale-95 transition-all flex items-center space-x-2"
-                    >
-                        <Plus className="w-5 h-5 stroke-[3px]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Пополнить</span>
-                    </button>
                 </section>
 
-                {/* 3. ДОХОД ОТ ПАРТНЕРОВ (КНОПКА) */}
-                <div 
-                    onClick={() => navigate('/referral')}
-                    className="bg-orange-500/5 border border-orange-500/10 rounded-[2rem] p-5 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer group"
-                >
-                    <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-tyrex-ultra-gold-glow/10 rounded-2xl flex items-center justify-center group-active:bg-tyrex-ultra-gold-glow/20 transition-colors">
-                            <Users className="w-6 h-6 text-tyrex-ultra-gold-glow" />
+                {/* --- 3. ACTION BAR --- */}
+                <section className="px-8 flex justify-center space-x-10">
+                    <QuickAction icon={ArrowDown} label="Add" onClick={() => setDepositOpen(true)} accent />
+                    <QuickAction icon={ArrowUpRight} label="Send" onClick={() => setWithdrawOpen(true)} />
+                    <QuickAction icon={History} label="History" onClick={() => setHistoryOpen(true)} />
+                </section>
+
+                {/* --- 4. ACTIVE INCOME GRID --- */}
+                <section className="px-6 grid grid-cols-2 gap-4">
+                    
+                    {/* MINING CARD */}
+                    <div 
+                        onClick={() => navigate('/collection')}
+                        className="bg-gradient-to-br from-[#111] to-[#080808] border border-white/[0.08] rounded-[2.2rem] p-5 shadow-xl active:scale-[0.98] transition-all cursor-pointer group"
+                    >
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Mining</h3>
+                            <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center">
+                                <Zap size={10} className="mr-1" /> {btcStats.averageApy}%
+                            </span>
                         </div>
-                        <div>
-                            <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-0.5">Доход с партнеров (всего)</p>
-                            <div className="flex items-baseline space-x-1.5">
-                                <span className="text-lg font-black text-tyrex-ultra-gold-glow italic">{(balance.referralSats / SATS_IN_BTC).toFixed(8)}</span>
-                                <span className="text-[10px] font-bold text-white/20 uppercase tracking-tighter font-sans">≈ ${( (balance.referralSats / SATS_IN_BTC) * btcPrice ).toFixed(2)}</span>
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Power</p>
+                            <p className="text-lg font-bold text-white leading-none">{btcStats.activeCount} Nodes</p>
+                            
+                            <div className="pt-4">
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Est. Revenue</p>
+                                <p className="text-[10px] font-mono font-bold text-emerald-400">
+                                    +{btcStats.dailyProfitBtc.toFixed(8)} <span className="opacity-50 font-sans text-[8px]">today</span>
+                                </p>
                             </div>
                         </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-white/10 group-hover:text-tyrex-ultra-gold-glow" />
-                </div>
 
-                {/* 4. ПОСЛЕДНИЕ ОПЕРАЦИИ */}
-                <section className="space-y-4">
-                    <div className="flex justify-between items-end px-2">
-                        <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">Последние операции</h3>
-                        <button onClick={() => setHistoryOpen(true)} className="text-[10px] font-bold text-tyrex-ultra-gold-glow uppercase flex items-center">
-                            Смотреть все <ChevronRight className="w-3 h-3 ml-1" />
-                        </button>
+                    {/* PARTNERS CARD */}
+                    <div 
+                        onClick={() => navigate('/referral')}
+                        className="bg-gradient-to-br from-[#12111a] to-[#0a080f] border border-purple-500/10 rounded-[2.2rem] p-5 shadow-xl active:scale-[0.98] transition-all cursor-pointer group"
+                    >
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-[10px] font-bold text-purple-300 uppercase tracking-widest">Partners</h3>
+                            <span className="bg-purple-500/10 text-purple-400 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center">
+                                <Users size={10} className="mr-1" /> 15%
+                            </span>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Earned</p>
+                            <p className="text-lg font-bold text-white leading-none">₿ {btcStats.referralBtcTotal.toFixed(6)}</p>
+                            
+                            <div className="pt-4">
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active</p>
+                                <p className="text-[10px] font-mono font-bold text-purple-400">
+                                    +{btcStats.dailyRefBtc.toFixed(8)} <span className="opacity-50 font-sans text-[8px]">today</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* --- 5. ACTIVITY FEED --- */}
+                <section className="px-6 space-y-6">
+                    <div className="flex justify-between items-center px-2">
+                        <h3 className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.2em]">Live Stream</h3>
+                        <button onClick={() => setHistoryOpen(true)} className="text-[11px] font-bold text-tyrex-ultra-gold-glow hover:opacity-70 transition-opacity">Full History</button>
                     </div>
 
-                    <div className="space-y-2">
-                        {history.length === 0 ? (
-                            <div className="py-8 text-center bg-white/[0.01] border border-white/5 rounded-[2rem] italic text-white/20 text-[10px] uppercase font-bold">Пусто</div>
-                        ) : (
-                            history.slice(0, 3).map((item) => (
-                                <div key={item.id} onClick={() => setSelectedTransaction(item)} className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex justify-between items-center active:bg-white/5 transition-all cursor-pointer">
-                                    <div className="flex items-center space-x-3">
-                                        <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center", item.type === 'DEPOSIT' ? "text-green-500 bg-green-500/10" : "text-red-500 bg-red-500/10")}>
-                                            {item.type === 'DEPOSIT' ? <Plus className="w-4 h-4"/> : <ArrowUpRight className="w-4 h-4"/>}
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-white/90">{item.type}</p>
-                                            <p className="text-[9px] text-white/30 font-bold uppercase">{new Date(item.date).toLocaleDateString()}</p>
-                                        </div>
+                    <div className="space-y-4">
+                        {history.slice(0, 3).map((item) => (
+                            <div 
+                                key={item.id} 
+                                onClick={() => setSelectedTransaction(item)} 
+                                className="bg-white/[0.02] border border-white/[0.05] p-5 rounded-[2.2rem] flex justify-between items-center active:bg-white/[0.04] transition-all cursor-pointer"
+                            >
+                                <div className="flex items-center space-x-5">
+                                    <div className={clsx(
+                                        "w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg",
+                                        item.type === 'DEPOSIT' ? "text-emerald-500 bg-emerald-500/10" : "text-amber-500 bg-amber-500/10"
+                                    )}>
+                                        {item.type === 'DEPOSIT' ? <Plus size={20} /> : <Bitcoin size={20} />}
                                     </div>
-                                    <div className="text-right">
-                                        <p className={clsx("text-sm font-black italic", item.type === 'DEPOSIT' ? "text-green-400" : "text-white")}>
-                                            ${item.amount.toFixed(2)}
+                                    <div>
+                                        <p className="text-[14px] font-bold text-white/90 uppercase tracking-tighter">
+                                            {item.type === 'DEPOSIT' ? 'Bridge In' : 'Revenue'}
                                         </p>
-                                        <div className="flex justify-end opacity-50"><StatusIcon status={item.status} /></div>
+                                        <p className="text-[10px] text-slate-500 font-medium uppercase mt-1 tracking-widest">{new Date(item.date).toLocaleDateString()}</p>
                                     </div>
                                 </div>
-                            ))
-                        )}
+                                <div className="text-right">
+                                    <p className={clsx("text-[15px] font-mono font-bold mb-1", item.type === 'DEPOSIT' ? "text-emerald-400" : "text-white")}>
+                                        {item.type === 'DEPOSIT' ? `+$${item.amount.toFixed(2)}` : `₿ ${(item.amount / btcPrice).toFixed(8)}`}
+                                    </p>
+                                    <StatusIcon status={item.status} />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
             </main>
 
-            {/* МОДАЛКА УВЕДОМЛЕНИЙ */}
-            <AnimatePresence>
-                {isNotifOpen && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#121213] border border-white/10 w-full max-w-sm rounded-[2rem] flex flex-col max-h-[70vh] relative shadow-2xl">
-                            <div className="p-5 border-b border-white/5 flex justify-between items-center"><h3 className="text-lg font-black uppercase italic tracking-widest text-tyrex-ultra-gold-glow">Notifications</h3><button onClick={() => setNotifOpen(false)} className="p-2 bg-white/5 rounded-full active:scale-90 transition-all"><X className="w-4 h-4" /></button></div>
-                            <div className="overflow-y-auto p-4 space-y-3 font-sans">
-                                {notifications.length === 0 ? <p className="text-center py-10 opacity-30 text-xs font-bold uppercase">No messages</p> : notifications.map((n: any) => (
-                                    <div key={n._id} className={clsx("p-4 rounded-2xl border transition-all", n.isRead ? "bg-white/[0.02] border-white/5 opacity-40" : "bg-white/[0.05] border-white/10 shadow-lg")}>
-                                        <div className="flex items-center space-x-2 mb-1"><Info className="w-3 h-3 text-tyrex-ultra-gold-glow" /><span className="text-[10px] font-black uppercase text-white">{n.title}</span></div>
-                                        <p className="text-[11px] text-white/50 leading-relaxed font-medium">{n.message}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* МОДАЛКА ПОЛНОЙ ИСТОРИИ */}
-            {isHistoryOpen && (
-                <div className="fixed inset-0 z-[105] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
-                    <div className="bg-[#111] border border-white/10 w-full max-w-sm rounded-[2rem] flex flex-col max-h-[80vh] shadow-2xl">
-                        <div className="p-5 border-b border-white/5 flex justify-between items-center"><h3 className="text-xl font-bold italic uppercase tracking-tighter">Full History</h3><button onClick={() => setHistoryOpen(false)} className="p-2 bg-white/5 rounded-full active:scale-90 transition-all"><X className="w-4 h-4"/></button></div>
-                        <div className="overflow-y-auto p-4 space-y-3">
-                            {history.map(item => (
-                                <div key={item.id} onClick={() => { setSelectedTransaction(item); setHistoryOpen(false); }} className="bg-white/5 p-4 rounded-xl flex justify-between items-center active:bg-white/10 transition-colors cursor-pointer">
-                                    <div className="flex items-center space-x-3">
-                                        <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center", item.type === 'DEPOSIT' ? "text-green-500 bg-green-500/10" : "text-red-500 bg-red-500/10")}>
-                                            {item.type === 'DEPOSIT' ? <Plus className="w-4 h-4"/> : <ArrowUpRight className="w-4 h-4"/>}
-                                        </div>
-                                        <div className="text-xs font-bold uppercase">{item.type}</div>
-                                    </div>
-                                    <div className="text-right"><div className="font-black italic">${item.amount.toFixed(2)}</div><StatusIcon status={item.status} /></div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            {/* --- MODALS (REUSED) --- */}
             {selectedTransaction && <TransactionDetailModal tx={selectedTransaction} onClose={() => setSelectedTransaction(null)} />}
-
-            {/* МОДАЛКА ПОПОЛНЕНИЯ */}
-            {isDepositOpen && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 p-4 animate-fade-in backdrop-blur-md">
-                    <div className="bg-[#121213] w-full max-w-sm rounded-[3rem] p-8 border border-white/10 relative shadow-2xl">
-                        <button onClick={() => setDepositOpen(false)} className="absolute top-8 right-8 p-2 bg-white/5 rounded-full active:scale-90 transition-all"><X className="w-4 h-4 text-white/30" /></button>
-                        <h3 className="text-2xl font-black uppercase italic mb-8 tracking-tighter">Add Funds</h3>
-                        <div className="bg-black/40 p-5 rounded-3xl border border-white/5 mb-8 text-center space-y-3">
-                            <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">USDT TRC20 Address</p>
-                            <code className="text-xs text-tyrex-ultra-gold-glow block break-all font-mono">{ADMIN_WALLET_ADDRESS}</code>
-                            <button onClick={() => {navigator.clipboard.writeText(ADMIN_WALLET_ADDRESS); alert("Copied!");}} className="mx-auto flex items-center space-x-2 bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-white/50 active:scale-95"><Copy className="w-3.5 h-3.5"/><span>Copy Address</span></button>
-                        </div>
-                        <div className="space-y-4">
-                            <input type="text" inputMode="decimal" placeholder="Amount ($)" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full bg-black border border-white/10 rounded-2xl p-5 text-white font-black outline-none focus:border-tyrex-ultra-gold-glow transition-all" />
-                            <input type="text" placeholder="Transaction Hash" value={walletOrHash} onChange={(e) => setWalletOrHash(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-5 text-white font-black outline-none focus:border-tyrex-ultra-gold-glow transition-all" />
-                            <button onClick={handleDepositSubmit} disabled={loading} className="w-full bg-tyrex-ultra-gold-glow text-black py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-sm shadow-xl active:scale-95 transition-all">{loading ? <Loader2 className="animate-spin w-5 h-5 mx-auto"/> : 'Confirm Payment'}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            
-            <TyrexModal isOpen={resultModal.isOpen} title={resultModal.title} message={resultModal.message} actionText="OK" onAction={() => setResultModal(prev => ({ ...prev, isOpen: false }))} onClose={() => setResultModal(prev => ({ ...prev, isOpen: false }))} />
+            <AnimatePresence>{isNotifOpen && <NotifModal notifications={notifications} onClose={() => setNotifOpen(false)} />}</AnimatePresence>
+            <HistoryModal isOpen={isHistoryOpen} history={history} onClose={() => setHistoryOpen(false)} onSelect={(tx:any) => {setSelectedTransaction(tx); setHistoryOpen(false);}} />
+            <DepositModal isOpen={isDepositOpen} onClose={() => setDepositOpen(false)} amount={amount} setAmount={setAmount} walletOrHash={walletOrHash} setWalletOrHash={setWalletOrHash} handleAction={() => handleAction(() => userApi.requestDeposit(Number(amount), walletOrHash))} loading={loading} />
+            <WithdrawModal isOpen={isWithdrawOpen} onClose={() => setWithdrawOpen(false)} amount={amount} setAmount={setAmount} walletOrHash={walletOrHash} setWalletOrHash={setWalletOrHash} handleAction={() => handleAction(() => userApi.requestWithdrawal(Number(amount), walletOrHash))} balance={balance.walletUsd} loading={loading} />
+            <TyrexModal isOpen={resultModal.isOpen} title={resultModal.title} message={resultModal.message} actionText="OK" onAction={() => setResultModal(prev => ({ ...prev, isOpen: false }))} onClose={function (): void {
+                throw new Error('Function not implemented.');
+            } } />
         </div>
     );
 };
 
-export default DashboardScreen;
+// --- SUB-COMPONENTS ---
+const QuickAction = ({ icon: Icon, label, onClick, accent = false }: any) => (
+    <div onClick={onClick} className="flex flex-col items-center space-y-2 cursor-pointer group active:opacity-60">
+        <div className={clsx("w-14 h-14 rounded-full flex items-center justify-center border transition-all", accent ? "bg-tyrex-ultra-gold-glow text-black border-transparent shadow-lg shadow-amber-500/10" : "bg-white/[0.05] border-white/10 text-white/50")}>
+            <Icon size={24} strokeWidth={accent ? 3 : 2} />
+        </div>
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</span>
+    </div>
+);
+
+const NotifModal = ({ notifications, onClose }: any) => (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#121213] border border-white/10 w-full max-w-sm rounded-[3rem] flex flex-col max-h-[70vh] relative shadow-2xl p-8">
+            <button onClick={onClose} className="absolute top-8 right-8 p-2 bg-white/5 rounded-full"><X size={16} className="text-slate-500" /></button>
+            <h3 className="text-xl font-bold uppercase mb-8 tracking-tight">Signals</h3>
+            <div className="overflow-y-auto space-y-4">
+                {notifications.length === 0 ? <p className="text-center py-10 opacity-30 text-xs font-bold uppercase">Signal lost</p> : notifications.map((n: any) => (
+                    <div key={n._id} className="p-5 rounded-3xl border border-white/5 bg-white/[0.02]">
+                        <div className="flex items-center space-x-2 mb-2"><Info size={14} className="text-tyrex-ultra-gold-glow" /><span className="text-[11px] font-bold uppercase text-white">{n.title}</span></div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{n.message}</p>
+                    </div>
+                ))}
+            </div>
+        </motion.div>
+    </div>
+);
+
+const HistoryModal = ({ isOpen, history, onClose, onSelect }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[105] flex items-center justify-center bg-black/95 p-4 backdrop-blur-md">
+            <div className="bg-[#111] border border-white/10 w-full max-w-sm rounded-[3rem] flex flex-col max-h-[85vh] shadow-2xl">
+                <div className="p-6 border-b border-white/5 flex justify-between items-center"><h3 className="text-xl font-bold uppercase tracking-tighter font-sans">Full History</h3><button onClick={onClose} className="p-2 bg-white/5 rounded-full active:scale-90 transition-all"><X size={18}/></button></div>
+                <div className="overflow-y-auto p-5 space-y-3">
+                    {history.map((item:any) => (
+                        <div key={item.id} onClick={() => onSelect(item)} className="bg-white/[0.03] p-5 rounded-[2rem] flex justify-between items-center active:bg-white/10 transition-all cursor-pointer border border-white/5">
+                            <div className="flex items-center space-x-4"><div className={clsx("w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-black", item.type === 'DEPOSIT' ? "text-green-500 bg-green-500/10" : "text-purple-500 bg-purple-500/10")}><History className="w-5 h-5"/></div><div><p className="text-[11px] font-bold uppercase tracking-tighter">{item.type}</p><p className="text-[8px] opacity-30 font-bold">{new Date(item.date).toLocaleString()}</p></div></div>
+                            <div className="text-right font-bold italic text-sm tracking-tighter">${item.amount.toFixed(2)}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const DepositModal = ({ isOpen, onClose, amount, setAmount, walletOrHash, setWalletOrHash, handleAction, loading }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/98 p-6 backdrop-blur-3xl">
+            <div className="bg-[#0A0A0B] w-full max-w-sm rounded-[3.5rem] p-10 border border-white/[0.08] relative shadow-2xl">
+                <button onClick={onClose} className="absolute top-10 right-10 p-2 bg-white/5 rounded-full"><X size={18} className="text-slate-500" /></button>
+                <h3 className="text-2xl font-bold uppercase mb-10 tracking-tight text-white">Bridge In</h3>
+                <div className="bg-black/60 p-7 rounded-[2.5rem] border border-white/[0.05] mb-10 text-center space-y-4 shadow-inner">
+                    <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.3em]">Network Address (BTC)</p>
+                    <code className="text-xs text-tyrex-ultra-gold-glow block break-all font-mono opacity-90">{ADMIN_WALLET_ADDRESS}</code>
+                    <button onClick={() => {navigator.clipboard.writeText(ADMIN_WALLET_ADDRESS); alert("Copied");}} className="mx-auto flex items-center space-x-2 bg-white/5 px-6 py-3 rounded-2xl text-[11px] font-bold uppercase text-slate-400 active:scale-95 transition-all">
+                        <Copy size={14}/><span>Copy Node</span>
+                    </button>
+                </div>
+                <div className="space-y-5">
+                    <input type="text" inputMode="decimal" placeholder="Amount ($)" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full bg-black border border-white/10 rounded-2xl p-6 text-white font-black outline-none focus:border-tyrex-ultra-gold-glow transition-all text-lg shadow-inner" />
+                    <input type="text" placeholder="Transaction ID (Hash)" value={walletOrHash} onChange={(e) => setWalletOrHash(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-6 text-white font-black outline-none focus:border-tyrex-ultra-gold-glow transition-all shadow-inner" />
+                    <button onClick={handleAction} disabled={loading} className="w-full bg-tyrex-ultra-gold-glow text-black py-6 rounded-[2.2rem] font-black uppercase tracking-widest text-sm shadow-2xl active:scale-95 shadow-yellow-500/10 border-t border-white/40">{loading ? <Loader2 className="animate-spin w-6 h-6 mx-auto"/> : 'Authorize Bridge'}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const WithdrawModal = ({ isOpen, onClose, amount, setAmount, walletOrHash, setWalletOrHash, handleAction, balance, loading }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/98 p-6 backdrop-blur-3xl">
+            <div className="bg-[#0A0A0B] w-full max-w-sm rounded-[3.5rem] p-10 border border-white/[0.08] relative shadow-2xl">
+                <button onClick={onClose} className="absolute top-10 right-10 p-2 bg-white/5 rounded-full"><X size={18} className="text-slate-500" /></button>
+                <h3 className="text-2xl font-bold uppercase mb-10 tracking-tight text-white italic">Withdraw</h3>
+                <p className="text-center text-slate-500 text-xs mb-8">Available: <span className="text-emerald-400 font-bold">${balance.toFixed(2)}</span></p>
+                <div className="space-y-5">
+                    <input type="text" inputMode="decimal" placeholder="Amount ($)" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full bg-black border border-white/10 rounded-2xl p-6 text-white font-bold outline-none focus:border-tyrex-ultra-gold-glow transition-all shadow-inner" />
+                    <input type="text" placeholder="Wallet (TRC20)" value={walletOrHash} onChange={(e) => setWalletOrHash(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-6 text-white font-bold outline-none focus:border-tyrex-ultra-gold-glow transition-all shadow-inner" />
+                    <button onClick={handleAction} disabled={loading} className="w-full bg-tyrex-ultra-gold-glow text-black py-6 rounded-[2.2rem] font-black uppercase tracking-widest text-sm shadow-2xl active:scale-95 shadow-yellow-500/10 border-t border-white/40">{loading ? <Loader2 className="animate-spin w-6 h-6 mx-auto"/> : 'Execute Send'}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- КОМПОНЕНТ ДЕТАЛЕЙ (ЧЕК) ---
+const TransactionDetailModal = ({ tx, onClose }: { tx: any, onClose: () => void }) => {
+    if (!tx) return null;
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl p-4 animate-fade-in">
+            <div className="bg-[#080808] border border-white/10 w-full max-w-sm rounded-[3.5rem] p-9 shadow-2xl relative shadow-[inset_0_1px_1px_rgba(255,215,0,0.1)]">
+                <button onClick={onClose} className="absolute top-9 right-9 p-2 bg-white/5 rounded-full"><X className="w-4 h-4 text-white/30"/></button>
+                <div className="text-center mb-10">
+                    <div className={clsx("w-20 h-20 rounded-[2rem] mx-auto flex items-center justify-center mb-6 shadow-2xl", tx.type === 'DEPOSIT' ? "bg-green-500/10 text-green-500 shadow-green-500/10" : "bg-purple-500/10 text-purple-500 shadow-purple-500/10")}>
+                        <History size={36} />
+                    </div>
+                    <h3 className="text-[26px] font-black text-white uppercase italic tracking-tighter leading-none">{tx.type}</h3>
+                    <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.4em] mt-3">Network Receipt</p>
+                </div>
+                <div className="space-y-5 font-mono">
+                    <div className="bg-gradient-to-br from-[#1a1a1c] to-black rounded-[2.5rem] p-8 text-center border border-white/5 shadow-inner relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        <p className="text-[11px] text-white/30 uppercase font-black mb-2 tracking-widest">Status: <span className={tx.status === 'REJECTED' ? 'text-red-500' : 'text-green-500'}>{tx.status}</span></p>
+                        <p className={clsx("text-[40px] font-black italic tracking-tighter", tx.type === 'DEPOSIT' ? "text-green-400" : "text-white")}>${tx.amount.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-white/[0.02] rounded-[1.8rem] p-5 border border-white/5 text-center">
+                         <p className="text-[9px] text-white/20 font-black mb-2 uppercase tracking-widest">Operator Note</p>
+                         <p className="text-[12px] leading-relaxed opacity-70 italic font-medium">"{tx.adminComment || "Verified automatic accrual through node protocol v.1.0.4"}"</p>
+                    </div>
+                    <button 
+                        onClick={() => window.open('https://t.me/tyrex_support')}
+                        className="w-full py-5 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex items-center justify-center space-x-3 active:scale-95 transition-all group font-sans"
+                    >
+                        <MessageCircle className="w-5 h-5 text-tyrex-ultra-gold-glow group-hover:scale-110 transition-transform"/><span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/50">Contact Support</span>
+                    </button>
+                </div>
+                <button onClick={onClose} className="w-full mt-10 py-5 bg-white/5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-white/20 active:text-white transition-all font-sans">Dismiss Receipt</button>
+            </div>
+        </div>
+    );
+};
+
+export default DashboardScreen; 

@@ -5,6 +5,7 @@ import { useTyrexStore } from '../store/useTyrexStore';
 import { authApi, userApi, cardsApi } from '../api/tyrexApi';
 
 interface ITelegramUser {
+    tgId?: any;
     id: number;
     first_name: string;
     last_name?: string;

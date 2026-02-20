@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-    DollarSign, RefreshCw, ArrowLeft, ShieldCheck, Search, ChevronDown, X, Wallet
+    DollarSign, RefreshCw, ArrowLeft, ShieldCheck, Search, ChevronDown, X, Wallet, TrendingUp
 } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,7 +51,15 @@ const CollectionCard = ({ card, onClick }: { card: TyrexCardType; onClick: () =>
                     </div>
                     <div className="bg-white/5 border border-white/5 rounded-2xl py-3 flex flex-col items-center justify-center">
                         <span className="text-[9px] font-black text-white/30 uppercase tracking-wider mb-1">Price</span>
-                        <span className="text-sm font-black text-white">${card.priceUSDT}</span>
+                        {/* Анимированная цена в карточке */}
+                        <motion.span 
+                            key={card.priceUSDT}
+                            initial={{ opacity: 0.5 }}
+                            animate={{ opacity: 1 }}
+                            className="text-sm font-black text-white"
+                        >
+                            ${card.priceUSDT}
+                        </motion.span>
                     </div>
                     <div className="bg-tyrex-ultra-gold-glow/10 border border-tyrex-ultra-gold-glow/20 rounded-2xl py-3 flex flex-col items-center justify-center">
                         <span className="text-[9px] font-black text-tyrex-ultra-gold-glow/60 uppercase tracking-wider mb-1">Ref</span>
@@ -64,12 +72,16 @@ const CollectionCard = ({ card, onClick }: { card: TyrexCardType; onClick: () =>
 );
 
 // --- 2. МОДАЛЬНОЕ ОКНО ПОКУПКИ ---
-const PurchaseModal = ({ isOpen, onClose, item, collection, onBuy, isBuying, balance }: any) => {
+const PurchaseModal = ({ isOpen, onClose, item, collection, onBuy, isBuying, balance, btcPrice }: any) => {
     const [tooltip, setTooltip] = useState<string | null>(null);
 
     if (!isOpen || !item || !collection) return null;
-    const canAfford = balance >= item.priceUSDT;
 
+    // ИСПРАВЛЕНИЕ: Берем nominalSats из айтема, либо из коллекции (как запасной вариант)
+    const sats = item.nominalSats || collection.nominalSats || 0;
+    const livePrice = (sats / 100000000) * btcPrice;
+    
+    const canAfford = balance >= livePrice;
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose} />
@@ -94,7 +106,14 @@ const PurchaseModal = ({ isOpen, onClose, item, collection, onBuy, isBuying, bal
                             <DollarSign className="w-4 h-4 text-white/30" />
                             <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Price</span>
                         </div>
-                        <span className="text-2xl font-black text-white tabular-nums">${item.priceUSDT.toFixed(2)}</span>
+                        <motion.span 
+                            key={livePrice}
+                            initial={{ scale: 1.05, color: '#fbbf24' }}
+                            animate={{ scale: 1, color: '#fff' }}
+                            className="text-2xl font-black text-white tabular-nums"
+                        >
+                            ${livePrice.toFixed(2)}
+                        </motion.span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -154,7 +173,7 @@ const PurchaseModal = ({ isOpen, onClose, item, collection, onBuy, isBuying, bal
 // --- ОСНОВНОЙ ЭКРАН ---
 const MarketplaceScreen: React.FC = () => {
     const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
-    const { marketCardTypes, balance } = useTyrexStore();
+    const { marketCardTypes, balance, btcPrice } = useTyrexStore();
     const { refreshAllData } = useTelegram(); 
     const navigate = useNavigate();
 
@@ -180,12 +199,23 @@ const MarketplaceScreen: React.FC = () => {
         }
     }, [selectedCollectionId]);
 
+    // Живой пересчет фильтрованных айтемов на основе глобального btcPrice
     const filteredItems = useMemo(() => {
         const query = searchQuery.trim().replace('#', '');
-        if (query === '') return items.slice(0, visibleCount);
-        const match = items.find(item => item.serialNumber.toString().includes(query));
-        return match ? [match] : [];
-    }, [items, searchQuery, visibleCount]);
+        let currentList = items;
+        if (query !== '') {
+            const match = items.find(item => item.serialNumber.toString().includes(query));
+            currentList = match ? [match] : [];
+        } else {
+            currentList = items.slice(0, visibleCount);
+        }
+
+        // Пересчитываем цену каждого айтема в зависимости от текущего курса
+        return currentList.map(item => ({
+            ...item,
+            priceUSDT: (item.nominalSats / 100000000) * btcPrice
+        }));
+    }, [items, searchQuery, visibleCount, btcPrice]);
 
     const handleBuy = async () => {
         if (!selectedCollectionId || !selectedSerial) return;
@@ -211,7 +241,7 @@ const MarketplaceScreen: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-black text-white pb-24 font-sans tracking-tight">
-            {/* Header */}
+            {/* Header с живым курсом BTC */}
             <div className="sticky top-0 z-20 bg-black/95 backdrop-blur-md border-b border-white/5 px-6 py-5 flex justify-between items-center">
                 <div className="flex items-center space-x-3">
                     {selectedCollectionId && (
@@ -219,7 +249,25 @@ const MarketplaceScreen: React.FC = () => {
                     )}
                     <h1 className="text-xl font-black uppercase tracking-tighter italic">{selectedCollectionId ? activeCollection?.name : 'Market'}</h1>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-white font-black text-sm tracking-tighter">${balance.walletUsd.toFixed(2)}</div>
+
+                <div className="flex items-center space-x-2">
+                    {/* Индикатор курса BTC */}
+                    <div className="hidden xs:flex items-center space-x-1.5 bg-white/5 border border-white/5 rounded-2xl px-3 py-2">
+                        <TrendingUp className="w-3 h-3 text-tyrex-ultra-gold-glow" />
+                        <motion.span 
+                            key={btcPrice}
+                            initial={{ y: -5, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="text-[10px] font-black text-tyrex-ultra-gold-glow tabular-nums"
+                        >
+                            ${btcPrice.toLocaleString()}
+                        </motion.span>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-white font-black text-sm tracking-tighter">
+                        ${balance.walletUsd.toFixed(2)}
+                    </div>
+                </div>
             </div>
 
             <div className="p-4 px-3">
@@ -282,12 +330,12 @@ const MarketplaceScreen: React.FC = () => {
                 )}
             </div>
 
-            {/* Модалка покупки */}
+            {/* Модалка покупки с передачей btcPrice */}
             <PurchaseModal 
                 isOpen={!!selectedSerial} onClose={() => setSelectedSerial(null)} 
                 item={selectedSerial} collection={activeCollection} 
-                imageUrl={selectedSerial?.imageUrl} isImageLoading={false}
                 onBuy={handleBuy} balance={balance.walletUsd} 
+                btcPrice={btcPrice}
             />
 
             <TyrexModal {...statusModal} onClose={() => setStatusModal({ ...statusModal, isOpen: false })} />

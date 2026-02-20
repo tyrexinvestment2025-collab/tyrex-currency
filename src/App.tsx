@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // Добавил useNavigate, useLocation
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useTelegram } from './hooks/useTelegram';
 import DashboardScreen from './pages/DashboardScreen';
 import MarketplaceScreen from './pages/MarketplaceScreen';
@@ -12,11 +12,17 @@ import AdminDashboardScreen from './pages/AdminDashboardScreen';
 import { useOnboarding } from './hooks/useOnboarding';
 import OnboardingGuide from './components/onboarding/OnboardingGuide';
 
-// Создаем отдельный компонент для логики роутинга внутри BrowserRouter
+// Импортируем Сокет и Стор
+import { socketService } from './api/tyrexApi';
+import { useTyrexStore } from './store/useTyrexStore';
+
 const AppContent: React.FC = () => {
   const { tg } = useTelegram();
-  const navigate = useNavigate(); // Хук навигации
-  const location = useLocation(); // Хук текущего пути
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Достаем метод обновления цены из стора
+  const updateBtcPrice = useTyrexStore(s => s.updateBtcPrice);
 
   const { 
     isOnboardingActive, 
@@ -26,6 +32,7 @@ const AppContent: React.FC = () => {
     finishOnboarding 
   } = useOnboarding();
 
+  // 1. Инициализация Telegram WebApp
   useEffect(() => {
     if (tg) {
       tg.ready();
@@ -33,17 +40,29 @@ const AppContent: React.FC = () => {
     }
   }, [tg]);
 
+  // 2. РЕАЛТАЙМ ЦЕНА: Подключаем WebSocket при старте приложения
+  useEffect(() => {
+    console.log("🔌 Инициализация WebSocket соединения...");
+    socketService.connect((price) => {
+        if (price > 0) {
+            updateBtcPrice(price);
+        }
+    });
+
+    // Отключаемся при закрытии приложения (опционально)
+    return () => {
+        // socketService.disconnect(); 
+    };
+  }, [updateBtcPrice]);
+
   // --- МАГИЯ ОНБОРДИНГА ---
-  // Следим за текущим шагом. Если шаг требует другой страницы, переходим.
   useEffect(() => {
     if (isOnboardingActive && currentOnboardingStep) {
-        // Если путь шага отличается от текущего пути
         if (currentOnboardingStep.path && location.pathname !== currentOnboardingStep.path) {
             navigate(currentOnboardingStep.path);
         }
     }
   }, [isOnboardingActive, currentOnboardingStep, navigate, location.pathname]);
-  // -------------------------
 
   return (
     <div className="h-screen flex flex-col bg-tyrex-dark-black text-white">
