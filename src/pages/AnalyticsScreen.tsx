@@ -4,8 +4,7 @@ import {
     ResponsiveContainer, Tooltip 
 } from 'recharts';
 import { 
-    Zap, TrendingUp, Shield, MousePointer2, 
-    Key, BarChart3, Globe, Coins, 
+    Zap, TrendingUp, Shield, MousePointer2, BarChart3, Globe, Coins, 
     Home, Landmark, LineChart, Star,
     Layers, RefreshCw, Rocket, HelpCircle, X
 } from 'lucide-react';
