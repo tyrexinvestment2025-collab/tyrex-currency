@@ -75,11 +75,11 @@ const RadarChartComponent = memo(({ data, onIconClick }: any) => (
             <Radar
                 name="Compare"
                 dataKey="Compare"
-                stroke="#40E0D0"
-                fill="#40E0D0"
-                fillOpacity={0.15}
-                strokeWidth={1}
-                dot={<CustomDot color="#40E0D0" />}
+                stroke="#08af9e"
+                fill="#08af9e"
+                fillOpacity={0.1}
+                strokeWidth={2}
+                dot={<CustomDot color="#08af9e" />}
             />
             <Radar
                 name="Tyrex"
@@ -87,7 +87,7 @@ const RadarChartComponent = memo(({ data, onIconClick }: any) => (
                 stroke="#FDB931"
                 fill="#FDB931"
                 fillOpacity={0.2}
-                strokeWidth={3}
+                strokeWidth={2}
                 dot={<CustomDot color="#FDB931" />}
             />
         </RadarChart>

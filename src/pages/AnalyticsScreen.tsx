@@ -41,9 +41,9 @@ const CATEGORY_ASSETS = {
 
 const CHART_HEADERS = {
     radar: { top: 'ВЫГОДА', main: 'СРАВНЕНИЕ АКТИВОВ', desc: 'Смотри, почему классические активы проигрывают твоему алгоритму' },
-    growth: { top: 'РОСТ', main: 'ПРОГНОЗ ДОХОДНОСТИ', desc: 'Рассчитай свой путь к финансовой свободе' },
-    assets: { top: 'БЕЗОПАСНОСТЬ', main: 'ЗАЩИТА КАПИТАЛА', desc: 'Узнай, как алгоритм защищает тебя от волатильности' },
-    time: { top: 'СКОРОСТЬ', main: 'ЭКОНОМИЯ ВРЕМЕНИ', desc: 'Посмотри, сколько лет жизни тебе сбережет автоматизация' },
+    growth: { top: 'ЦЕЛЬ ', main: 'ПРОГНОЗ ДОХОДНОСТИ', desc: 'Рассчитай свой путь к финансовой свободе' },
+    assets: { top: 'ЗАЩИТА', main: 'ЗАЩИТА КАПИТАЛА', desc: 'Узнай, как алгоритм защищает тебя от волатильности' },
+    time: { top: 'ЗАЩИТА', main: 'ЭКОНОМИЯ ВРЕМЕНИ', desc: 'Посмотри, сколько лет жизни тебе сбережет автоматизация' },
     struct: { top: 'МАГИЯ', main: 'СОСТАВ КАПИТАЛА', desc: 'Увидь, как проценты превращаются в основной объем средств' }
 };
 
@@ -138,10 +138,10 @@ const AnalyticsScreen: React.FC = () => {
             </div>
 
             {/* 2. ДИНАМИЧЕСКИЕ ЗАГОЛОВКИ */}
-            <div className="text-center mb-8">
-                <p className="text-[#FDB931] text-[10px] font-black tracking-[2px] mb-2">{CHART_HEADERS[activeChart].top}</p>
+            <div className="text-center mb-10 px-2">
+                <p className="text-[#FDB931] text-[10px] font-black tracking-[2.5px] mb-2">{CHART_HEADERS[activeChart].top}</p>
                 <h2 className="text-2xl font-black italic tracking-tight mb-3">{CHART_HEADERS[activeChart].main}</h2>
-                <p className="text-white/40 text-[11px] font-medium leading-relaxed normal-case mx-auto max-w-[300px]">
+                <p className="text-white text-[11px] font-medium leading-relaxed normal-case mx-auto max-w-[300px]">
                     {CHART_HEADERS[activeChart].desc}
                 </p>
             </div>
@@ -222,7 +222,7 @@ const AnalyticsScreen: React.FC = () => {
                             <div className="bg-[#121212] p-1 rounded-xl flex border border-white/5">
                                 {['traditional', 'crypto'].map((cat) => (
                                     <button key={cat} onClick={() => setActiveCategory(cat as any)}
-                                        className={clsx("px-6 py-2 rounded-lg text-[9px] font-black transition-all",
+                                        className={clsx("px-6 py-2 rounded-lg text-[13px] font-black transition-all",
                                         activeCategory === cat ? "bg-[#1C1C1C] text-white" : "text-white/20")}>
                                         {cat === 'traditional' ? 'Традиционные' : 'Крипто-активы'}
                                     </button>
@@ -237,7 +237,7 @@ const AnalyticsScreen: React.FC = () => {
                                     <div className={clsx("w-1.5 h-1.5 rounded-full mr-3 transition-all",
                                         selectedAsset === asset.id ? "bg-[#40E0D0] shadow-[0_0_10px_#40E0D0]" : "bg-white/5")} />
                                     <asset.icon className={clsx("w-4 h-4 mr-3", selectedAsset === asset.id ? "text-white" : "text-white/10")} />
-                                    <span className={clsx("text-[10px] font-black tracking-tight", selectedAsset === asset.id ? "text-white" : "text-white/20")}>
+                                    <span className={clsx("text-[12px] font-black tracking-tight", selectedAsset === asset.id ? "text-white" : "text-white/20")}>
                                         {asset.label}
                                     </span>
                                 </button>
