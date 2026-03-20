@@ -3,7 +3,7 @@ import {
     Zap, Landmark, LineChart, Layers, Coins,
     RefreshCw, HelpCircle, MousePointer2,
     Building2, Briefcase, PieChart, Pickaxe, LayoutGrid, Signal,
-    ChevronDown, ChevronRight, X
+    ChevronDown
 } from 'lucide-react';
 import clsx from 'clsx';
 import { analyticsApi } from '../api/tyrexApi';
