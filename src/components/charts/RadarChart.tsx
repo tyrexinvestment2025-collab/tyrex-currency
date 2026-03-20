@@ -8,88 +8,99 @@ import {
     ShieldCheck, UserCheck, Zap 
 } from 'lucide-react';
 
-const metricIcons: Record<string, any> = {
-    'Доходність': TrendingUp,
-    'Ліквідність': Droplets,
-    'Поріг входу': ArrowDownToLine,
-    'Безпека': ShieldCheck,
-    'Пасивність': UserCheck,
-    'Потенціал': Zap
+const metricInfo: Record<string, { icon: any; label: string }> = {
+    'Доходність': { icon: TrendingUp, label: 'ДОХОД' },
+    'Ліквідність': { icon: Droplets, label: 'ЛИКВИД' },
+    'Поріг входу': { icon: ArrowDownToLine, label: 'ВХОД' },
+    'Безпека': { icon: ShieldCheck, label: 'РИСК' },
+    'Пасивність': { icon: UserCheck, label: 'ПАССИВ' },
+    'Потенціал': { icon: Zap, label: 'РОСТ' }
 };
 
+// Кастомный рендер меток осей (иконка в круге + текст)
 const CustomAngleTick = (props: any) => {
-    const { x, y, payload, onIconClick } = props;
-    const Icon = metricIcons[payload.value];
+    const { x, y, payload, cx, cy } = props;
+    const item = metricInfo[payload.value];
+    if (!item) return null;
+    const Icon = item.icon;
+
+    // Вычисляем смещение от центра, чтобы отдалить иконки от паутины
+    const radius = 35; 
+    const dx = x > cx ? radius : x < cx ? -radius : 0;
+    const dy = y > cy ? radius : y < cy ? -radius : 0;
+
     return (
-        <g transform={`translate(${x - 12},${y - 12})`} className="cursor-pointer" onClick={() => onIconClick(payload.value)}>
-            <circle cx="12" cy="12" r="14" fill="transparent" />
-            {Icon && <Icon size={22} color="#444" strokeWidth={1.5} />}
+        <g transform={`translate(${x + dx - 14},${y + dy - 20})`}>
+            {/* Круглый контейнер для иконки */}
+            <circle cx="14" cy="14" r="14" fill="#FFFFFF10" stroke="#FFFFFF05" strokeWidth="1" />
+            <Icon size={16} color="#FFFFFF" opacity={0.8} x={6} y={6} />
+            
+            {/* Текстовая подпись под иконкой */}
+            <text 
+                x="14" 
+                y="38" 
+                textAnchor="middle" 
+                fill="#FFFFFF" 
+                fontSize="8px" 
+                fontWeight="900" 
+                letterSpacing="1px"
+                className="uppercase opacity-50"
+            >
+                {item.label}
+            </text>
         </g>
     );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-        return (
-            <div className="bg-[#1A1D26] border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md">
-                <p className="text-[10px] font-black text-white/40 uppercase mb-2 tracking-widest border-b border-white/5 pb-1">
-                    {payload[0].payload.subject}
-                </p>
-                <div className="space-y-1.5">
-                    <div className="flex items-center justify-between gap-4">
-                        <span className="text-[10px] font-bold text-[#40E0D0] uppercase">Актив:</span>
-                        <span className="text-xs font-black text-white">{payload[0].value}%</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
-                        <span className="text-[10px] font-bold text-[#FDB931] uppercase">Tyrex:</span>
-                        <span className="text-xs font-black text-white">{payload[1].value}%</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    return null;
-};
-
+// Светящиеся точки на углах
 const CustomDot = (props: any) => {
     const { cx, cy, color } = props;
     return (
-        <svg x={cx - 6} y={cy - 6} width={12} height={12} className="overflow-visible">
-            <circle cx="6" cy="6" r="3" fill={color} filter="drop-shadow(0 0 4px rgba(255,255,255,0.5))" />
-            <circle cx="6" cy="6" r="5" fill="transparent" stroke={color} strokeWidth="1" opacity="0.3" className="animate-pulse" />
+        <svg x={cx - 10} y={cy - 10} width={20} height={20} className="overflow-visible">
+            <defs>
+                <filter id={`glow-${color}`} x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+            <circle cx="10" cy="10" r="4.5" fill={color} filter={`url(#glow-${color})`} />
+            <circle cx="10" cy="10" r="6" fill="transparent" stroke={color} strokeWidth="1" opacity="0.2" />
         </svg>
     );
 };
 
-const RadarChartComponent = memo(({ data, onIconClick }: any) => (
+const RadarChartComponent = memo(({ data, selectedAssetName }: any) => (
     <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
             <PolarGrid stroke="#FFFFFF08" />
-            <PolarAngleAxis 
-                dataKey="subject" 
-                tick={<CustomAngleTick onIconClick={onIconClick} />} 
-            />
+            <PolarAngleAxis dataKey="subject" tick={<CustomAngleTick />} />
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-            <Tooltip content={<CustomTooltip />} />
-            
-            <Radar
-                name="Compare"
-                dataKey="Compare"
-                stroke="#08af9e"
-                fill="#08af9e"
-                fillOpacity={0.1}
-                strokeWidth={2}
-                dot={<CustomDot color="#08af9e" />}
+            <Tooltip 
+                content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                        return (
+                            <div className="bg-[#1A1D26] border border-white/10 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
+                                <p className="text-[10px] font-black text-white/30 uppercase mb-3 tracking-widest border-b border-white/5 pb-2">
+                                    {payload[0].payload.subject}
+                                </p>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between gap-10 items-center">
+                                        <span className="text-[10px] text-[#A0FBFF] font-black uppercase tracking-wider">{selectedAssetName}:</span>
+                                        <span className="text-sm font-black text-white">{payload[0].value}%</span>
+                                    </div>
+                                    <div className="flex justify-between gap-10 items-center">
+                                        <span className="text-[10px] text-[#FDB931] font-black uppercase tracking-wider">Tyrex Strategy:</span>
+                                        <span className="text-sm font-black text-white">{payload[1].value}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+                    return null;
+                }}
             />
-            <Radar
-                name="Tyrex"
-                dataKey="Tyrex"
-                stroke="#FDB931"
-                fill="#FDB931"
-                fillOpacity={0.2}
-                strokeWidth={2}
-                dot={<CustomDot color="#FDB931" />}
-            />
+            <Radar name="Asset" dataKey="Compare" stroke="#A0FBFF" fill="#A0FBFF" fillOpacity={0.1} strokeWidth={2} dot={<CustomDot color="#A0FBFF" />} />
+            <Radar name="Tyrex" dataKey="Tyrex" stroke="#FDB931" fill="#FDB931" fillOpacity={0.15} strokeWidth={3} dot={<CustomDot color="#FDB931" />} />
         </RadarChart>
     </ResponsiveContainer>
 ));
