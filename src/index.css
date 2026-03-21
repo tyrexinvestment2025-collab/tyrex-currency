@@ -33,3 +33,30 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Полная зачистка для Recharts */
+.recharts-wrapper, 
+.recharts-surface, 
+.recharts-container,
+.recharts-wrapper focus,
+.recharts-surface focus,
+.recharts-curve,
+svg {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Убираем рамку даже при активном клике */
+path:focus, 
+circle:focus, 
+rect:focus,
+g:focus {
+    outline: none !important;
+}
+
+/* Специально для Chrome/Safari */
+*:focus {
+    outline: none !important;
+}
