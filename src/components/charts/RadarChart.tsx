@@ -1,53 +1,66 @@
 import { memo } from 'react';
 import { 
     Radar, RadarChart, PolarGrid, PolarAngleAxis, 
-    ResponsiveContainer, PolarRadiusAxis 
+    ResponsiveContainer, PolarRadiusAxis, Tooltip
 } from 'recharts';
 
-const metricInfo: any = {
-    'Потенціал': { label: 'PICT' },
-    'Доходність': { label: 'ДОХІД' },
-    'Ліквідність': { label: 'ЛІКВІД' },
-    'Поріг входу': { label: 'ВХІД' },
-    'Безпека': { label: 'РИЗИК' },
-    'Пасивність': { label: 'ПАСИВ' },
+const metricInfo: Record<string, { label: string }> = {
+    'Потенциал': { label: 'РОСТ' },
+    'Доходность': { label: 'ДОХОД' },
+    'Ликвидность': { label: 'ЛИКВИД' },
+    'Вход': { label: 'ВХОД' },
+    'Риск': { label: 'РИСК' },
+    'Пассивность': { label: 'ПАССИВ' }
+};
+
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-[#1A1A1A]/95 backdrop-blur-md border border-white/10 p-2.5 rounded-xl shadow-2xl">
+                <p className="text-[9px] font-black text-white/40 mb-1.5 uppercase tracking-widest border-b border-white/5 pb-1">
+                    {payload[0].payload.subject}
+                </p>
+                <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                        <span className="text-[10px] font-bold text-[#FFB800]">TYREX</span>
+                        <span className="text-[10px] font-black text-white">{payload[1].value}%</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                        <span className="text-[10px] font-bold text-[#00F0FF]">АКТИВ</span>
+                        <span className="text-[10px] font-black text-white">{payload[0].value}%</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    return null;
 };
 
 const CustomAngleTick = (props: any) => {
     const { x, y, payload, cx, cy, index } = props;
     const item = metricInfo[payload.value] || { label: payload.value };
 
-    // Вычисляем вектор от центра
     const radius = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
     const angle = Math.atan2(y - cy, x - cx);
     
-    // Смещение текста от края сетки (35px — оптимально для мобилок и десктопа)
-    const labelRadius = radius + 22; 
+    const labelRadius = radius + 18; 
     const nx = cx + labelRadius * Math.cos(angle);
     const ny = cy + labelRadius * Math.sin(angle);
 
-    // Умное выравнивание (anchor) в зависимости от позиции точки
-    // 0 - верх, 1 - право-верх, 2 - право-низ, 3 - низ, 4 - лево-низ, 5 - лево-верх
     let textAnchor: "middle" | "start" | "end" = "middle";
-    if (index === 1 || index === 2) textAnchor = "start";
-    if (index === 4 || index === 5) textAnchor = "end";
-
-    // Дополнительная корректировка по высоте для верхней и нижней точки
-    const dy = index === 0 ? -8 : index === 3 ? 12 : 4;
+    if (nx > cx + 10) textAnchor = "start";
+    if (nx < cx - 10) textAnchor = "end";
 
     return (
         <g transform={`translate(${nx},${ny})`}>
             <text 
-                fill="#FFFFFF" 
-                fontSize="10px" // Уменьшили размер текста
+                fill="rgba(255,255,255,0.9)" 
+                fontSize="10px" 
                 fontWeight="900" 
                 textAnchor={textAnchor}
-                dy={dy}
-                style={{ 
-                    letterSpacing: '0.08em', 
-                    textTransform: 'uppercase',
-                    filter: 'drop-shadow(0px 0px 5px rgba(255,255,255,0.2))' 
-                }}
+                dy={index === 0 ? -5 : index === 3 ? 12 : 4}
+                className="uppercase"
+                style={{ letterSpacing: '0.05em' }}
             >
                 {item.label}
             </text>
@@ -59,49 +72,40 @@ const RadarChartComponent = memo(({ data }: any) => (
     <ResponsiveContainer width="100%" height="100%">
         <RadarChart 
             cx="50%" cy="50%" 
-            outerRadius="75%" // Увеличили саму паутину на ~40%
-            data={data}
-            margin={{ top: 25, right: 25, bottom: 25, left: 25 }} // Ужали поля
+            outerRadius="63%" 
+            data={data} 
+            style={{ outline: 'none', overflow: 'visible' }}
         >
             <defs>
-                <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                <filter id="glowGold" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
             </defs>
 
-            <PolarGrid 
-                stroke="#FFFFFF" 
-                strokeOpacity={0.1} 
-                gridType="polygon" 
-            />
-            
-            <PolarAngleAxis 
-                dataKey="subject" 
-                tick={<CustomAngleTick />} 
-            />
-            
+            <PolarGrid stroke="#FFFFFF" strokeOpacity={0.06} />
+            <PolarAngleAxis dataKey="subject" tick={<CustomAngleTick />} />
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
             
-            {/* Бирюзовая линия (Сравнение) */}
+            <Tooltip content={<CustomTooltip />} cursor={false} trigger="click" />
+            
             <Radar 
-                name="Compare" 
+                name="Asset" 
                 dataKey="Compare" 
                 stroke="#00F0FF" 
                 fill="#00F0FF" 
-                fillOpacity={0.1} 
-                strokeWidth={2} 
+                fillOpacity={0.05} 
+                strokeWidth={1.5} 
             />
             
-            {/* Золотая линия (Tyrex) + Свечение */}
             <Radar 
                 name="Tyrex" 
                 dataKey="Tyrex" 
-                stroke="#FDB931" 
-                fill="#FDB931" 
-                fillOpacity={0.2} 
-                strokeWidth={3} 
-                style={{ filter: 'url(#goldGlow)' }}
+                stroke="#FFB800" 
+                fill="#FFB800" 
+                fillOpacity={0.15} 
+                strokeWidth={2.5} 
+                style={{ filter: 'url(#glowGold)' }}
             />
         </RadarChart>
     </ResponsiveContainer>

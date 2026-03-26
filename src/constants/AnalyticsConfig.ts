@@ -5,44 +5,49 @@ import {
 
 export const CATEGORY_ASSETS: any = {
     traditional: [
-        { id: 'Real Estate', label: 'Нерухомість', icon: Building2 },
+        { id: 'Real Estate', label: 'Недвижимость', icon: Building2 },
         { id: 'Bank Deposit', label: 'Банк', icon: Landmark },
-        { id: 'S&P 500', label: 'Акції', icon: LineChart },
+        { id: 'S&P 500', label: 'Акции', icon: LineChart },
         { id: 'Gold', label: 'Золото', icon: Coins },
-        { id: 'Business', label: 'Бізнес', icon: Briefcase },
-        { id: 'Funds', label: 'Фонди', icon: PieChart },
+        { id: 'Business', label: 'Бизнес', icon: Briefcase },
+        { id: 'Funds', label: 'Фонды', icon: PieChart },
     ],
     crypto: [
-        { id: 'Staking', label: 'Стейкінг', icon: Layers },
-        { id: 'Mining', label: 'Майнінг', icon: Pickaxe },
+        { id: 'Staking', label: 'Стейкинг', icon: Layers },
+        { id: 'Mining', label: 'Майнинг', icon: Pickaxe },
         { id: 'Trading', label: 'Трейдинг', icon: MousePointer2 },
-        { id: 'Altcoins', label: 'Альткоїни', icon: Zap },
-        { id: 'Bots', label: 'Боти', icon: LayoutGrid },
-        { id: 'Signals', label: 'Сигнали', icon: Signal },
+        { id: 'Altcoins', label: 'Альткоины', icon: Zap },
+        { id: 'Bots', label: 'Боты', icon: LayoutGrid },
+        { id: 'Signals', label: 'Сигналы', icon: Signal },
     ]
 };
 
 export const INFO_GRID = [
-    { label: 'ДОХІД', text: 'Потенційна річна прибутковість активу.' },
-    { label: 'ЛІКВІДНІСТЬ', text: 'Швидкість конвертації активу в готівку.' },
-    { label: 'ВХІД', text: 'Мінімальний поріг капіталу для старту.' },
-    { label: 'БЕЗПЕКА', text: 'Рівень захисту капіталу від маніпуляцій.' },
-    { label: 'ПАСИВНІСТЬ', text: 'Ступінь автоматизації процесів.' },
-    { label: 'РІСТ (BTC)', text: 'Здатність накопичувати кількість монет.' }
+    { label: 'ДОХОД', text: 'Потенциальная годовая доходность актива.' },
+    { label: 'ЛИКВИДНОСТЬ', text: 'Скорость конвертации актива в наличные.' },
+    { label: 'ВХОД', text: 'Минимальный порог капитала для старта.' },
+    { label: 'БЕЗОПАСНОСТЬ', text: 'Уровень защиты капитала от манипуляций.' },
+    { label: 'ПАССИВНОСТЬ', text: 'Степень автоматизации всех процессов.' },
+    { label: 'РОСТ (BTC)', text: 'Способность увеличивать количество монет.' }
 ];
 
 export const TABS = [
-    { id: 'radar', label: 'ВИГОДА', header: 'Порівняння активів', sub: 'Порівняй свій актив з алгоритмом Tyrex та оціни різницю.' },
-    { id: 'growth', label: 'ЦІЛЬ', header: 'Прогноз доходності', sub: 'Математична проекція росту вашого капіталу.' },
-    { id: 'assets', label: 'ЗАХИСТ', header: 'Захист капіталу', sub: 'Накопичення монет як щит від волатильності.' },
-    { id: 'time', label: 'ШВИДКІСТЬ', header: 'Економія часу', sub: 'Скільки років життя вам збереже автоматизація.' },
-    { id: 'struct', label: 'СКЛАД', header: 'Склад капіталу', sub: 'Розподіл власних коштів та прибутку системи.' }
+    { 
+        id: 'radar', 
+        label: 'ВЫГОДА', 
+        header: 'СРАВНЕНИЕ АКТИВОВ', 
+        sub: 'Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам.\nВыбирай актив для сопоставления:' 
+    },
+    { id: 'growth', label: 'ЦЕЛЬ', header: 'Прогноз доходности', sub: 'Математическая проекция роста вашего капитала на дистанции.' },
+    { id: 'assets', label: 'ЗАЩИТА', header: 'Защита капитала', sub: 'Накопление твердых монет как щит от рыночной волатильности.' },
+    { id: 'time', label: 'СКОРОСТЬ', header: 'Экономия времени', sub: 'Сколько лет жизни вам сохранит полная автоматизация стратегий.' },
+    { id: 'struct', label: 'СОСТАВ', header: 'Состав капитала', sub: 'Распределение личных средств и чистой прибыли системы.' }
 ];
 
 export const PEDAL_DESCRIPTIONS: Record<string, string> = {
-    yield: 'Дохідність від стейкінгу активів.',
-    ref: 'Бонус від партнерської мережі.',
-    btc: 'Очікуваний річний ріст BTC.',
-    boosters: 'Бонуси платформи за активність.',
-    spec: 'Прибуток від торгових стратегій.'
+    yield: 'Доходность от прямого стейкинга активов.',
+    ref: 'Бонусы от развития партнерской сети.',
+    btc: 'Ожидаемый среднегодовой рост цены BTC.',
+    boosters: 'Дополнительные бонусы платформы за активность.',
+    spec: 'Прибыль от реализации торговых стратегий.'
 };
