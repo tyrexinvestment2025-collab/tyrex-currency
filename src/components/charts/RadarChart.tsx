@@ -1,47 +1,53 @@
 import { memo } from 'react';
 import { 
     Radar, RadarChart, PolarGrid, PolarAngleAxis, 
-    ResponsiveContainer, PolarRadiusAxis, Tooltip
+    ResponsiveContainer, PolarRadiusAxis 
 } from 'recharts';
 
-const metricInfo: Record<string, { icon: any; label: string }> = {
-    'Доходність': { icon: DollarSign, label: 'ДОХІД' },
-    'Ліквідність': { icon: Handshake, label: 'ЛІКВІД' },
-    'Поріг входу': { icon: Coins, label: 'ВХІД' },
-    'Безпека': { icon: Vault, label: 'РИЗИК' },
-    'Пасивність': { icon: GraduationCap, label: 'ПАСИВ' },
-    'Потенціал': { icon: Rocket, label: 'РІСТ' }
+const metricInfo: any = {
+    'Потенціал': { label: 'PICT' },
+    'Доходність': { label: 'ДОХІД' },
+    'Ліквідність': { label: 'ЛІКВІД' },
+    'Поріг входу': { label: 'ВХІД' },
+    'Безпека': { label: 'РИЗИК' },
+    'Пасивність': { label: 'ПАСИВ' },
 };
-import { 
-    DollarSign, 
-    Handshake, 
-    Coins, 
-    Vault, 
-    GraduationCap, 
-    Rocket 
-} from 'lucide-react';
 
 const CustomAngleTick = (props: any) => {
-    const { x, y, payload, cx, cy } = props;
-    const item = metricInfo[payload.value];
-    if (!item) return null;
-    const Icon = item.icon;
+    const { x, y, payload, cx, cy, index } = props;
+    const item = metricInfo[payload.value] || { label: payload.value };
 
+    // Вычисляем вектор от центра
+    const radius = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
     const angle = Math.atan2(y - cy, x - cx);
-    const radiusOffset = 20; 
-    const nx = x + Math.cos(angle) * radiusOffset;
-    const ny = y + Math.sin(angle) * radiusOffset;
+    
+    // Смещение текста от края сетки (35px — оптимально для мобилок и десктопа)
+    const labelRadius = radius + 22; 
+    const nx = cx + labelRadius * Math.cos(angle);
+    const ny = cy + labelRadius * Math.sin(angle);
+
+    // Умное выравнивание (anchor) в зависимости от позиции точки
+    // 0 - верх, 1 - право-верх, 2 - право-низ, 3 - низ, 4 - лево-низ, 5 - лево-верх
+    let textAnchor: "middle" | "start" | "end" = "middle";
+    if (index === 1 || index === 2) textAnchor = "start";
+    if (index === 4 || index === 5) textAnchor = "end";
+
+    // Дополнительная корректировка по высоте для верхней и нижней точки
+    const dy = index === 0 ? -8 : index === 3 ? 12 : 4;
 
     return (
-        <g transform={`translate(${nx - 20},${ny - 10})`}>
-            <Icon size={14} color="#FFFFFF" opacity={0.9} strokeWidth={2.5} />
+        <g transform={`translate(${nx},${ny})`}>
             <text 
-                x="18" 
-                y="11" 
                 fill="#FFFFFF" 
-                fontSize="9px" 
-                fontWeight="800" 
-                style={{ letterSpacing: '0.05em', opacity: 0.6 }}
+                fontSize="10px" // Уменьшили размер текста
+                fontWeight="900" 
+                textAnchor={textAnchor}
+                dy={dy}
+                style={{ 
+                    letterSpacing: '0.08em', 
+                    textTransform: 'uppercase',
+                    filter: 'drop-shadow(0px 0px 5px rgba(255,255,255,0.2))' 
+                }}
             >
                 {item.label}
             </text>
@@ -49,81 +55,53 @@ const CustomAngleTick = (props: any) => {
     );
 };
 
-const CustomDot = (props: any) => {
-    const { cx, cy, color } = props;
-    return (
-        <g>
-            <circle cx={cx} cy={cy} r={6} fill={color} opacity="0.2">
-                <animate attributeName="r" from="4" to="10" dur="1.5s" begin="0s" repeatCount="indefinite" />
-                <animate attributeName="opacity" from="0.4" to="0" dur="1.5s" begin="0s" repeatCount="indefinite" />
-            </circle>
-            <circle 
-                cx={cx} cy={cy} r={4} 
-                fill={color} 
-                style={{ filter: `drop-shadow(0px 0px 8px ${color})` }} 
-            />
-        </g>
-    );
-};
-
-const RadarChartComponent = memo(({ data, selectedAssetName }: any) => (
+const RadarChartComponent = memo(({ data }: any) => (
     <ResponsiveContainer width="100%" height="100%">
-        {/* Добавлен стиль outline: 'none' для самого чарта */}
         <RadarChart 
             cx="50%" cy="50%" 
-            outerRadius="75%" 
-            data={data} 
-            style={{ overflow: 'visible', outline: 'none' }}
+            outerRadius="75%" // Увеличили саму паутину на ~40%
+            data={data}
+            margin={{ top: 25, right: 25, bottom: 25, left: 25 }} // Ужали поля
         >
-            <PolarGrid stroke="#FFFFFF" strokeOpacity={0.03} />
-            <PolarAngleAxis dataKey="subject" tick={<CustomAngleTick />} />
+            <defs>
+                <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+
+            <PolarGrid 
+                stroke="#FFFFFF" 
+                strokeOpacity={0.1} 
+                gridType="polygon" 
+            />
+            
+            <PolarAngleAxis 
+                dataKey="subject" 
+                tick={<CustomAngleTick />} 
+            />
+            
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
             
-            <Tooltip 
-                content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                        return (
-                            <div className="bg-[#1A1D26]/95 border border-white/10 p-3 rounded-xl shadow-2xl backdrop-blur-md">
-                                <div className="space-y-1">
-                                    <div className="flex justify-between gap-6">
-                                        <span className="text-[9px] text-[#00F0FF] font-black uppercase">{selectedAssetName}:</span>
-                                        <span className="text-[11px] font-black text-white">{payload[0].value}%</span>
-                                    </div>
-                                    <div className="flex justify-between gap-6">
-                                        <span className="text-[9px] text-[#FFB800] font-black uppercase">Tyrex:</span>
-                                        <span className="text-[11px] font-black text-white">{payload[1].value}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    }
-                    return null;
-                }}
-            />
-
+            {/* Бирюзовая линия (Сравнение) */}
             <Radar 
-                name="Compare"
+                name="Compare" 
                 dataKey="Compare" 
                 stroke="#00F0FF" 
                 fill="#00F0FF" 
-                fillOpacity={0.12} 
+                fillOpacity={0.1} 
                 strokeWidth={2} 
-                dot={<CustomDot color="#00F0FF" />}
-                isAnimationActive={true}
-                animationDuration={1200}
             />
             
+            {/* Золотая линия (Tyrex) + Свечение */}
             <Radar 
-                name="Tyrex"
+                name="Tyrex" 
                 dataKey="Tyrex" 
-                stroke="#FFB800" 
-                fill="#FFB800" 
-                fillOpacity={0.18} 
+                stroke="#FDB931" 
+                fill="#FDB931" 
+                fillOpacity={0.2} 
                 strokeWidth={3} 
-                dot={<CustomDot color="#FFB800" />}
-                isAnimationActive={true}
-                animationBegin={300}
-                animationDuration={1200}
+                style={{ filter: 'url(#goldGlow)' }}
             />
         </RadarChart>
     </ResponsiveContainer>
