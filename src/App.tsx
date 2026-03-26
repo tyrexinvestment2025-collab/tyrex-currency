@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useTelegram } from './hooks/useTelegram';
 import DashboardScreen from './pages/DashboardScreen';
@@ -20,7 +20,8 @@ const AppContent: React.FC = () => {
   const { tg } = useTelegram();
   const navigate = useNavigate();
   const location = useLocation();
-  
+    const scrollContainerRef = useRef<HTMLDivElement>(null!);
+
   // Достаем метод обновления цены из стора
   const updateBtcPrice = useTyrexStore(s => s.updateBtcPrice);
 
@@ -65,8 +66,8 @@ const AppContent: React.FC = () => {
   }, [isOnboardingActive, currentOnboardingStep, navigate, location.pathname]);
 
   return (
-    <div className="h-screen flex flex-col bg-tyrex-dark-black text-white">
-        <main className="flex-grow overflow-y-auto pb-20"> 
+    <div className="h-screen flex flex-col bg-tyrex-dark-black text-white overflow-hidden">
+        <main ref={scrollContainerRef} className="flex-grow overflow-y-auto pb-20"> 
           <Routes>
             <Route path="/" element={<DashboardScreen />} />
             <Route path="/marketplace" element={<MarketplaceScreen />} />
@@ -74,7 +75,7 @@ const AppContent: React.FC = () => {
             <Route path="/referral" element={<ReferralScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
             <Route path="/admin" element={<AdminDashboardScreen />} />
-            <Route path="/analytics" element={<AnalyticsScreen />} />
+            <Route path="/analytics" element={<AnalyticsScreen scrollContainerRef={scrollContainerRef} />} />
           </Routes>
         </main>
         
