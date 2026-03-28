@@ -75,7 +75,7 @@ const AppContent: React.FC = () => {
             <Route path="/referral" element={<ReferralScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
             <Route path="/admin" element={<AdminDashboardScreen />} />
-            <Route path="/analytics" element={<AnalyticsScreen scrollContainerRef={scrollContainerRef} />} />
+            <Route path="/analytics" element={<AnalyticsScreen />} />
           </Routes>
         </main>
         
