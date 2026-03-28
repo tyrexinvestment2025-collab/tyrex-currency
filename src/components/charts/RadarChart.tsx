@@ -16,9 +16,10 @@ const metricInfo: Record<string, { label: string; icon: any }> = {
     'Пассивность': { label: 'ПАССИВ', icon: GraduationCap }
 };
 
-// Сверхчистый тултип, который появляется при взаимодействии
+// Тултип теперь адаптируется под цвет через payload
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+        const compareColor = payload[0].stroke; // Берем цвет из настроек Radar
         return (
             <div className="bg-[#0A0A0A]/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl animate-in zoom-in-95 duration-200">
                 <p className="text-[10px] font-black text-white/40 mb-2 uppercase tracking-widest border-b border-white/5 pb-1">
@@ -30,7 +31,7 @@ const CustomTooltip = ({ active, payload }: any) => {
                         <span className="text-[11px] font-black text-white">{payload[1].value}%</span>
                     </div>
                     <div className="flex items-center justify-between gap-6">
-                        <span className="text-[11px] font-bold text-[#00F0FF]">АКТИВ</span>
+                        <span className="text-[11px] font-bold" style={{ color: compareColor }}>АКТИВ</span>
                         <span className="text-[11px] font-black text-white">{payload[0].value}%</span>
                     </div>
                 </div>
@@ -46,7 +47,7 @@ const CustomAngleTick = (props: any) => {
     
     const angle = Math.atan2(y - cy, x - cx);
     const radius = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
-    const labelRadius = radius + 30; // Умеренный отступ
+    const labelRadius = radius + 30; 
     const nx = cx + labelRadius * Math.cos(angle);
     const ny = cy + labelRadius * Math.sin(angle);
 
@@ -78,12 +79,13 @@ const CustomAngleTick = (props: any) => {
     );
 };
 
-const RadarChartComponent = memo(({ data }: any) => (
+// Добавлен проп compareColor
+const RadarChartComponent = memo(({ data, compareColor = '#00F0FF' }: any) => (
     <div className="w-full h-full relative flex items-center justify-center">
         <ResponsiveContainer width="100%" height="100%">
             <RadarChart 
                 cx="50%" cy="50%" 
-                outerRadius="72%" // Увеличили саму паутину
+                outerRadius="72%" 
                 data={data} 
                 margin={{ top: 40, right: 60, bottom: 40, left: 60 }}
                 style={{ outline: 'none', overflow: 'visible' }}
@@ -98,37 +100,36 @@ const RadarChartComponent = memo(({ data }: any) => (
                 <PolarGrid stroke="#FFFFFF" strokeOpacity={0.06} />
                 <PolarAngleAxis dataKey="subject" tick={<CustomAngleTick />} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                
-                {/* Тултип по клику (trigger="click") или наведению */}
+
                 <Tooltip content={<CustomTooltip />} cursor={false} trigger="click" />
-                
-                {/* ВТОРОЙ ГРАФИК (Недвижимость и др.) - Полупрозрачный Бирюзовый Объем */}
-                <Radar 
+
+                {/* ВТОРОЙ ГРАФИК (Динамический цвет через проп compareColor) */}
+                <Radar
                     name="Asset"
-                    dataKey="Compare" 
-                    stroke="#00F0FF" 
-                    fill="#00F0FF" 
-                    fillOpacity={0.08} // Видно объем "стандартного" актива
-                    strokeWidth={1.5} 
+                    dataKey="Compare"
+                    stroke={compareColor}
+                    fill={compareColor}
+                    fillOpacity={0.08}
+                    strokeWidth={1.5}
                     strokeOpacity={0.4}
                     animationDuration={1000}
                 />
-                
+
                 {/* TYREX - Золотой Кристалл */}
-                <Radar 
+                <Radar
                     name="Tyrex"
-                    dataKey="Tyrex" 
-                    stroke="#FFB800" 
-                    fill="#FFB800" 
-                    fillOpacity={0.15} 
-                    strokeWidth={3} 
+                    dataKey="Tyrex"
+                    stroke="#FFB800"
+                    fill="#FFB800"
+                    fillOpacity={0.15}
+                    strokeWidth={3}
                     style={{ filter: 'url(#tyrexGlow)' }}
-                    dot={{ 
-                        r: 4, 
-                        fill: '#080808', 
-                        stroke: '#FFB800', 
+                    dot={{
+                        r: 4,
+                        fill: '#080808',
+                        stroke: '#FFB800',
                         strokeWidth: 2,
-                        cursor: 'pointer' 
+                        cursor: 'pointer'
                     }}
                     activeDot={{ r: 6, fill: '#FFB800', strokeWidth: 0 }}
                     animationBegin={200}

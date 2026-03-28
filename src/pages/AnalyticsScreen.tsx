@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import clsx from 'clsx';
 import { analyticsApi } from '../api/tyrexApi';
 
@@ -61,132 +61,160 @@ const [modalInfo, setModalInfo] = useState<any>(null);
                 </p>
             </header>
 
+
+
 {activeChart === 'radar' && (
     <div className="space-y-6 animate-in fade-in duration-700">
         
-        {/* --- 1. УЛУЧШЕННЫЙ ХЕΔЕР (ЧИТАЕМОСТЬ 10/10) --- */}
-        <header className="space-y-4">
-            <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-[0.9]">
-                Сравнение <br /> активов
-            </h1>
-            <div className="flex items-center gap-3">
-                <div className="h-px w-8 bg-[#00F0FF]/50" />
-                <span className="text-[10px] font-black text-[#00F0FF] uppercase tracking-[0.3em]">
-                    Инструментарий
-                </span>
-            </div>
-            <p className="text-[13px] text-white/60 leading-relaxed font-medium max-w-[90%]">
-                Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам. 
-                <span className="block text-white/30 mt-1 italic">Выбирай актив для сопоставления:</span>
-            </p>
-        </header>
-
-        {/* --- 2. КАТЕГОРИИ (SLIDING TOGGLE) --- */}
-        <div className="relative flex p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-full overflow-hidden">
-            <div 
-                className={clsx(
-                    "absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-xl transition-all duration-500 ease-out",
-                    activeCategory === 'traditional' ? "left-1" : "left-[calc(50%+1px)]"
-                )}
-            />
-            {['traditional', 'crypto'].map((cat: any) => (
-                <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={clsx(
-                        "relative z-10 flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-300",
-                        activeCategory === cat ? "text-white" : "text-white/20"
-                    )}
-                >
-                    {cat === 'traditional' ? 'Традиционные' : 'Крипто'}
-                </button>
-            ))}
-        </div>
-
-<div className="grid grid-cols-2 gap-2.5">
-    {CATEGORY_ASSETS[activeCategory].map((asset: any) => {
-        const isSelected = selectedAsset === asset.id;
-        return (
-            <button
-                key={asset.id}
-                onClick={() => setSelectedAsset(asset.id)}
-                className={clsx(
-                    "relative flex items-center justify-between py-3.5 px-4 rounded-xl border transition-all duration-300",
-                    isSelected 
-                        ? "border-[#00F0FF]/40 bg-[#00F0FF]/5 shadow-[inset_0_0_15px_rgba(0,240,255,0.05)] scale-[1.02]" 
-                        : "border-white/5 bg-white/[0.01] hover:bg-white/[0.03]"
-                )}
-            >
-                {/* Текст: уменьшил до 10px и чуть урезал tracking */}
-                <span className={clsx(
-                    "text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 truncate pr-2",
-                    isSelected ? "text-white" : "text-white/20"
-                )}>
-                    {asset.label}
-                </span>
-
-                {/* Точка: тоже чуть уменьшил (w-1 h-1), чтобы была аккуратнее */}
-                <div className={clsx(
-                    "flex-shrink-0 w-1 h-1 rounded-full transition-all duration-700 shadow-[0_0_8px_#00F0FF]",
-                    isSelected 
-                        ? "bg-[#00F0FF] opacity-100 scale-100" 
-                        : "bg-white/10 opacity-0 scale-50"
-                )} />
-            </button>
-        );
-    })}
-</div>
-
-        {/* --- 4. ГРАФИК --- */}
-        <div className="relative aspect-square w-full max-w-[390px] mx-auto bg-[#0D0D0D] border border-white/5 rounded-[3rem] p-2 flex items-center justify-center shadow-2xl overflow-visible">
-            <RadarChartComponent key={selectedAsset} data={radarData} />
-        </div>
-
-        {/* --- 5. ЛЕГЕНДА (КЛИКАБЕЛЬНАЯ С ИКОНКАМИ) --- */}
-        <div className="bg-[#121212]/50 border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-10">
-                {INFO_GRID.map((item, idx) => (
-                    <button 
-                        key={idx} 
-                        onClick={() => setModalInfo(item)}
-                        className="space-y-2 text-left active:scale-95 transition-transform group"
-                    >
-                        <div className="flex items-center gap-2">
-                            {/* Здесь предполагается наличие иконок в INFO_GRID или их маппинг */}
-                            <h4 className="text-[11px] font-black text-white uppercase tracking-widest group-hover:text-[#00F0FF] transition-colors">
-                                {item.label}
-                            </h4>
-                        </div>
-                        <p className="text-[11px] text-white/50 leading-relaxed font-medium italic group-hover:text-white/80 transition-colors">
-                            {item.text}
-                        </p>
-                    </button>
-                ))}
-            </div>
-        </div>
-
-        {/* --- 6. МОДАЛЬНОЕ ОКНО --- */}
-        {modalInfo && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
-                <div className="bg-[#111111] border border-[#00F0FF]/20 w-full max-w-sm rounded-[2.5rem] p-8 shadow-[0_0_50px_rgba(0,240,255,0.1)]">
-                    <h3 className="text-2xl font-black text-[#FFB800] uppercase mb-4 tracking-tighter">
-                        {modalInfo.label}
-                    </h3>
-                    <p className="text-[15px] text-white/70 leading-relaxed mb-8 font-medium">
-                        {modalInfo.text}
+        {(() => {
+            const isTrad = activeCategory === 'traditional';
+            const themeColor = isTrad ? '#00F0FF' : '#00FFBD';
+            const themeBg = isTrad ? 'rgba(0, 240, 255, 0.05)' : 'rgba(0, 255, 189, 0.05)';
+            const themeBorder = isTrad ? 'rgba(0, 240, 255, 0.4)' : 'rgba(0, 255, 189, 0.4)';
+            
+            return (
+                <>
+                {/* --- 1. ОПИСАНИЕ --- */}
+                <header className="space-y-4">
+                    <p className="text-[13px] text-white/60 leading-relaxed font-medium max-w-[90%]">
+                        Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам. 
+                        <span className="block text-white/30 mt-1 italic">Выбирай актив для сопоставления:</span>
                     </p>
-                    <button 
-                        onClick={() => setModalInfo(null)}
-                        className="w-full py-4 bg-[#00F0FF] text-black font-black uppercase rounded-2xl shadow-[0_0_20px_rgba(0,240,255,0.3)] active:scale-95 transition-transform"
-                    >
-                        Понятно
-                    </button>
+                </header>
+
+                {/* --- 2. КАТЕГОРИИ (ЗЕРКАЛЬНОЕ ПЕРЕКЛЮЧЕНИЕ) --- */}
+                <div className="relative flex p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-full overflow-hidden">
+                    <div 
+                        className={clsx(
+                            "absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-xl transition-all duration-500",
+                            isTrad ? "left-1" : "left-[calc(50%+1px)]"
+                        )}
+                    />
+                    {['traditional', 'crypto'].map((cat: any) => (
+                        <button
+                            key={cat}
+                            onClick={() => {
+                                const currentIndex = CATEGORY_ASSETS[activeCategory].findIndex(
+                                    (a: any) => a.id === selectedAsset
+                                );
+                                setActiveCategory(cat);
+                                const nextAsset = CATEGORY_ASSETS[cat][currentIndex]?.id || CATEGORY_ASSETS[cat][0].id;
+                                setSelectedAsset(nextAsset);
+                            }}
+                            className={clsx(
+                                "relative z-10 flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-300",
+                                activeCategory === cat ? "text-white" : "text-white/20"
+                            )}
+                        >
+                            {cat === 'traditional' ? 'Традиционные' : 'Крипто'}
+                        </button>
+                    ))}
                 </div>
-            </div>
-        )}
+
+                {/* --- 3. СЕТКА КНОПОК --- */}
+                <div className="grid grid-cols-2 gap-2.5">
+                    {CATEGORY_ASSETS[activeCategory].map((asset: any) => {
+                        const isSelected = selectedAsset === asset.id;
+                        return (
+                            <button
+                                key={asset.id}
+                                onClick={() => setSelectedAsset(asset.id)}
+                                style={{ 
+                                    borderColor: isSelected ? themeBorder : 'rgba(255,255,255,0.05)',
+                                    backgroundColor: isSelected ? themeBg : 'rgba(255,255,255,0.01)'
+                                }}
+                                className={clsx(
+                                    "relative flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border transition-all duration-300",
+                                    isSelected ? "scale-[1.02] shadow-lg" : "hover:bg-white/[0.03]",
+                                    !isTrad && "flex-row-reverse"
+                                )}
+                            >
+                                <span className={clsx(
+                                    "text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 truncate",
+                                    isSelected ? "text-white" : "text-white/20"
+                                )}>
+                                    {asset.label}
+                                </span>
+
+                                <div 
+                                    style={{ 
+                                        backgroundColor: isSelected ? themeColor : 'transparent',
+                                        boxShadow: isSelected ? `0 0 10px ${themeColor}` : 'none'
+                                    }}
+                                    className={clsx(
+                                        "flex-shrink-0 w-1 h-1 rounded-full transition-all duration-700",
+                                        isSelected ? "opacity-100 scale-100" : "opacity-0 scale-50"
+                                    )} 
+                                />
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* --- 4. ГРАФИК --- */}
+                <div className="relative aspect-square w-full max-w-[390px] mx-auto bg-[#0D0D0D] border border-white/5 rounded-[3rem] p-2 flex items-center justify-center shadow-2xl overflow-visible">
+                    <RadarChartComponent 
+                        key={`${selectedAsset}-${activeCategory}`} 
+                        data={radarData} 
+                        compareColor={themeColor} 
+                    />
+                </div>
+
+                {/* --- 5. ЛЕГЕНДА --- */}
+                <div className="bg-[#121212]/50 border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-10">
+                        {INFO_GRID.map((item, idx) => (
+                            <button 
+                                key={idx} 
+                                onClick={() => setModalInfo(item)}
+                                className="space-y-2 text-left active:scale-95 transition-transform"
+                            >
+                                <h4 className="text-[11px] font-black text-white uppercase tracking-widest">
+                                    {item.label}
+                                </h4>
+                                <p className="text-[11px] text-white/50 leading-relaxed font-medium italic">
+                                    {item.text}
+                                </p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* --- 6. МОДАЛЬНОЕ ОКНО (ЗАКРЫТИЕ ПО ТАПУ НА ЭКРАН) --- */}
+                {modalInfo && (
+                    <div 
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-300"
+                        onClick={() => setModalInfo(null)} // ЗАКРЫТИЕ ПРИ ТАПЕ В ЛЮБОЕ МЕСТО ЭКРАНА
+                    >
+                        <div 
+                            className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
+                            style={{ borderLeft: `4px solid ${themeColor}` }}
+                            onClick={(e) => e.stopPropagation()} // Если нужно, чтобы тап по самому окну НЕ закрывал (но можно убрать эту строку, если хочешь закрытие ВООБЩЕ везде)
+                        >
+                            {/* Крестик в углу */}
+                            <button 
+                                onClick={() => setModalInfo(null)}
+                                className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="space-y-6">
+                                <h3 className="text-2xl font-black text-white uppercase tracking-[0.1em] pr-6">
+                                    {modalInfo.label}
+                                </h3>
+                                <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">
+                                    {modalInfo.text}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                </>
+            );
+        })()}
     </div>
 )}
-
             {activeChart === 'growth' && <div className="h-[480px] animate-in fade-in duration-500"><GrowthAreaChart data={calculateGrowthPoints(Number(data?.currentBalance) || 0, defaultPedals, 5)} goal={50000} goalReached={true} pedals={defaultPedals} setPedals={() => {}} pedalDescriptions={PEDAL_DESCRIPTIONS} /></div>}
             {activeChart === 'assets' && <div className="h-[400px] animate-in fade-in duration-500"><StrategyComparisonChart data={generateComparisonData('current')} /></div>}
             {activeChart === 'time' && <div className="animate-in fade-in duration-500"><TimeSavingChart principal={Number(data?.currentBalance) || 0} goal={50000} pedals={defaultPedals} /></div>}
