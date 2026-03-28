@@ -50,17 +50,16 @@ const [modalInfo, setModalInfo] = useState<any>(null);
     const defaultPedals = { yield: 15, ref: 5, btc: 40, boosters: 4, spec: 15 };
     
     // Define theme colors outside IIFE for use in modal
-    const isTrad = activeCategory === 'traditional';
-    const themeColor = isTrad ? '#39FF14' : '#FF00FF';
-    const themeBg = isTrad ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 0, 255, 0.05)';
-    const themeBorder = isTrad ? '#39FF14' : '#FF00FF';
+    // const isTrad = activeCategory === 'traditional';
+    // // const themeColor = isTrad ? '#39FF14' : '#FF00FF';
+    // // const themeBg = isTrad ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 0, 255, 0.05)';
+    // // const themeBorder = isTrad ? '#39FF14' : '#FF00FF';
 
 return (
-        // pt-16 для уменьшения пустоты сверху экрана
         <div className="min-h-screen bg-[#080808] text-white pb-10 pt-16 px-5 font-sans overflow-x-hidden relative">
             <FloatingNav tabs={TABS} activeTab={activeChart} setActiveTab={setActiveChart} scrollContainerRef={scrollContainerRef} />
 
-            {/* ВЕРХНИЙ ХЕДЕР: Уменьшенный шрифт и выверенный отступ mt-2 */}
+            {/* ВЕРХНИЙ ХЕДЕР */}
             <header className="mt-2 mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
                 <h1 className="text-xl font-black mb-1 uppercase tracking-tighter">
                     {currentTab?.header}
@@ -76,6 +75,11 @@ return (
                     {(() => {
                         const isTradLocal = activeCategory === 'traditional';
                         
+                        // ПРИМЕНЯЕМ ТВОИ ЦВЕТА
+                        const themeColor = isTradLocal ? '#39FF14' : '#FF10F0'; 
+                        const themeBg = isTradLocal ? 'rgba(57, 255, 20, 0.05)' : 'rgba(255, 16, 240, 0.05)';
+                        const themeBorder = themeColor; // Используем чистый неон для границ
+                        
                         return (
                             <>
                             <header className="space-y-1">
@@ -85,7 +89,7 @@ return (
                                 </p>
                             </header>
 
-                            {/* TOGGLE КАТЕГОРИЙ */}
+                            {/* ПЕРЕКЛЮЧАТЕЛЬ КАТЕГОРИЙ */}
                             <div className="relative flex p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-full overflow-hidden">
                                 <div 
                                     className={clsx(
@@ -114,7 +118,7 @@ return (
                                 ))}
                             </div>
 
-                            {/* СЕТКА КНОПОК: Уменьшена высота (py-2) + точка всегда слева */}
+                            {/* СЕТКА КНОПОК */}
                             <div className="grid grid-cols-2 gap-2">
                                 {CATEGORY_ASSETS[activeCategory].map((asset: any) => {
                                     const isSelected = selectedAsset === asset.id;
@@ -143,10 +147,13 @@ return (
                                                 )} 
                                             />
 
-                                            <span className={clsx(
-                                                "text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 truncate",
-                                                isSelected ? "text-white" : "text-white/20"
-                                            )}>
+                                            <span 
+                                                style={{ color: isSelected ? themeColor : undefined }}
+                                                className={clsx(
+                                                    "text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 truncate",
+                                                    !isSelected && "text-white/20"
+                                                )}
+                                            >
                                                 {asset.label}
                                             </span>
                                         </button>
@@ -194,7 +201,8 @@ return (
                         >
                             <div 
                                 className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
-                                style={{ borderLeft: `4px solid ${themeColor}` }}
+                                // Бордер модалки тоже подстраивается под неон
+                                style={{ borderLeft: `4px solid ${activeCategory === 'traditional' ? '#39FF14' : '#FF10F0'}` }}
                                 onClick={(e) => e.stopPropagation()} 
                             >
                                 <button 
@@ -218,7 +226,7 @@ return (
                 </div>
             )}
 
-            {/* Остальные табы */}
+            {/* ОСТАЛЬНЫЕ ТАБЫ */}
             {activeChart === 'growth' && <div className="h-[480px] animate-in fade-in duration-500"><GrowthAreaChart data={calculateGrowthPoints(Number(data?.currentBalance) || 0, defaultPedals, 5)} goal={50000} goalReached={true} pedals={defaultPedals} setPedals={() => {}} pedalDescriptions={PEDAL_DESCRIPTIONS} /></div>}
             {activeChart === 'assets' && <div className="h-[400px] animate-in fade-in duration-500"><StrategyComparisonChart data={generateComparisonData('current')} /></div>}
             {activeChart === 'time' && <div className="animate-in fade-in duration-500"><TimeSavingChart principal={Number(data?.currentBalance) || 0} goal={50000} pedals={defaultPedals} /></div>}
