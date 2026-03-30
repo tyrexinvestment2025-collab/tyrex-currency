@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 import { analyticsApi } from '../api/tyrexApi';
 
@@ -10,10 +10,37 @@ import TimeSavingChart from '../components/charts/TimeSavingChart';
 import InvestmentStructureChart from '../components/charts/InvestmentStructureChart';
 import FloatingNav from '../components/navigation/FloatingNav';
 
-import { CATEGORY_ASSETS, INFO_GRID, TABS, PEDAL_DESCRIPTIONS } from '../constants/AnalyticsConfig';
+import { CATEGORY_ASSETS, TABS, PEDAL_DESCRIPTIONS } from '../constants/AnalyticsConfig';
 import { calculateGrowthPoints } from '../utils/growthMath';
 import { generateComparisonData } from '../utils/comparisonMath';
 import { calculateStructureData } from '../utils/structureMath';
+
+const LEGEND_DATA: any = {
+    'ДОХОДНОСТЬ': { 
+        short: 'Сколько актив приносит прибыли в год', 
+        full: 'Демонстрирует, насколько вырастет ваш капитал за один год использования выбранного инструмента. Измеряется в % годовых.' 
+    },
+    'ПОТЕНЦИАЛ РОСТА': { 
+        short: 'Вероятность многократного роста цены актива', 
+        full: 'Оценка «иксов». Показывает долгосрочную ценность актива и его способность дорожать независимо от выплачиваемых дивидендов.' 
+    },
+    'ПРОСТОТА': { 
+        short: 'Уровень сложности управления', 
+        full: 'Порог необходимых знаний и усилий. Высокий балл означает, что актив не требует большой компетенции или вовлеченности, чтобы зарабатывать. Бизнес — сложен в управлении, а депозит наоборот.' 
+    },
+    'ЛИКВИДНОСТЬ': { 
+        short: 'Насколько просто превратить актив в наличные', 
+        full: 'Возможность быстро забрать средства без потери стоимости. Высокое значение означает мгновенный доступ к кэшу в любой момент. Например, у Недвижимости низкая ликвидность, т.к. её продажа требует времени.' 
+    },
+    'ПОРОГ ВХОДА': { 
+        short: 'Сколько денег нужно для старта', 
+        full: 'Финансовая доступность инструмента. Чем выше этот показатель на графике, тем МЕНЬШАЯ сумма требуется для начала инвестирования.' 
+    },
+    'БЕЗОПАСНОСТЬ': { 
+        short: 'Насколько велик риск потерять деньги', 
+        full: 'Комплексный показатель надежности. Высокое значение означает минимальную вероятность просадки и гарантированную сохранность вложенного капитала.' 
+    }
+};
 
 const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivElement> }> = ({ scrollContainerRef }) => {
     const [loading, setLoading] = useState(true);
@@ -48,19 +75,12 @@ const [modalInfo, setModalInfo] = useState<any>(null);
 
     const currentTab = TABS.find(t => t.id === activeChart);
     const defaultPedals = { yield: 15, ref: 5, btc: 40, boosters: 4, spec: 15 };
-    
-    // Define theme colors outside IIFE for use in modal
-    // const isTrad = activeCategory === 'traditional';
-    // // const themeColor = isTrad ? '#39FF14' : '#FF00FF';
-    // // const themeBg = isTrad ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 0, 255, 0.05)';
-    // // const themeBorder = isTrad ? '#39FF14' : '#FF00FF';
 
 return (
-        <div className="min-h-screen bg-[#080808] text-white pb-10 pt-16 px-5 font-sans overflow-x-hidden relative">
+        <div className="min-h-screen bg-[#080808] text-white pb-10 pt-24 px-5 font-sans overflow-x-hidden relative">
             <FloatingNav tabs={TABS} activeTab={activeChart} setActiveTab={setActiveChart} scrollContainerRef={scrollContainerRef} />
 
-            {/* ВЕРХНИЙ ХЕДЕР */}
-            <header className="mt-2 mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+            <header className="mt-5 mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
                 <h1 className="text-xl font-black mb-1 uppercase tracking-tighter">
                     {currentTab?.header}
                 </h1>
@@ -75,10 +95,9 @@ return (
                     {(() => {
                         const isTradLocal = activeCategory === 'traditional';
                         
-                        // ПРИМЕНЯЕМ ТВОИ ЦВЕТА
-                        const themeColor = isTradLocal ? '#39FF14' : '#FF10F0'; 
-                        const themeBg = isTradLocal ? 'rgba(57, 255, 20, 0.05)' : 'rgba(255, 16, 240, 0.05)';
-                        const themeBorder = themeColor; // Используем чистый неон для границ
+                        const themeColor = isTradLocal ? '#00F0FF' : '#FF00E5'; 
+                        const themeBg = isTradLocal ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 0, 229, 0.05)';
+                        const themeBorder = themeColor;
                         
                         return (
                             <>
@@ -89,7 +108,6 @@ return (
                                 </p>
                             </header>
 
-                            {/* ПЕРЕКЛЮЧАТЕЛЬ КАТЕГОРИЙ */}
                             <div className="relative flex p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-full overflow-hidden">
                                 <div 
                                     className={clsx(
@@ -101,11 +119,9 @@ return (
                                     <button
                                         key={cat}
                                         onClick={() => {
-                                            const currentIndex = CATEGORY_ASSETS[activeCategory].findIndex(
-                                                (a: any) => a.id === selectedAsset
-                                            );
-                                            setActiveCategory(cat as 'traditional' | 'crypto');
-                                            const nextAsset = CATEGORY_ASSETS[cat as 'traditional' | 'crypto'][currentIndex]?.id || CATEGORY_ASSETS[cat as 'traditional' | 'crypto'][0].id;
+                                            const currentIndex = CATEGORY_ASSETS[activeCategory].findIndex((a: { id: string; }) => a.id === selectedAsset);
+                                            setActiveCategory(cat);
+                                            const nextAsset = CATEGORY_ASSETS[cat][currentIndex]?.id || CATEGORY_ASSETS[cat][0].id;
                                             setSelectedAsset(nextAsset);
                                         }}
                                         className={clsx(
@@ -118,7 +134,6 @@ return (
                                 ))}
                             </div>
 
-                            {/* СЕТКА КНОПОК */}
                             <div className="grid grid-cols-2 gap-2">
                                 {CATEGORY_ASSETS[activeCategory].map((asset: any) => {
                                     const isSelected = selectedAsset === asset.id;
@@ -135,7 +150,6 @@ return (
                                                 isSelected ? "scale-[1.02] shadow-lg" : "hover:bg-white/[0.03]"
                                             )}
                                         >
-                                            {/* ТОЧКА СЛЕВА */}
                                             <div 
                                                 style={{ 
                                                     backgroundColor: isSelected ? themeColor : 'transparent',
@@ -146,7 +160,6 @@ return (
                                                     isSelected ? "opacity-100 scale-100" : "opacity-0 scale-50"
                                                 )} 
                                             />
-
                                             <span 
                                                 style={{ color: isSelected ? themeColor : undefined }}
                                                 className={clsx(
@@ -161,8 +174,7 @@ return (
                                 })}
                             </div>
 
-                            {/* ГРАФИК */}
-                            <div className="relative aspect-square w-full max-w-[380px] mx-auto bg-[#0D0D0D] border border-white/5 rounded-[3rem] p-1 flex items-center justify-center shadow-2xl overflow-visible">
+                            <div className="relative aspect-square w-full mx-auto flex items-center justify-center overflow-visible mt-4 mb-8">
                                 <RadarChartComponent 
                                     key={`${selectedAsset}-${activeCategory}`} 
                                     data={radarData} 
@@ -170,20 +182,19 @@ return (
                                 />
                             </div>
 
-                            {/* ЛЕГЕНДА */}
                             <div className="bg-[#121212]/50 border border-white/5 rounded-[2.5rem] p-6 shadow-xl">
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-6">
-                                    {INFO_GRID.map((item, idx) => (
+                                    {Object.keys(LEGEND_DATA).map((key, idx) => (
                                         <button 
                                             key={idx} 
-                                            onClick={() => setModalInfo(item)}
+                                            onClick={() => setModalInfo({ label: key, ...LEGEND_DATA[key] })}
                                             className="space-y-1 text-left active:scale-95 transition-transform"
                                         >
                                             <h4 className="text-[10px] font-black text-white uppercase tracking-widest">
-                                                {item.label}
+                                                {key}
                                             </h4>
                                             <p className="text-[10px] text-white/50 leading-snug font-medium italic">
-                                                {item.text}
+                                                {LEGEND_DATA[key].short}
                                             </p>
                                         </button>
                                     ))}
@@ -193,31 +204,22 @@ return (
                         );
                     })()}
 
-                    {/* МОДАЛЬНОЕ ОКНО */}
                     {modalInfo && (
                         <div 
                             className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-300"
-                            onClick={() => setModalInfo(null)}
+                            onClick={() => setModalInfo(null)} 
                         >
                             <div 
                                 className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200"
-                                // Бордер модалки тоже подстраивается под неон
-                                style={{ borderLeft: `4px solid ${activeCategory === 'traditional' ? '#39FF14' : '#FF10F0'}` }}
-                                onClick={(e) => e.stopPropagation()} 
+                                style={{ borderLeft: `4px solid ${activeCategory === 'traditional' ? '#00F0FF' : '#FF00E5'}` }}
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <button 
-                                    onClick={() => setModalInfo(null)}
-                                    className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"
-                                >
-                                    <X size={20} />
-                                </button>
-
                                 <div className="space-y-6">
-                                    <h3 className="text-2xl font-black text-white uppercase tracking-[0.1em] pr-6">
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-[0.1em]">
                                         {modalInfo.label}
                                     </h3>
                                     <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">
-                                        {modalInfo.text}
+                                        {modalInfo.full}
                                     </p>
                                 </div>
                             </div>
@@ -226,7 +228,6 @@ return (
                 </div>
             )}
 
-            {/* ОСТАЛЬНЫЕ ТАБЫ */}
             {activeChart === 'growth' && <div className="h-[480px] animate-in fade-in duration-500"><GrowthAreaChart data={calculateGrowthPoints(Number(data?.currentBalance) || 0, defaultPedals, 5)} goal={50000} goalReached={true} pedals={defaultPedals} setPedals={() => {}} pedalDescriptions={PEDAL_DESCRIPTIONS} /></div>}
             {activeChart === 'assets' && <div className="h-[400px] animate-in fade-in duration-500"><StrategyComparisonChart data={generateComparisonData('current')} /></div>}
             {activeChart === 'time' && <div className="animate-in fade-in duration-500"><TimeSavingChart principal={Number(data?.currentBalance) || 0} goal={50000} pedals={defaultPedals} /></div>}
