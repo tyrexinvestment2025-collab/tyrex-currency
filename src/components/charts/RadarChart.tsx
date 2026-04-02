@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { 
     Radar, RadarChart, PolarGrid, PolarAngleAxis, 
-    ResponsiveContainer, PolarRadiusAxis, Tooltip
+    ResponsiveContainer, PolarRadiusAxis
 } from 'recharts';
 
 const metricLabels: Record<string, string> = {
@@ -22,29 +22,29 @@ const ORDER = [
     'Риск'
 ];
 
-const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-        const compareColor = payload[0].stroke;
-        return (
-            <div className="bg-[#0A0A0A]/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl animate-in zoom-in-95 duration-200">
-                <p className="text-[10px] font-black text-white/40 mb-2 uppercase tracking-widest border-b border-white/5 pb-1">
-                    {metricLabels[payload[0].payload.subject] || payload[0].payload.subject}
-                </p>
-                <div className="space-y-1.5">
-                    <div className="flex items-center justify-between gap-6">
-                        <span className="text-[11px] font-bold text-[#FFB800]">TYREX</span>
-                        <span className="text-[11px] font-black text-white">{payload[1].value}%</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-6">
-                        <span className="text-[11px] font-bold" style={{ color: compareColor }}>АКТИВ</span>
-                        <span className="text-[11px] font-black text-white">{payload[0].value}%</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    return null;
-};
+// const CustomTooltip = ({ active, payload }: any) => {
+//     if (active && payload && payload.length) {
+//         const compareColor = payload[0].stroke;
+//         return (
+//             <div className="bg-[#0A0A0A]/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl animate-in zoom-in-95 duration-200">
+//                 <p className="text-[10px] font-black text-white/40 mb-2 uppercase tracking-widest border-b border-white/5 pb-1">
+//                     {metricLabels[payload[0].payload.subject] || payload[0].payload.subject}
+//                 </p>
+//                 <div className="space-y-1.5">
+//                     <div className="flex items-center justify-between gap-6">
+//                         <span className="text-[11px] font-bold text-[#FFB800]">TYREX</span>
+//                         <span className="text-[11px] font-black text-white">{payload[1].value}%</span>
+//                     </div>
+//                     <div className="flex items-center justify-between gap-6">
+//                         <span className="text-[11px] font-bold" style={{ color: compareColor }}>АКТИВ</span>
+//                         <span className="text-[11px] font-black text-white">{payload[0].value}%</span>
+//                     </div>
+//                 </div>
+//             </div>
+//         );
+//     }
+//     return null;
+// };
 
 const CustomAngleTick = (props: any) => {
     const { x, y, payload, cx, cy } = props;
@@ -83,7 +83,7 @@ const RadarChartComponent = memo(({ data, compareColor = '#00F0FF' }: any) => {
     }, [data]);
 
     return (
-        <div className="w-full h-full relative flex items-center justify-center">
+        <div className="w-full h-full relative flex items-center justify-center overflow-visible">
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart 
                     cx="50%" cy="50%" 
@@ -91,43 +91,21 @@ const RadarChartComponent = memo(({ data, compareColor = '#00F0FF' }: any) => {
                     endAngle={-270}
                     outerRadius="85%" 
                     data={sortedData} 
-                    margin={{ top: 20, right: 60, bottom: 20, left: 60 }} // Більші бокові відступи
+                    margin={{ top: 30, right: 40, bottom: 30, left: 40 }}
                     style={{ outline: 'none', overflow: 'visible' }}
                 >
                     <defs>
-                        <filter id="tyrexGlow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="3" result="blur" />
+                        <filter id="tyrexGlow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="4" result="blur" />
                             <feComposite in="SourceGraphic" in2="blur" operator="over" />
                         </filter>
                     </defs>
 
-                    {/* ПАРАМЕТР: strokeOpacity збільшено до 0.4 для білого кольору */}
-                    <PolarGrid 
-                        stroke="#FFFFFF" 
-                        strokeOpacity={0.4} 
-                        gridType="polygon"
-                    />
-                    
-                    <PolarAngleAxis dataKey="subject" tick={<CustomAngleTick />} />
+                    <PolarGrid stroke="#FFFFFF" strokeOpacity={0.3} gridType="polygon" />
+                    <PolarAngleAxis dataKey="subject" tick={<CustomAngleTick data={sortedData} compareColor={compareColor} />} />
                     <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
 
-                    <Tooltip content={<CustomTooltip />} cursor={false} trigger="click" />
-
-                    <Radar
-                        name="Asset"
-                        dataKey="Compare"
-                        stroke={compareColor}
-                        fill={compareColor}
-                        fillOpacity={0.1}
-                        strokeWidth={2}
-                        dot={{
-                            r: 3,
-                            fill: compareColor,
-                            strokeWidth: 0
-                        }}
-                        animationDuration={1000}
-                    />
-
+                    {/* --- ШАР 1: TYREX (ЗОЛОТО) - МАЛЮЄТЬСЯ ПЕРШИМ (ЗНИЗУ) --- */}
                     <Radar
                         name="Tyrex"
                         dataKey="Tyrex"
@@ -136,16 +114,21 @@ const RadarChartComponent = memo(({ data, compareColor = '#00F0FF' }: any) => {
                         fillOpacity={0.2}
                         strokeWidth={3}
                         style={{ filter: 'url(#tyrexGlow)' }}
-                        dot={{
-                            r: 3.5,
-                            fill: '#FFB800',
-                            stroke: '#000',
-                            strokeWidth: 1,
-                            cursor: 'pointer'
-                        }}
-                        activeDot={{ r: 5, fill: '#FFB800', strokeWidth: 0 }}
-                        animationBegin={200}
-                        animationDuration={1500}
+                        dot={{ r: 4, fill: '#FFB800', stroke: '#000', strokeWidth: 1.5 }}
+                        animationDuration={1000}
+                    />
+
+                    {/* --- ШАР 2: АКТИВ (НЕОН) - МАЛЮЄТЬСЯ ДРУГИМ (ЗВЕРХУ) --- */}
+                    <Radar
+                        name="Asset"
+                        dataKey="Compare"
+                        stroke={compareColor}
+                        fill={compareColor}
+                        fillOpacity={0.12}
+                        strokeWidth={2}
+                        dot={{ r: 3, fill: compareColor, strokeWidth: 0 }}
+                        animationBegin={300}
+                        animationDuration={1000}
                     />
                 </RadarChart>
             </ResponsiveContainer>
