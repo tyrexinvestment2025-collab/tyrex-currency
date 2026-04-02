@@ -20,26 +20,24 @@ const TypewriterText = ({ text }: { text: string }) => {
     const [displayedText, setDisplayedText] = useState("");
     
     useEffect(() => {
-        setDisplayedText(""); // Скидання при зміні тексту
+        setDisplayedText(""); 
         let i = 0;
         const interval = setInterval(() => {
             setDisplayedText(text.slice(0, i + 1));
             i++;
             if (i >= text.length) clearInterval(interval);
-        }, 20); // Швидкість друку
+        }, 20); 
         return () => clearInterval(interval);
     }, [text]);
 
     return <span>{displayedText}</span>;
 };
 
-// ... (ASSET_CONCLUSIONS та LEGEND_DATA залишаються такими ж, як у попередній відповіді)
-
 const ASSET_CONCLUSIONS: Record<string, string> = {
     'Real Estate': 'Недвижимость имеет высокую надежность, но требует большого стартового капитала и имеет низкую ликвидность. Tyrex сохраняет надежность, обеспечивая доступный старт и мгновенный доступ к кэшу.',
     'Bank Deposit': 'Банковские вклады безопасны, но доходность часто ниже инфляции, а доступ к средствам ограничен. Tyrex значительно доходнее и обеспечивает полную свободу распоряжения капиталом.',
     'S&P 500': 'Акции доходны на дистанции, но сложны в управлении и требуют специфических знаний рынка. Tyrex обеспечивает стабильный профит в пассивном режиме без необходимости личного участия.',
-    'Gold': 'Золото отлично хранит ценность, но почти не генерирует пассивный доход и сложно в хранении. Tyrex сочетает защитные свойства with высокой доходностью и цифровым удобством.',
+    'Gold': 'Золото отлично хранит ценность, но почти не генерирует пассивный доход и сложно в хранении. Tyrex сочетает защитные свойства с высокой доходностью и цифровым удобством.',
     'Business': 'Свой бизнес дает высокий потенциал дохода (если все пойдет хорошо), но несет критические риски и требует полной вовлеченности. Tyrex автоматизирует получение прибыли, полностью освобождая ваше время.',
     'Funds': 'Фонды просты в управлении, но берут высокие комиссии и не дают контроля над активами. Tyrex предлагает прозрачную стратегию с прямой выплатой прибыли без посредников.',
     'Staking': 'Стейкинг безопасен, но доходность часто минимальна, а монеты заморожены на долгий срок. Tyrex обеспечивает более высокий процент при возможности забрать тело капитала в любой момент.',
@@ -52,11 +50,11 @@ const ASSET_CONCLUSIONS: Record<string, string> = {
 
 const LEGEND_DATA: any = {
     'ДОХОДНОСТЬ': { short: 'Сколько актив приносит прибыли в год', full: 'Демонстрирует, насколько вырастет ваш капитал за один год использования выбранного инструмента. Измеряется в % годовых.' },
-    'ПОТЕНЦИАЛ РОСТА': { short: 'Вероятность многократного роста тела актива', full: 'Оценка «иксов». Показывает долгосрочную ценность актива и его способность дорожать независимо от выплачиваемых дивидендов.' },
-    'ПРОСТОТА': { short: 'Уровень сложности управления', full: 'Порог необходимых знаний и усилий. Высокий балл означает, что актив не требует большой компетенции. Бизнес — сложен в управлении, а депозит наоборот.' },
-    'ЛИКВИДНОСТЬ': { short: 'Насколько просто превратить актив в кэш', full: 'Возможность быстро забрать средства без потери стоимости. Высокое значение означает мгновенный доступ к кэшу. Например, у недвижимости ликвидность низкая.' },
+    'ПОТЕНЦИАЛ РОСТА': { short: 'Вероятность многократного роста цены актива', full: 'Оценка «иксов». Показывает долгосрочную ценность актива и его способность дорожать независимо от выплачиваемых дивидендов.' },
+    'ПРОСТОТА': { short: 'Уровень сложности управления', full: 'Порог необходимых знаний и усилий. Высокий балл означает, что актив не требует большой компетенции или вовлеченности. Бизнес — сложен в управлении, а депозит наоборот.' },
+    'ЛИКВИДНОСТЬ': { short: 'Насколько просто превратить актив в наличные', full: 'Возможность быстро забрать средства без потери стоимости. Высокое значение означает мгновенный доступ к кэшу в любой момент. Например, у Недвижимости низкая ликвидность, тк ее продажа требует времени.' },
     'ПОРОГ ВХОДА': { short: 'Сколько денег нужно для старта', full: 'Финансовая доступность инструмента. Чем выше этот показатель на графике, тем МЕНЬШАЯ сумма требуется для начала инвестирования.' },
-    'БЕЗОПАСНОСТЬ': { short: 'Насколько велик риск потерять деньги', full: 'Комплексный показатель надежности. Высокое значение означает минимальную вероятность просадки и гарантированную сохранность капитала.' }
+    'БЕЗОПАСНОСТЬ': { short: 'Насколько велик риск потерять деньги', full: 'Комплексный показатель надежности. Высокое значение означает минимальную вероятность просадки и гарантированную сохранность вложенного капитала.' }
 };
 
 const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivElement> }> = ({ scrollContainerRef }) => {
@@ -120,8 +118,8 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                     <span className="block text-white/30 mt-0.5 italic text-[12px]">Выбирай актив для сопоставления:</span>
                                 </p>
                             </header>
+
                             <div className="relative flex p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-full overflow-hidden">
-        
                                 <div className={clsx("absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-xl transition-all duration-500", isTradLocal ? "left-1" : "left-[calc(50%+1px)]")} />
                                 {['traditional', 'crypto'].map((cat: any) => (
                                     <button key={cat} onClick={() => {
@@ -135,7 +133,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                 ))}
                             </div>
 
-                            {/* --- 1. ПРАВКА: КАПСУЛИ В 2 РЯДИ ПО 3 ШТ ЗІ СКРОЛОМ --- */}
+                            {/* КАПСУЛИ В 2 РЯДИ ЗІ СКРОЛОМ */}
                             <div 
                                 className="grid grid-rows-2 grid-flow-col gap-2 overflow-x-auto no-scrollbar pb-1"
                                 style={{ scrollSnapType: 'x mandatory' }}
@@ -149,7 +147,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                             style={{ 
                                                 borderColor: isSelected ? themeBorder : 'rgba(255,255,255,0.05)', 
                                                 backgroundColor: isSelected ? themeBg : 'rgba(255,255,255,0.01)',
-                                                width: 'calc((100vw - 56px) / 3)' // Розрахунок ширини для 3-х кнопок в ряд (враховуючи padding)
+                                                width: 'calc((100vw - 56px) / 3)'
                                             }} 
                                             className={clsx(
                                                 "relative flex items-center justify-center gap-2 py-2 px-2 rounded-xl border transition-all duration-300 flex-shrink-0 scroll-snap-align-start",
@@ -165,14 +163,9 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                 })}
                             </div>
 
-                            {/* --- 2. ПРАВКА: ГРАФІК ЗМЕНШЕНО (max-w-[310px]) --- */}
-                            <div className="relative aspect-square w-full max-w-[310px] mx-auto bg-[#0D0D0D] border border-white/5 rounded-[3rem] p-1 flex items-center justify-center shadow-2xl overflow-visible mt-2">
-                                <RadarChartComponent key={`${selectedAsset}-${activeCategory}`} data={radarData} compareColor={themeColor} />
-                            </div>
-
-                            {/* --- 3. ПРАВКА: ТЕКСТ ВИСНОВКУ З ЕФЕКТОМ ДРУКУ --- */}
-                            <div className="px-1 min-h-[80px]">
-                                <div className="bg-white/[0.02] border-l-2 p-4 rounded-r-2xl h-full" style={{ borderColor: themeColor }}>
+                            {/* --- ПЕРЕСТАВЛЕНО: ТЕКСТ ВИСНОВКУ ПЕРШИЙ --- */}
+                            <div className="px-1 min-h-[85px] mt-2">
+                                <div className="bg-white/[0.02] border-l-2 p-4 rounded-r-2xl h-full shadow-inner" style={{ borderColor: themeColor }}>
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] block mb-1" style={{ color: themeColor }}>
                                         Вывод
                                     </span>
@@ -180,6 +173,11 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                         <TypewriterText text={ASSET_CONCLUSIONS[selectedAsset] || 'Выберите актив для анализа.'} />
                                     </p>
                                 </div>
+                            </div>
+
+                            {/* --- ПЕРЕСТАВЛЕНО: ГРАФІК ДРУГИЙ (ЯК ПОЯСНЕННЯ) --- */}
+                            <div className="relative aspect-square w-full max-w-[310px] mx-auto bg-[#0D0D0D] border border-white/5 rounded-[3rem] p-1 flex items-center justify-center shadow-2xl overflow-visible mt-4">
+                                <RadarChartComponent key={`${selectedAsset}-${activeCategory}`} data={radarData} compareColor={themeColor} />
                             </div>
 
                             {/* ЛЕГЕНДА */}
@@ -197,7 +195,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                         );
                     })()}
 
-                    {/* МОДАЛКА (БЕЗ ЗМІН) */}
+                    {/* МОДАЛЬНЕ ВІКНО */}
                     {modalInfo && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setModalInfo(null)}>
                             <div className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-200" style={{ borderLeft: `4px solid ${activeCategory === 'traditional' ? '#00F0FF' : '#FF00E5'}` }} onClick={(e) => e.stopPropagation()}>
@@ -205,13 +203,14 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                     <h3 className="text-2xl font-black text-white uppercase tracking-[0.1em]">{modalInfo.label}</h3>
                                     <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">{modalInfo.full}</p>
                                 </div>
+                                <p className="mt-8 text-[10px] text-white/20 uppercase tracking-widest text-center">Нажмите в любом месте для закрытия</p>
                             </div>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* ОСТАЛЬНІ ТАБИ (БЕЗ ЗМІН) */}
+            {/* Решта чартів */}
             {activeChart === 'growth' && <div className="h-[480px] animate-in fade-in duration-500"><GrowthAreaChart data={calculateGrowthPoints(Number(data?.currentBalance) || 0, defaultPedals, 5)} goal={50000} goalReached={true} pedals={defaultPedals} setPedals={() => {}} pedalDescriptions={PEDAL_DESCRIPTIONS} /></div>}
             {activeChart === 'assets' && <div className="h-[400px] animate-in fade-in duration-500"><StrategyComparisonChart data={generateComparisonData('current')} /></div>}
             {activeChart === 'time' && <div className="animate-in fade-in duration-500"><TimeSavingChart principal={Number(data?.currentBalance) || 0} goal={50000} pedals={defaultPedals} /></div>}
