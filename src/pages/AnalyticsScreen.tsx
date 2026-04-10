@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { RefreshCw, Settings2, X, Calculator, TrendingUp, Target } from 'lucide-react';
+import { RefreshCw, Settings2, Lock, ArrowRight } from 'lucide-react';
 import clsx from 'clsx';
 import { analyticsApi } from '../api/tyrexApi';
 
@@ -9,11 +9,12 @@ import StrategyComparisonChart from '../components/charts/StrategyComparisonChar
 import TimeSavingChart from '../components/charts/TimeSavingChart';
 import InvestmentStructureChart from '../components/charts/InvestmentStructureChart';
 import FloatingNav from '../components/navigation/FloatingNav';
+import StrategyPanel from './StrategyPanel'; 
 
 import { CATEGORY_ASSETS, TABS, PEDAL_DESCRIPTIONS, ASSET_CONCLUSIONS, LEGEND_DATA } from '../constants/AnalyticsConfig';
 import { generateComparisonData } from '../utils/comparisonMath';
 
-// --- МАТЕМАТИКА (ЦИФРОВИЙ КОЛОДЯЗЬ) ---
+// --- МАТЕМАТИКА ---
 const calculateCompoundData = (principal: number, reinvest: number, pedals: Record<string, number>, years: number = 5) => {
     const totalApy = Object.values(pedals).reduce((a, b) => a + b, 0);
     const monthlyRate = (totalApy / 100) / 12;
@@ -29,19 +30,26 @@ const calculateCompoundData = (principal: number, reinvest: number, pedals: Reco
     return { points, finalValue: balance, totalInvested };
 };
 
-// const calculateYearsToGoal = (principal: number, reinvest: number, goal: number, apy: number) => {
-//     if (principal >= goal) return 0.5;
-//     let balance = principal;
-//     let months = 0;
-//     const monthlyRate = (apy / 100) / 12;
-//     while (balance < goal && months < 360) {
-//         balance = balance * (1 + monthlyRate) + reinvest;
-//         months++;
-//     }
-//     return Math.max(months / 12, 0.5);
-// };
+// --- ЗАГЛУШКА ДЛЯ ЗАКРЫТЫХ ГРАФИКОВ ---
+const LockedChartOverlay = ({ onOpen }: { onOpen: () => void }) => (
+    <div className="w-full aspect-[4/3] bg-[#151517] rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center p-6 text-center shadow-2xl">
+        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10">
+            <Lock className="w-6 h-6 text-[#FDB931]" />
+        </div>
+        <h3 className="text-sm font-black uppercase tracking-tight mb-2">Прогноз не сформовано</h3>
+        <p className="text-[11px] text-white/40 leading-snug mb-6 max-w-[200px]">
+            Налаштуйте стратегію, щоб активувати індивідуальний розрахунок
+        </p>
+        <button 
+            onClick={onOpen}
+            className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+        >
+            Налаштувати <ArrowRight className="w-3 h-3" />
+        </button>
+    </div>
+);
 
-// --- КОМПОНЕНТ ЕФЕКТУ ДРУКУ ---
+// --- ЭФФЕКТ ПЕЧАТИ ---
 const TypewriterText = ({ text }: { text: string }) => {
     const [displayedText, setDisplayedText] = useState("");
     useEffect(() => {
@@ -61,12 +69,12 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
     const [activeChart, setActiveChart] = useState('radar');
+    const [hasInteracted, setHasInteracted] = useState(false);
     
-    // Единый стейт для расчетов
     const [config, setConfig] = useState({
-        principal: 500,
-        reinvest: 50,
-        goal: 50000,
+        principal: 0,
+        reinvest: 0,
+        goal: 10000,
         pedals: { yield: 15, boosters: 4, spec: 15, btc: 40, ref: 5 }
     });
 
@@ -85,7 +93,6 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
         });
     }, []);
 
-    // Расчеты
     const financialModel = useMemo(() => calculateCompoundData(config.principal, config.reinvest, config.pedals), [config]);
     
     const structureData = useMemo(() => {
@@ -101,8 +108,12 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
 
     const handleScroll = () => {
         if (isProgrammaticScroll.current || !sliderRef.current) return;
-        const index = Math.round(sliderRef.current.scrollLeft / sliderRef.current.offsetWidth);
-        if (TABS[index] && TABS[index].id !== activeChart) setActiveChart(TABS[index].id);
+        const scrollLeft = sliderRef.current.scrollLeft;
+        const width = sliderRef.current.offsetWidth;
+        const index = Math.round(scrollLeft / width);
+        if (TABS[index] && TABS[index].id !== activeChart) {
+            setActiveChart(TABS[index].id);
+        }
     };
 
     const handleTabChange = (tabId: string) => {
@@ -110,7 +121,10 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
         if (index !== -1 && sliderRef.current) {
             isProgrammaticScroll.current = true;
             setActiveChart(tabId);
-            sliderRef.current.scrollTo({ left: index * sliderRef.current.offsetWidth, behavior: 'smooth' });
+            sliderRef.current.scrollTo({
+                left: index * sliderRef.current.offsetWidth,
+                behavior: 'smooth'
+            });
             setTimeout(() => { isProgrammaticScroll.current = false; }, 500);
         }
     };
@@ -134,7 +148,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     const currentTab = TABS.find(t => t.id === activeChart);
 
     return (
-        <div className="min-h-screen bg-[#080808] text-white pb-10 pt-20 px-0 font-sans overflow-hidden relative">
+        <div className="min-h-screen bg-[#080808] text-white pb-10 pt-16 px-0 font-sans overflow-hidden relative">
             <FloatingNav tabs={TABS} activeTab={activeChart} setActiveTab={handleTabChange} scrollContainerRef={scrollContainerRef} />
 
             <header className="px-5 mb-2 animate-in fade-in duration-700">
@@ -142,9 +156,14 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                 <p className="text-[12px] text-white/90 leading-snug max-w-[95%] min-h-[32px] whitespace-pre-line">{currentTab?.sub}</p>
             </header>
 
-            <div ref={sliderRef} onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar touch-pan-y" style={{ scrollBehavior: 'smooth' }}>
+            <div 
+                ref={sliderRef} 
+                onScroll={handleScroll} 
+                className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar touch-pan-y pt-2" 
+                style={{ scrollBehavior: 'smooth' }}
+            >
                 
-                {/* --- СЛАЙД 1: RADAR (ПОЛНОСТЬЮ ТВОЙ КОД) --- */}
+                {/* --- СЛАЙД 1: RADAR (ВАШ КОД СЛОВО В СЛОВО) --- */}
                 <div className="min-w-full snap-center px-5">
                     <div className="space-y-3 animate-in fade-in duration-500">
                         {(() => {
@@ -214,84 +233,55 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                     </div>
                 </div>
 
-                {/* СЛАЙДЫ 2-5 (ИСПОЛЬЗУЮТ ЦИФРОВОЙ КОЛОДЕЦ) */}
-                <div className="min-w-full snap-center px-5">
-                    <GrowthAreaChart data={financialModel.points} goal={config.goal} goalReached={financialModel.finalValue >= config.goal} pedals={config.pedals} setPedals={()=>{}} pedalDescriptions={PEDAL_DESCRIPTIONS} />
-                </div>
-
-                <div className="min-w-full snap-center px-5">
-                    <StrategyComparisonChart data={generateComparisonData('current')} />
-                </div>
-
-                <div className="min-w-full snap-center px-5">
-                    <TimeSavingChart principal={config.principal} goal={config.goal} pedals={config.pedals} />
-                </div>
-
-                <div className="min-w-full snap-center px-5">
+                {/* СЛАЙДЫ 2-5 (LOCK ЛОГИКА) */}
+                {[
+                    <GrowthAreaChart data={financialModel.points} goal={config.goal} goalReached={financialModel.finalValue >= config.goal} pedals={config.pedals} setPedals={()=>{}} pedalDescriptions={PEDAL_DESCRIPTIONS} />,
+                    <StrategyComparisonChart data={generateComparisonData('current')} />,
+                    <TimeSavingChart principal={config.principal} goal={config.goal} pedals={config.pedals} />,
                     <InvestmentStructureChart data={structureData} totalValue={financialModel.finalValue} btcPrice={data?.btcPrice} />
-                </div>
+                ].map((component, idx) => (
+                    <div key={idx} className="min-w-full snap-center px-5 flex flex-col items-center">
+                        {!hasInteracted ? (
+                            <LockedChartOverlay onOpen={() => setIsPanelOpen(true)} />
+                        ) : (
+                            <div className="w-full animate-in fade-in zoom-in duration-500">
+                                {component}
+                            </div>
+                        )}
+                    </div>
+                ))}
             </div>
 
-            {/* --- КНОПКА НАСТРОЕК (СКРЫТА НА RADAR) --- */}
+            {/* КНОПКА СТРАТЕГИИ */}
             {activeChart !== 'radar' && (
                 <button 
                     onClick={() => setIsPanelOpen(true)}
-                    className="fixed bottom-24 right-6 z-[70] bg-[#FDB931] text-black p-4 rounded-full shadow-[0_10px_30px_rgba(253,185,49,0.4)] active:scale-90 transition-all flex items-center gap-2"
+                    className={clsx(
+                        "fixed bottom-24 right-6 z-[70] p-4 rounded-full shadow-2xl active:scale-90 transition-all flex items-center gap-2",
+                        hasInteracted ? "bg-[#FDB931] text-black" : "bg-white text-black animate-bounce"
+                    )}
                 >
                     <Settings2 className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest pr-1">Стратегія</span>
+                    {!hasInteracted && <span className="text-[10px] font-black uppercase tracking-widest pr-1">Почати розрахунок</span>}
                 </button>
             )}
 
-            {/* --- ВЫЕЗЖАЮЩАЯ ПАНЕЛЬ УПРАВЛЕНИЯ --- */}
+            {/* ПАНЕЛЬ СТРАТЕГИИ */}
             {isPanelOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsPanelOpen(false)}>
-                    <div className="bg-[#0D0D0E] border-t border-white/10 w-full max-w-md rounded-t-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom-full duration-500" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-8">
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/40">Налаштування плану</h3>
-                            <button onClick={() => setIsPanelOpen(false)} className="p-2 bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
-                        </div>
-
-                        <div className="space-y-8">
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="space-y-1.5">
-                                    <div className="flex items-center gap-1 text-[9px] uppercase font-black text-white/30"><Calculator className="w-2.5 h-2.5"/> Старт</div>
-                                    <input type="number" value={config.principal} onChange={(e)=>setConfig({...config, principal: Number(e.target.value)})} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-black text-[#FDB931] outline-none" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <div className="flex items-center gap-1 text-[9px] uppercase font-black text-white/30"><TrendingUp className="w-2.5 h-2.5"/> Доінвест</div>
-                                    <input type="number" value={config.reinvest} onChange={(e)=>setConfig({...config, reinvest: Number(e.target.value)})} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-black text-[#FDB931] outline-none" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <div className="flex items-center gap-1 text-[9px] uppercase font-black text-white/30"><Target className="w-2.5 h-2.5"/> Мета</div>
-                                    <input type="number" value={config.goal} onChange={(e)=>setConfig({...config, goal: Number(e.target.value)})} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-black text-[#FDB931] outline-none" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-6 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
-                                {Object.entries(config.pedals).map(([key, val]) => (
-                                    <div key={key} className="space-y-3">
-                                        <div className="flex justify-between items-center text-[10px] font-black uppercase">
-                                            <span className="text-white/60">{key}</span>
-                                            <span className="text-[#FDB931]">{val}%</span>
-                                        </div>
-                                        <input type="range" min="0" max="100" value={val} onChange={(e)=>setConfig({...config, pedals: {...config.pedals, [key]: Number(e.target.value)}})} className="w-full h-1 accent-[#FDB931] bg-white/10 rounded-full appearance-none cursor-pointer" />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <StrategyPanel 
+                    config={config} 
+                    setConfig={setConfig} 
+                    setIsOpen={setIsPanelOpen} 
+                    setHasInteracted={setHasInteracted} 
+                />
             )}
 
             {/* МОДАЛКА ЛЕГЕНДЫ */}
             {modalInfo && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md" onClick={() => setModalInfo(null)}>
                     <div className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <div className="space-y-6">
-                            <h3 className="text-2xl font-black text-white uppercase tracking-[0.1em]">{modalInfo.label}</h3>
-                            <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">{modalInfo.full}</p>
-                        </div>
+                        <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-4">{modalInfo.label}</h3>
+                        <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">{modalInfo.full}</p>
                     </div>
                 </div>
             )}
