@@ -1,135 +1,159 @@
-import { X, Calculator, TrendingUp, Target, Info, Calendar, Rocket } from 'lucide-react';
+import { useRef, useMemo } from 'react';
+import { X, Zap, TrendingUp, Target, Users, BarChart3, Rocket } from 'lucide-react';
+import clsx from 'clsx';
 
 const getQuickForecast = (p: number, r: number, goal: number, pedals: Record<string, number>) => {
     const apy = Object.values(pedals).reduce((a, b) => a + b, 0);
-    if (p + r <= 0) return { years: 0, status: 'input_needed' };
-    if (p >= goal) return { years: 0, status: 'reached' };
+    if (p + r <= 0) return { years: '—', date: 'Дані...' };
+    if (p >= goal) return { years: '0', date: 'Готово' };
     
     let balance = p;
     let months = 0;
     const monthlyRate = (apy / 100) / 12;
-
     while (balance < goal && months < 480) {
         balance = balance * (1 + monthlyRate) + r;
         months++;
     }
-    return { years: (months / 12).toFixed(1), status: 'calculating' };
+    const years = (months / 12).toFixed(1);
+    const targetDate = new Date();
+    targetDate.setMonth(targetDate.getMonth() + months);
+    const dateString = targetDate.toLocaleDateString('uk-UA', { month: 'short', year: 'numeric' }).replace('.', '');
+    
+    return { years, date: dateString };
 };
 
 const StrategyPanel = ({ config, setConfig, setIsOpen, setHasInteracted }: any) => {
-    const forecast = getQuickForecast(config.principal, config.reinvest, config.goal, config.pedals);
+    const timerRef = useRef<any>(null);
+    const forecast = useMemo(() => 
+        getQuickForecast(config.principal, config.reinvest, config.goal, config.pedals), 
+    [config]);
 
-    const pedalLabels: Record<string, { label: string, sub: string }> = {
-        yield: { label: 'Базова прибутковість', sub: 'Стабільний дохід від стейкінгу Tyrex' },
-        boosters: { label: 'Бустери (Boosters)', sub: 'Множник від активності в пулах' },
-        spec: { label: 'Спекулятивний дохід', sub: 'Прибуток від торгових операцій' },
-        btc: { label: 'Ріст ринку BTC', sub: 'Очікувана зміна капіталізації BTC' },
-        ref: { label: 'Партнерська програма', sub: 'Бонуси за розвиток ком’юніті' }
-    };
+    const BOOSTER_DEFS = [
+        { id: 'yield', label: 'Приб.', icon: <Zap className="w-3.5 h-3.5"/> },
+        { id: 'boosters', label: 'Буст.', icon: <Rocket className="w-3.5 h-3.5"/> },
+        { id: 'spec', label: 'Спек.', icon: <BarChart3 className="w-3.5 h-3.5"/> },
+        { id: 'btc', label: 'BTC', icon: <TrendingUp className="w-3.5 h-3.5"/> },
+        { id: 'ref', label: 'Мер.', icon: <Users className="w-3.5 h-3.5"/> },
+        { id: 'bonus', label: 'Бонус', icon: <Target className="w-3.5 h-3.5"/> },
+    ];
 
-    const updateValue = (key: string, val: number) => {
-        setHasInteracted(true);
-        setConfig((prev: any) => ({ ...prev, [key]: val }));
-    };
-
-    const updatePedal = (key: string, val: number) => {
+    const updateBoosterValue = (id: string, delta: number) => {
         setHasInteracted(true);
         setConfig((prev: any) => ({
             ...prev,
-            pedals: { ...prev.pedals, [key]: val }
+            pedals: { ...prev.pedals, [id]: Math.min(100, Math.max(0, prev.pedals[id] + delta)) }
         }));
     };
 
+    const startAutoChange = (id: string, delta: number) => {
+        updateBoosterValue(id, delta);
+        timerRef.current = setInterval(() => updateBoosterValue(id, delta), 80);
+    };
+
+    const stopAutoChange = () => { if (timerRef.current) clearInterval(timerRef.current); };
+
+    const handleInputChange = (key: string, val: string) => {
+        const num = parseInt(val.replace(/\D/g, '')) || 0;
+        setConfig({ ...config, [key]: num });
+    };
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsOpen(false)}>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setIsOpen(false)}>
+            <style>{`
+                input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+                input[type=number] { -moz-appearance: textfield; }
+            `}</style>
+            
             <div 
-                className="bg-[#0D0D0E] border-t border-white/10 w-full max-w-md rounded-t-[3rem] p-6 pb-12 shadow-2xl animate-in slide-in-from-bottom-full duration-500 overflow-y-auto max-h-[90vh] no-scrollbar" 
+                className="bg-[#0D0D0E] border-t border-white/10 w-full max-w-md rounded-t-[2rem] shadow-2xl animate-in slide-in-from-bottom-full duration-500 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex justify-between items-center mb-6 px-2">
-                    <div className="flex items-center gap-2">
-                        <Rocket className="w-5 h-5 text-[#FDB931]" />
-                        <h3 className="text-lg font-black uppercase tracking-tight text-white">Стратегія росту</h3>
+                {/* ВЕРХНЯЯ СТРОКА (Плотная) */}
+                <div className="flex justify-between items-center px-5 pt-4 pb-2 border-b border-white/5">
+                    <div className="flex items-center gap-2.5">
+                        <span className="text-[8px] font-black text-white/30 uppercase tracking-widest leading-none">Параметри</span>
+                        <div className="h-2.5 w-[1px] bg-white/10" />
+                        <span className="text-[10px] font-black text-[#FDB931] uppercase tracking-tight leading-none">
+                            {forecast.date} <span className="opacity-50 ml-0.5">({forecast.years} р.)</span>
+                        </span>
                     </div>
-                    <button onClick={() => setIsOpen(false)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
-                        <X className="w-5 h-5 text-white" />
+                    <button onClick={() => setIsOpen(false)} className="text-white/20 hover:text-white p-1">
+                        <X className="w-4 h-4" />
                     </button>
                 </div>
 
-                <div className="bg-gradient-to-br from-[#FDB931] to-[#FF9500] p-5 rounded-[2rem] mb-8 shadow-xl text-black">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-[10px] font-black uppercase opacity-60 mb-1 tracking-widest">Твій результат</p>
-                            {forecast.status === 'input_needed' ? (
-                                <h2 className="text-xl font-black uppercase italic tracking-tighter">Чекаю на дані...</h2>
-                            ) : (
-                                <h2 className="text-3xl font-black uppercase tracking-tighter italic leading-none">
-                                    {forecast.years} років <span className="text-xs opacity-70">до цілі</span>
-                                </h2>
-                            )}
-                        </div>
-                        <Calendar className="w-8 h-8 opacity-20" />
+                {/* ИНПУТЫ (Минимизированные) */}
+                <div className="flex justify-between items-center px-5 py-2.5 border-b border-white/5 bg-white/[0.01]">
+                    <div className="flex flex-col">
+                        <span className="text-[7px] font-bold text-white/20 uppercase">Старт $</span>
+                        <input 
+                            type="number" 
+                            value={config.principal || ''} 
+                            placeholder="0"
+                            onChange={(e) => handleInputChange('principal', e.target.value)}
+                            className="bg-transparent text-white text-[12px] font-black outline-none w-12" 
+                        />
                     </div>
-                    <div className="mt-4 pt-4 border-t border-black/10">
-                        <p className="text-[11px] font-bold leading-tight opacity-80 italic">
-                            {forecast.status === 'input_needed' 
-                                ? 'Вкажи суму старту та доінвесту, щоб активувати прогноз.' 
-                                : `З поточною стратегією капітал у $${config.goal.toLocaleString()} буде сформовано до ${2026 + Math.ceil(Number(forecast.years))} року.`}
-                        </p>
+                    
+                    <div className="h-5 w-[1px] bg-white/5" />
+
+                    <div className="flex flex-col">
+                        <span className="text-[7px] font-bold text-white/20 uppercase">Внесок $</span>
+                        <input 
+                            type="number" 
+                            value={config.reinvest || ''} 
+                            placeholder="0"
+                            onChange={(e) => handleInputChange('reinvest', e.target.value)}
+                            className="bg-transparent text-white text-[12px] font-black outline-none w-12" 
+                        />
+                    </div>
+
+                    <div className="bg-white/[0.04] px-3 py-1.5 rounded-xl border border-white/5 flex flex-col items-end">
+                        <span className="text-[7px] font-bold text-[#FDB931] uppercase tracking-wider">Мета $</span>
+                        <input 
+                            type="number" 
+                            value={config.goal || ''} 
+                            placeholder="0"
+                            onChange={(e) => handleInputChange('goal', e.target.value)}
+                            className="bg-transparent text-white text-[13px] font-black outline-none w-16 text-right" 
+                        />
                     </div>
                 </div>
 
-                <div className="space-y-4 mb-8">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Основні вкладення</p>
-                    <div className="grid grid-cols-3 gap-3">
-                        {[
-                            { label: 'Старт', key: 'principal', icon: <Calculator className="w-3 h-3"/> },
-                            { label: 'Доінвест', key: 'reinvest', icon: <TrendingUp className="w-3 h-3"/> },
-                            { label: 'Мета', key: 'goal', icon: <Target className="w-3 h-3"/> }
-                        ].map((item) => (
-                            <div key={item.key} className="bg-white/[0.03] border border-white/5 p-3 rounded-2xl">
-                                <label className="flex items-center gap-1.5 text-[9px] font-black text-white/40 uppercase mb-2">
-                                    {item.icon} {item.label}
-                                </label>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-white/20 text-[10px] font-bold">$</span>
-                                    <input 
-                                        type="number" 
-                                        value={config[item.key as keyof typeof config] as number} 
-                                        onChange={(e) => updateValue(item.key, Number(e.target.value))} 
-                                        className="w-full bg-transparent text-sm font-black text-white outline-none focus:text-[#FDB931]"
-                                    />
-                                </div>
-                            </div>
-                        ))}
+                {/* СЕТКА БУСТЕРОВ (Компактная) */}
+                <div className="px-4 py-4">
+                    <div className="grid grid-cols-3 gap-2">
+                        {BOOSTER_DEFS.map((booster) => {
+                            const val = config.pedals[booster.id] || 0;
+                            const active = val > 0;
+                            return (
+                                <button 
+                                    key={booster.id}
+                                    onMouseDown={() => startAutoChange(booster.id, 1)}
+                                    onMouseUp={stopAutoChange} onMouseLeave={stopAutoChange}
+                                    onTouchStart={() => startAutoChange(booster.id, 1)}
+                                    onTouchEnd={stopAutoChange}
+                                    className={clsx(
+                                        "aspect-[1.3/1] rounded-2xl border transition-all duration-200 select-none active:scale-95 flex flex-col items-center justify-center p-1.5",
+                                        active ? "bg-[#FDB931] border-[#FDB931] shadow-lg shadow-[#FDB931]/10" : "bg-white/[0.02] border-white/5 opacity-50"
+                                    )}
+                                >
+                                    <div className={clsx("flex items-center gap-1 mb-0.5", active ? "text-black/70" : "text-white/30")}>
+                                        {booster.icon}
+                                        <span className="text-[7px] font-black uppercase tracking-tighter">{booster.label}</span>
+                                    </div>
+                                    <span className={clsx("text-sm font-black tracking-tighter leading-none", active ? "text-black" : "text-white/20")}>
+                                        {val}%
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <div className="space-y-5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Педалі прискорення</p>
-                    {Object.entries(config.pedals as Record<string, number>).map(([key, val]) => (
-                        <div key={key} className="bg-white/[0.02] border border-white/5 p-4 rounded-[1.5rem]">
-                            <div className="flex justify-between items-start mb-1">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-[11px] font-black uppercase text-white/80 flex items-center gap-2">
-                                        {pedalLabels[key].label}
-                                        <Info className="w-3 h-3 text-white/20" />
-                                    </h4>
-                                    <p className="text-[9px] text-white/30 font-medium italic">
-                                        {pedalLabels[key].sub}
-                                    </p>
-                                </div>
-                                <span className="text-[12px] font-black text-[#FDB931] bg-[#FDB931]/10 px-2 py-0.5 rounded-lg">
-                                    {val}%
-                                </span>
-                            </div>
-                            <input 
-                                type="range" min="0" max="100" value={val as number} 
-                                onChange={(e) => updatePedal(key, Number(e.target.value))} 
-                                className="w-full h-1.5 accent-[#FDB931] bg-white/5 rounded-full appearance-none cursor-pointer mt-4" 
-                            />
-                        </div>
-                    ))}
+                {/* ПОДВАЛ */}
+                <div className="text-center pb-5 opacity-20 text-[7px] font-black uppercase tracking-[0.2em]">
+                    Затисніть плитку для росту
                 </div>
             </div>
         </div>

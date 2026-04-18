@@ -14,7 +14,6 @@ import StrategyPanel from './StrategyPanel';
 import { CATEGORY_ASSETS, TABS, PEDAL_DESCRIPTIONS, ASSET_CONCLUSIONS, LEGEND_DATA } from '../constants/AnalyticsConfig';
 import { generateComparisonData } from '../utils/comparisonMath';
 
-// --- МАТЕМАТИКА ---
 const calculateCompoundData = (principal: number, reinvest: number, pedals: Record<string, number>, years: number = 5) => {
     const totalApy = Object.values(pedals).reduce((a, b) => a + b, 0);
     const monthlyRate = (totalApy / 100) / 12;
@@ -30,7 +29,6 @@ const calculateCompoundData = (principal: number, reinvest: number, pedals: Reco
     return { points, finalValue: balance, totalInvested };
 };
 
-// --- ЗАГЛУШКА ДЛЯ ЗАКРЫТЫХ ГРАФИКОВ ---
 const LockedChartOverlay = ({ onOpen }: { onOpen: () => void }) => (
     <div className="w-full aspect-[4/3] bg-[#151517] rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center p-6 text-center shadow-2xl">
         <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10">
@@ -49,7 +47,6 @@ const LockedChartOverlay = ({ onOpen }: { onOpen: () => void }) => (
     </div>
 );
 
-// --- ЭФФЕКТ ПЕЧАТИ ---
 const TypewriterText = ({ text }: { text: string }) => {
     const [displayedText, setDisplayedText] = useState("");
     useEffect(() => {
@@ -94,7 +91,6 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     }, []);
 
     const financialModel = useMemo(() => calculateCompoundData(config.principal, config.reinvest, config.pedals), [config]);
-    
     const structureData = useMemo(() => {
         const totalApy = Object.values(config.pedals).reduce((a, b) => a + b, 0);
         const profit = financialModel.finalValue - financialModel.totalInvested;
@@ -162,8 +158,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                 className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar touch-pan-y pt-2" 
                 style={{ scrollBehavior: 'smooth' }}
             >
-                
-                {/* --- СЛАЙД 1: RADAR (ВАШ КОД СЛОВО В СЛОВО) --- */}
+                {/* --- СЛАЙД 1: RADAR (СЛОВО В СЛОВО) --- */}
                 <div className="min-w-full snap-center px-5">
                     <div className="space-y-3 animate-in fade-in duration-500">
                         {(() => {
