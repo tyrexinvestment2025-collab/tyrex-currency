@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { 
     AreaChart, Area, XAxis, YAxis, ResponsiveContainer, 
-    ReferenceLine, Tooltip as RechartsTooltip, CartesianGrid 
+    ReferenceLine, Tooltip as RechartsTooltip, CartesianGrid, Label 
 } from 'recharts';
 import { Settings2, X, HelpCircle } from 'lucide-react';
 import clsx from 'clsx';
@@ -9,19 +9,28 @@ import clsx from 'clsx';
 interface GrowthAreaChartProps {
     data: any[];
     goal: number;
+    targetMonth: number; // Новое: месяц достижения цели
     goalReached: boolean;
     pedals: Record<string, number>;
     setPedals: React.Dispatch<React.SetStateAction<any>>;
     pedalDescriptions: Record<string, string>;
 }
 
-const GrowthAreaChart = memo(({ data, goal, goalReached, pedals, setPedals, pedalDescriptions }: GrowthAreaChartProps) => {
+const GrowthAreaChart = memo(({ 
+    data, 
+    goal, 
+    targetMonth, 
+    goalReached, 
+    pedals, 
+    setPedals, 
+    pedalDescriptions 
+}: GrowthAreaChartProps) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="relative w-full bg-[#151517] rounded-[2.5rem] p-6 border border-white/5 overflow-hidden min-h-[320px]">
+        <div className="relative w-full bg-[#151517] rounded-[2.5rem] p-6 border border-white/5 overflow-hidden min-h-[380px]">
             
-            {/* ШЕСТЕРЕНКА (открыть) */}
+            {/* ШЕСТЕРЕНКА (из твоего исходного кода) */}
             {!isOpen && (
                 <button 
                     onClick={() => setIsOpen(true)}
@@ -32,9 +41,9 @@ const GrowthAreaChart = memo(({ data, goal, goalReached, pedals, setPedals, peda
             )}
 
             {/* ГРАФИК */}
-            <div className={clsx("h-[250px] w-full pt-4 transition-all duration-500", isOpen && "blur-sm scale-95 opacity-20")}>
+            <div className={clsx("h-[280px] w-full pt-4 transition-all duration-500", isOpen && "blur-sm scale-95 opacity-20")}>
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 10, right: 0, left: -15, bottom: 0 }}>
+                    <AreaChart data={data} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={goalReached ? "#10b981" : "#FDB931"} stopOpacity={0.3}/>
@@ -42,7 +51,17 @@ const GrowthAreaChart = memo(({ data, goal, goalReached, pedals, setPedals, peda
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                        <XAxis dataKey="month" hide />
+                        
+                        {/* XAxis теперь с подписями месяцев */}
+                        <XAxis 
+                            dataKey="monthLabel" 
+                            stroke="#444" 
+                            fontSize={9} 
+                            tickLine={false} 
+                            axisLine={false}
+                            interval={Math.floor(data.length / 5)}
+                        />
+                        
                         <YAxis 
                             stroke="#444" 
                             fontSize={10} 
@@ -50,42 +69,60 @@ const GrowthAreaChart = memo(({ data, goal, goalReached, pedals, setPedals, peda
                             axisLine={false}
                             tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} 
                         />
+
                         <RechartsTooltip 
-    cursor={{ stroke: '#ffffff10', strokeWidth: 1 }}
-    content={({ active, payload }) => {
-        if (active && payload && payload.length) {
-            const d = payload[0].payload;
-            return (
-                <div className="bg-[#1C1C1C] p-3 rounded-xl border border-white/10 shadow-2xl">
-                    <p className="text-[9px] uppercase text-white/50 mb-1 font-bold">Місяць {d.month}</p>
-                    <p className="text-sm font-black text-[#FDB931]">
-                        {/* Округляем до 2 знаков для точности */}
-                        {Number(d.value).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    }}
-/>
+                            cursor={{ stroke: '#ffffff10', strokeWidth: 1 }}
+                            content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                    const d = payload[0].payload;
+                                    return (
+                                        <div className="bg-[#1C1C1C] p-3 rounded-xl border border-white/10 shadow-2xl">
+                                            <p className="text-[9px] uppercase text-[#FDB931] mb-1 font-black">{d.dateLabel}</p>
+                                            <p className="text-sm font-black text-white">
+                                                {Number(d.value).toLocaleString('ru-RU')} $
+                                            </p>
+                                            <p className="text-[8px] text-white/40">{d.monthLabel}</p>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
+                        />
+
+                        {/* Горизонтальная линия цели */}
+                        <ReferenceLine 
+                            y={goal} 
+                            stroke={goalReached ? "#10b981" : "#FDB931"} 
+                            strokeDasharray="4 4" 
+                            strokeOpacity={0.3}
+                        />
+
+                        {/* ВЕРТИКАЛЬНАЯ ЛИНИЯ МЕРИДИАНА ЦЕЛИ (из прошлого ответа) */}
+                        {targetMonth > 0 && (
+                            <ReferenceLine x={targetMonth} stroke={goalReached ? "#10b981" : "#FDB931"} strokeWidth={2}>
+                                <Label 
+                                    value="МЕТА" 
+                                    position="top" 
+                                    fill={goalReached ? "#10b981" : "#FDB931"} 
+                                    fontSize={10} 
+                                    fontWeight="900" 
+                                />
+                            </ReferenceLine>
+                        )}
+
                         <Area 
                             type="monotone" 
                             dataKey="value" 
                             stroke={goalReached ? "#10b981" : "#FDB931"} 
                             fill="url(#colorGrowth)" 
                             strokeWidth={3}
-                        />
-                        <ReferenceLine 
-                            y={goal} 
-                            stroke={goalReached ? "#10b981" : "#FDB931"} 
-                            strokeDasharray="4 4" 
-                            strokeOpacity={0.5}
+                            animationDuration={1500}
                         />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* ОВЕРЛЕЙ НАСТРОЕК (появляется на фоне графика) */}
+            {/* ОВЕРЛЕЙ НАСТРОЕК (Полностью восстановлен из твоего кода) */}
             {isOpen && (
                 <div className="absolute inset-0 z-30 bg-[#0A0A0B]/80 backdrop-blur-md p-6 flex flex-col animate-in fade-in zoom-in duration-300">
                     <div className="flex justify-between items-center mb-4">
