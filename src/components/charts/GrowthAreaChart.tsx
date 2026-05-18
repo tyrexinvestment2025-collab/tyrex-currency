@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import { memo, useState } from 'react';
 import { 
     AreaChart, Area, XAxis, YAxis, ResponsiveContainer, 
     ReferenceLine, Tooltip as RechartsTooltip, CartesianGrid, Label 
