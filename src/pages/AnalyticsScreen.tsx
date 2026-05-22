@@ -7,7 +7,7 @@ import { analyticsApi } from '../api/tyrexApi';
 import RadarChartComponent from '../components/charts/RadarChart';
 import GrowthAreaChart from '../components/charts/GrowthAreaChart';
 import FloatingNav from '../components/navigation/FloatingNav';
-import { NumericalInputsHUD, PedalCapsules } from './StaticInputPanel'; 
+import { NumericalInputsHUD, PedalList } from './StaticInputPanel'; 
 import { CATEGORY_ASSETS, TABS, ASSET_CONCLUSIONS, PEDAL_DESCRIPTIONS, LEGEND_DATA } from '../constants/AnalyticsConfig';
 
 const PRESETS: any = {
@@ -19,10 +19,10 @@ const PRESETS: any = {
 const FIELD_LABELS: any = {
     principal: 'Вкладаю відразу',
     reinvest: 'Додаю в місяць',
-    goal: 'Хочу отримати'
+    goal: 'Фінансова ціль'
 };
 
-const calculateCompoundData = (principal: number, reinvest: number, pedals: Record<string, number>, goal: number) => {
+const calculateCompoundData = (principal: number, reinvest: number, pedals: Record<string, number>, goal: number, maxMonths: number = 120) => {
     const totalApy = Object.values(pedals).reduce((a, b) => a + b, 0);
     const monthlyRate = (totalApy / 100) / 12 || 0.0001;
     let balance = principal;
@@ -31,16 +31,22 @@ const calculateCompoundData = (principal: number, reinvest: number, pedals: Reco
     let monthsToFreedom = 0;
     let freedomDateLabel = "";
     let reached = false;
-    for (let i = 1; i <= 120; i++) {
+
+    for (let i = 1; i <= maxMonths; i++) {
         balance = balance * (1 + monthlyRate) + reinvest;
+        const currentMonthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
         if (!reached && balance >= goal) {
             monthsToFreedom = i;
-            const targetDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-            freedomDateLabel = targetDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
+            freedomDateLabel = currentMonthDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
             reached = true;
         }
-        points.push({ month: i, monthLabel: `${i}-й міс`, dateLabel: '', value: Math.round(balance) });
-        if (reached && i >= monthsToFreedom + 3) break;
+        points.push({ 
+            month: i, 
+            monthLabel: `${i}м`, 
+            dateLabel: currentMonthDate.toLocaleDateString('uk-UA', { month: 'short', year: 'numeric' }),
+            value: Math.round(balance) 
+        });
+        if (reached && i >= monthsToFreedom + 5) break; 
     }
     return { points, monthsToFreedom, freedomDateLabel };
 };
@@ -75,7 +81,8 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     const [infoBooster, setInfoBooster] = useState<string | null>(null);
     const [selectedTrad, setSelectedTrad] = useState('Real Estate');
     const [selectedCrypto, setSelectedCrypto] = useState('Staking');
-    const [modalInfo, setModalInfo] = useState<any>(null);
+    const [_modalInfo, setModalInfo] = useState<any>(null);
+    const [timeframe, setTimeframe] = useState(60); // Дефолт 5 років
 
     const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -87,8 +94,8 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     }, []);
 
     const { points, monthsToFreedom, freedomDateLabel } = useMemo(() => 
-        calculateCompoundData(config.principal, config.reinvest, config.pedals, config.goal), 
-    [config]);
+        calculateCompoundData(config.principal, config.reinvest, config.pedals, config.goal, timeframe), 
+    [config, timeframe]);
 
     const handleTabChange = (tabId: string) => {
         const index = TABS.findIndex(t => t.id === tabId);
@@ -117,10 +124,6 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
         ];
     };
 
-    const freedomText = freedomDateLabel 
-        ? `Ваша точка фінансової свободи буде досягнута в: ${freedomDateLabel.toUpperCase()} (через ${monthsToFreedom} міс.). Використовуйте додаткові інструменти Tyrex по максимуму, щоб скоротити цей термін.`
-        : `З поточною стратегією ціль поки що за межами горизонту. Увімкніть більше педалей!`;
-
     if (loading) return <div className="min-h-screen bg-[#080808] flex items-center justify-center"><RefreshCw className="animate-spin text-[#FFB800]" /></div>;
 
     const currentTab = TABS.find(t => t.id === activeChart);
@@ -134,23 +137,23 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                     <h1 className="text-2xl font-black uppercase tracking-tighter text-[#FFB800] leading-none">
                         {currentTab?.header}
                     </h1>
-                    <p className="text-[11px] text-white/60 leading-snug mt-1 max-w-[95%]">
-                        {activeChart === 'radar_trad' && "Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам. Выбирай актив для сопоставления:"}
-                        {activeChart === 'radar_crypto' && "Сравни эффективность Tyrex с крипто инструментами по 6 ключевым метрикам. Выбирай актив для сопоставления:"}
-                        {activeChart === 'forecast' && "Введіть ваші дані, щоб побачити, коли ваш пасивний дохід досягне Цілі."}
+                    <p className="text-[11px] text-white/60 leading-snug mt-1">
+                        {activeChart === 'radar_trad' && "Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам."}
+                        {activeChart === 'radar_crypto' && "Сравни эффективность Tyrex с крипто инструментами по 6 ключевым метрикам."}
+                        {activeChart === 'forecast' && "Введіть ваші дані, щоб побачити майбутнє вашого капіталу."}
                     </p>
                 </header>
 
                 <div ref={sliderRef} onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar flex-1" style={{ scrollBehavior: 'smooth' }}>
                     
-                    {/* (ЕКРАНИ 1 ТА 2 - БЕЗ ЗМІН ЛОГІКИ) */}
+                    {/* СЛАЙД 1 & 2 (СЛОВО В СЛОВО ТВОЯ ВЕРСТКА) */}
                     <div className="min-w-full snap-center px-5 py-2">
                         <div className="space-y-4">
                             <div className="grid grid-rows-2 grid-flow-col gap-2 overflow-x-auto no-scrollbar pb-1">
                                 {CATEGORY_ASSETS.traditional.map((asset: any) => {
                                     const isSelected = selectedTrad === asset.id;
                                     return (
-                                        <button key={asset.id} onClick={() => setSelectedTrad(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#00F0FF] text-white bg-[#00F0FF]/20 shadow-[0_0_20px_rgba(0,240,255,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E] hover:border-white/40")}>{asset.label}</button>
+                                        <button key={asset.id} onClick={() => setSelectedTrad(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#00F0FF] text-white bg-[#00F0FF]/20 shadow-[0_0_20px_rgba(0,240,255,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E]")}>{asset.label}</button>
                                     );
                                 })}
                             </div>
@@ -172,7 +175,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                                 {CATEGORY_ASSETS.crypto.map((asset: any) => {
                                     const isSelected = selectedCrypto === asset.id;
                                     return (
-                                        <button key={asset.id} onClick={() => setSelectedCrypto(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#FF00E5] text-white bg-[#FF00E5]/20 shadow-[0_0_20px_rgba(255,0,229,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E] hover:border-white/40")}>{asset.label}</button>
+                                        <button key={asset.id} onClick={() => setSelectedCrypto(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#FF00E5] text-white bg-[#FF00E5]/20 shadow-[0_0_20px_rgba(255,0,229,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E]")}>{asset.label}</button>
                                     );
                                 })}
                             </div>
@@ -188,40 +191,51 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                         </div>
                     </div>
 
-                    {/* ЕКРАН 3: ПРОГНОЗ (МАГІЯ) */}
-                    <div className="min-w-full snap-center px-5 pt-2 flex flex-col overflow-y-auto no-scrollbar pb-24">
-                        {/* 1. БЛОК ДАНИХ ТА ПЕДАЛІ (ТЕПЕР ОДНЕ ЦІЛЕ) */}
-                        <div className="bg-[#1A1A1E]/40 border border-white/5 rounded-[2.5rem] p-5 shadow-2xl">
-                            <NumericalInputsHUD config={config} onOpenSelector={setSelectorField} />
-                            <PedalCapsules config={config} setConfig={setConfig} onOpenInfo={setInfoBooster} />
-                        </div>
+                    {/* СЛАЙД 3: ПРОГНОЗ (HUD РЕЖИМ) */}
+                    <div className="min-w-full snap-center px-5 pt-2 flex flex-col overflow-y-auto no-scrollbar">
+                        <NumericalInputsHUD config={config} onOpenSelector={setSelectorField} />
+                        
+                        <PedalList config={config} setConfig={setConfig} onOpenInfo={setInfoBooster} />
 
-                        {/* 2. БЕГУЩАЯ СТРОКА */}
-                        <div className="bg-black/20 border-l-4 border-[#FFB800] p-4 rounded-r-2xl my-5 shrink-0">
-                            <p className="text-[13px] font-black text-white italic leading-relaxed">
-                                <TypewriterText key={monthsToFreedom} text={freedomText} />
+                        <div className="bg-[#1A1A1E] border-l-4 border-[#FFB800] p-4 rounded-r-2xl mb-4 shadow-lg shrink-0">
+                            <p className="text-[12px] font-black text-white italic leading-relaxed">
+                                <TypewriterText key={monthsToFreedom} text={freedomDateLabel ? `Ціль буде досягнута: ${freedomDateLabel.toUpperCase()} (${monthsToFreedom} міс.)` : "Налаштуйте параметри..."} />
                             </p>
                         </div>
                         
-                        {/* 3. ГРАФІК */}
-                        <div className="relative min-h-[250px] mb-4 shrink-0">
+                        {/* ТАЙМФРЕЙМИ ГРАФІКА */}
+                        <div className="flex justify-between gap-1 mb-2 bg-white/5 p-1 rounded-xl border border-white/5">
+                            {[
+                                { l: '1Р', v: 12 }, { l: '3Р', v: 36 }, { l: '5Р', v: 60 }, { l: '10Р', v: 120 }
+                            ].map(t => (
+                                <button 
+                                    key={t.v} 
+                                    onClick={() => setTimeframe(t.v)}
+                                    className={clsx("flex-1 py-1.5 rounded-lg text-[10px] font-black transition-all", timeframe === t.v ? "bg-[#FFB800] text-black" : "text-white/40")}
+                                >
+                                    {t.l}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="relative min-h-[250px] mb-10 shrink-0">
                             <GrowthAreaChart data={points} goal={config.goal} targetMonth={monthsToFreedom} pedals={config.pedals} setPedals={setConfig} />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* SELECTOR SHEET */}
+            {/* MODALS */}
             <AnimatePresence>
                 {selectorField && (
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectorField(null)} className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100]" />
-                        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-0 inset-x-0 z-[101] bg-[#0D0D0E] p-8 rounded-t-[3rem] border-t border-white/20 shadow-[0_-20px_60px_rgba(0,0,0,0.8)]">
+                        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-0 inset-x-0 z-[101] bg-[#0D0D0E] p-8 rounded-t-[3rem] border-t border-white/20">
                             <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
-                            <h3 className="text-2xl font-black text-center mb-8 uppercase tracking-tight">{FIELD_LABELS[selectorField]}</h3>
+                            <h3 className="text-xl font-black text-center mb-8 uppercase tracking-tight">{FIELD_LABELS[selectorField]}</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 {PRESETS[selectorField].map((val: number) => (
-                                    <button key={val} onClick={() => { setConfig({...config, [selectorField]: val}); setSelectorField(null); }} className="bg-[#1A1A1E] border border-white/20 p-6 rounded-[2rem] flex justify-between items-center hover:bg-white/10 active:scale-95 shadow-xl transition-all">
+                                    <button key={val} onClick={() => { setConfig({...config, [selectorField]: val}); setSelectorField(null); }} className="bg-[#1A1A1E] border border-white/20 p-6 rounded-[2.5rem] flex justify-between items-center hover:bg-white/10 active:scale-95 shadow-xl transition-all">
                                         <span className="text-2xl font-black text-[#FFB800] tracking-tighter">${val.toLocaleString()}</span>
                                         <ChevronRight size={20} />
                                     </button>
@@ -232,32 +246,18 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                 )}
             </AnimatePresence>
             
-            {/* INFO POPUP */}
             <AnimatePresence>
                 {infoBooster && (
                     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md" onClick={() => setInfoBooster(null)}>
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#1A1A1E] border border-white/20 p-10 rounded-[3rem] max-w-sm shadow-2xl text-center">
-                            <div className="w-16 h-16 bg-[#FFB800]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Info size={32} className="text-[#FFB800]" />
-                            </div>
+                            <div className="w-16 h-16 bg-[#FFB800]/10 rounded-full flex items-center justify-center mx-auto mb-6"><Info size={32} className="text-[#FFB800]" /></div>
                             <h3 className="text-[#FFB800] font-black uppercase text-xl mb-4 tracking-widest">Довідка</h3>
                             <p className="text-white font-medium leading-relaxed text-lg italic opacity-90">{PEDAL_DESCRIPTIONS[infoBooster]}</p>
-                            <button className="mt-10 w-full py-5 bg-[#FFB800] text-black rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg">Зрозуміло</button>
+                            <button className="mt-10 w-full py-5 bg-[#FFB800] text-black rounded-2xl font-black uppercase tracking-widest">Зрозуміло</button>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
-            
-            {/* LEGEND MODAL */}
-            {modalInfo && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md" onClick={() => setModalInfo(null)}>
-                    <div className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-2xl font-black text-[#FFB800] uppercase tracking-tight mb-4">{modalInfo.label}</h3>
-                        <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">{modalInfo.full}</p>
-                        <button onClick={() => setModalInfo(null)} className="mt-8 w-full py-4 bg-white/5 rounded-xl font-black uppercase text-xs">Закрити</button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
