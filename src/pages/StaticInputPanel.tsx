@@ -1,32 +1,32 @@
 import { Zap, TrendingUp, Target, Users, BarChart3, Rocket, Info, Edit2 } from 'lucide-react';
 import clsx from 'clsx';
 
-// --- КОМПАКТНИЙ БЛОК ВВОДУ (3 РЯДКИ В ОДНОМУ) ---
+// --- КОМПАКТНІ ІНПУТИ (РЯД 1) ---
 export const NumericalInputsHUD = ({ config, onOpenSelector }: any) => (
-    <div className="bg-[#161618] border border-white/10 rounded-[1.5rem] overflow-hidden divide-y divide-white/5 shadow-2xl">
+    <div className="space-y-1.5 w-full">
         {[
             { label: 'Вкладаю відразу', key: 'principal', value: config.principal, color: 'text-white' },
             { label: 'Додаю в місяць', key: 'reinvest', value: config.reinvest, color: 'text-white' },
-            { label: 'Фінансова ціль', key: 'goal', value: config.goal, color: 'text-[#FFB800]' },
+            { label: 'Хочу отримати', key: 'goal', value: config.goal, color: 'text-[#FFB800]' },
         ].map((item) => (
             <button 
                 key={item.key}
                 onClick={() => onOpenSelector(item.key)}
-                className="w-full px-5 py-3 flex justify-between items-center active:bg-white/[0.02] transition-all"
+                className="w-full bg-[#1A1A1E] border border-white/10 rounded-full px-5 py-2.5 flex justify-between items-center active:scale-[0.98] transition-all shadow-lg"
             >
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/30">{item.label}</span>
-                <div className="flex items-center gap-3">
-                    <span className={clsx("text-base font-black tracking-tighter", item.color)}>
+                <span className="text-[10px] font-black uppercase tracking-tighter text-white/50">{item.label}</span>
+                <div className="flex items-center gap-2">
+                    <span className={clsx("text-lg font-black tracking-tighter", item.color)}>
                         ${item.value.toLocaleString()}
                     </span>
-                    <Edit2 size={12} className="text-[#FFB800] opacity-40" />
+                    <Edit2 size={12} className="text-[#FFB800] opacity-30" />
                 </div>
             </button>
         ))}
     </div>
 );
 
-// --- ПЕДАЛІ-РЯДКИ (ВЕРТИКАЛЬНИЙ СТЕК) ---
+// --- ПЕДАЛІ-ПІЛЮЛІ (РЯД 3) ---
 export const PedalList = ({ config, setConfig, onOpenInfo }: any) => {
     const BOOSTER_DEFS = [
         { id: 'yield', label: 'Прибуток', val: 15, icon: <Zap size={14} /> },
@@ -46,9 +46,9 @@ export const PedalList = ({ config, setConfig, onOpenInfo }: any) => {
     };
 
     return (
-        <div className="mt-4 space-y-2 pb-6">
-            <div className="flex justify-between items-center px-1 mb-1">
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Інструменти прискорення</span>
+        <div className="space-y-2 w-full">
+            <div className="flex justify-between items-center px-1">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Параметри прискорення</span>
             </div>
             
             {BOOSTER_DEFS.map((booster) => {
@@ -57,21 +57,21 @@ export const PedalList = ({ config, setConfig, onOpenInfo }: any) => {
                     <div 
                         key={booster.id}
                         className={clsx(
-                            "relative w-full rounded-full border-2 p-1.5 transition-all duration-500 flex items-center justify-between",
+                            "w-full rounded-full border-2 p-1 transition-all duration-500 flex items-center justify-between",
                             isActive 
                                 ? "bg-[#FFB800] border-[#FFB800] shadow-[0_5px_15px_rgba(255,184,0,0.2)]" 
-                                : "bg-[#161618] border-white/5 opacity-60"
+                                : "bg-[#1A1A1E] border-white/10 opacity-70"
                         )}
                     >
                         <div className="flex items-center gap-3 pl-2">
                             <div className={clsx(
-                                "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                                "w-7 h-7 rounded-full flex items-center justify-center transition-colors",
                                 isActive ? "bg-black/10 text-black" : "bg-white/5 text-[#FFB800]"
                             )}>
                                 {booster.icon}
                             </div>
                             <div className="flex flex-col">
-                                <span className={clsx("text-[11px] font-black uppercase leading-none", isActive ? "text-black" : "text-white/80")}>
+                                <span className={clsx("text-[11px] font-black uppercase leading-none tracking-tight", isActive ? "text-black" : "text-white/80")}>
                                     {booster.label}
                                 </span>
                                 <span className={clsx("text-[10px] font-bold", isActive ? "text-black/60" : "text-[#FFB800]")}>

@@ -19,10 +19,10 @@ const PRESETS: any = {
 const FIELD_LABELS: any = {
     principal: 'Вкладаю відразу',
     reinvest: 'Додаю в місяць',
-    goal: 'Фінансова ціль'
+    goal: 'Хочу отримати'
 };
 
-const calculateCompoundData = (principal: number, reinvest: number, pedals: Record<string, number>, goal: number, maxMonths: number = 120) => {
+const calculateCompoundData = (principal: number, reinvest: number, pedals: Record<string, number>, goal: number) => {
     const totalApy = Object.values(pedals).reduce((a, b) => a + b, 0);
     const monthlyRate = (totalApy / 100) / 12 || 0.0001;
     let balance = principal;
@@ -32,21 +32,19 @@ const calculateCompoundData = (principal: number, reinvest: number, pedals: Reco
     let freedomDateLabel = "";
     let reached = false;
 
-    for (let i = 1; i <= maxMonths; i++) {
+    for (let i = 1; i <= 120; i++) {
         balance = balance * (1 + monthlyRate) + reinvest;
-        const currentMonthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
         if (!reached && balance >= goal) {
             monthsToFreedom = i;
-            freedomDateLabel = currentMonthDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
+            const targetDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+            freedomDateLabel = targetDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
             reached = true;
         }
-        points.push({ 
-            month: i, 
-            monthLabel: `${i}м`, 
-            dateLabel: currentMonthDate.toLocaleDateString('uk-UA', { month: 'short', year: 'numeric' }),
-            value: Math.round(balance) 
+        points.push({
+            month: i, monthLabel: `${i}м`, value: Math.round(balance),
+            dateLabel: ''
         });
-        if (reached && i >= monthsToFreedom + 5) break; 
+        if (reached && i >= monthsToFreedom + 5) break;
     }
     return { points, monthsToFreedom, freedomDateLabel };
 };
@@ -82,7 +80,6 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     const [selectedTrad, setSelectedTrad] = useState('Real Estate');
     const [selectedCrypto, setSelectedCrypto] = useState('Staking');
     const [_modalInfo, setModalInfo] = useState<any>(null);
-    const [timeframe, setTimeframe] = useState(60); // Дефолт 5 років
 
     const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -94,8 +91,8 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     }, []);
 
     const { points, monthsToFreedom, freedomDateLabel } = useMemo(() => 
-        calculateCompoundData(config.principal, config.reinvest, config.pedals, config.goal, timeframe), 
-    [config, timeframe]);
+        calculateCompoundData(config.principal, config.reinvest, config.pedals, config.goal), 
+    [config]);
 
     const handleTabChange = (tabId: string) => {
         const index = TABS.findIndex(t => t.id === tabId);
@@ -124,9 +121,11 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
         ];
     };
 
-    if (loading) return <div className="min-h-screen bg-[#080808] flex items-center justify-center"><RefreshCw className="animate-spin text-[#FFB800]" /></div>;
+    const freedomText = freedomDateLabel 
+        ? `Ваша точка фінансової свободи буде досягнута в: ${freedomDateLabel.toUpperCase()} (через ${monthsToFreedom} міс.). Використовуйте додаткові інструменти Tyrex по максимуму.`
+        : `З поточною стратегією ціль за межами горизонту. Увімкніть більше інструментів!`;
 
-    const currentTab = TABS.find(t => t.id === activeChart);
+    if (loading) return <div className="min-h-screen bg-[#080808] flex items-center justify-center"><RefreshCw className="animate-spin text-[#FFB800]" /></div>;
 
     return (
         <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans relative overflow-hidden">
@@ -135,18 +134,18 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
             <div className="flex-1 flex flex-col pt-16">
                 <header className="px-5 mb-1 shrink-0">
                     <h1 className="text-2xl font-black uppercase tracking-tighter text-[#FFB800] leading-none">
-                        {currentTab?.header}
+                        {TABS.find(t => t.id === activeChart)?.header}
                     </h1>
-                    <p className="text-[11px] text-white/60 leading-snug mt-1">
+                    <p className="text-[11px] text-white/60 leading-snug mt-1 max-w-[95%]">
                         {activeChart === 'radar_trad' && "Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам."}
                         {activeChart === 'radar_crypto' && "Сравни эффективность Tyrex с крипто инструментами по 6 ключевым метрикам."}
-                        {activeChart === 'forecast' && "Введіть ваші дані, щоб побачити майбутнє вашого капіталу."}
+                        {activeChart === 'forecast' && "Введіть ваші дані, щоб побачити, коли ваш пасивний дохід досягне Цілі."}
                     </p>
                 </header>
 
                 <div ref={sliderRef} onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar flex-1" style={{ scrollBehavior: 'smooth' }}>
                     
-                    {/* СЛАЙД 1 & 2 (СЛОВО В СЛОВО ТВОЯ ВЕРСТКА) */}
+                    {/* (ЕКРАНИ 1 ТА 2 - РАДАР ЧАРТ) */}
                     <div className="min-w-full snap-center px-5 py-2">
                         <div className="space-y-4">
                             <div className="grid grid-rows-2 grid-flow-col gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -191,46 +190,46 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                         </div>
                     </div>
 
-                    {/* СЛАЙД 3: ПРОГНОЗ (HUD РЕЖИМ) */}
-                    <div className="min-w-full snap-center px-5 pt-2 flex flex-col overflow-y-auto no-scrollbar">
-                        <NumericalInputsHUD config={config} onOpenSelector={setSelectorField} />
+                    {/* ЕКРАН 3: ПРОГНОЗ (МАГІЯ) — НОВИЙ ПОРЯДОК БЛОКІВ */}
+                    <div className="min-w-full snap-center px-5 pt-2 flex flex-col overflow-y-auto no-scrollbar pb-32">
                         
-                        <PedalList config={config} setConfig={setConfig} onOpenInfo={setInfoBooster} />
+                        {/* 1. ВЕРХНІ 3 КАПСУЛИ (ВКЛАДАЮ / ДОДАЮ / ХОЧУ) */}
+                        <div className="shrink-0">
+                            <NumericalInputsHUD config={config} onOpenSelector={setSelectorField} />
+                        </div>
 
-                        <div className="bg-[#1A1A1E] border-l-4 border-[#FFB800] p-4 rounded-r-2xl mb-4 shadow-lg shrink-0">
+                        {/* 2. БЕГУЩАЯ СТРОКА (РЕЗУЛЬТАТ) */}
+                        <div className="bg-[#1A1A1E] border-l-4 border-[#FFB800] p-4 rounded-r-2xl my-4 shrink-0 shadow-lg">
                             <p className="text-[12px] font-black text-white italic leading-relaxed">
-                                <TypewriterText key={monthsToFreedom} text={freedomDateLabel ? `Ціль буде досягнута: ${freedomDateLabel.toUpperCase()} (${monthsToFreedom} міс.)` : "Налаштуйте параметри..."} />
+                                <TypewriterText key={monthsToFreedom} text={freedomText} />
                             </p>
                         </div>
                         
-                        {/* ТАЙМФРЕЙМИ ГРАФІКА */}
-                        <div className="flex justify-between gap-1 mb-2 bg-white/5 p-1 rounded-xl border border-white/5">
-                            {[
-                                { l: '1Р', v: 12 }, { l: '3Р', v: 36 }, { l: '5Р', v: 60 }, { l: '10Р', v: 120 }
-                            ].map(t => (
-                                <button 
-                                    key={t.v} 
-                                    onClick={() => setTimeframe(t.v)}
-                                    className={clsx("flex-1 py-1.5 rounded-lg text-[10px] font-black transition-all", timeframe === t.v ? "bg-[#FFB800] text-black" : "text-white/40")}
-                                >
-                                    {t.l}
-                                </button>
-                            ))}
+                        {/* 3. БЛОК ПЕДАЛЕЙ (ВЕРТИКАЛЬНИЙ СТЕК) */}
+                        <div className="shrink-0 mb-6">
+                            <PedalList config={config} setConfig={setConfig} onOpenInfo={setInfoBooster} />
                         </div>
 
-                        <div className="relative min-h-[250px] mb-10 shrink-0">
-                            <GrowthAreaChart data={points} goal={config.goal} targetMonth={monthsToFreedom} pedals={config.pedals} setPedals={setConfig} />
+                        {/* 4. ГРАФІК */}
+                        <div className="relative min-h-[280px] shrink-0">
+                            <GrowthAreaChart 
+                                data={points} 
+                                goal={config.goal} 
+                                targetMonth={monthsToFreedom} 
+                                pedals={config.pedals} 
+                                setPedals={setConfig} 
+                            />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* MODALS */}
+            {/* (МОДАЛКИ SELECTOR, INFO, LEGEND — БЕЗ ЗМІН) */}
             <AnimatePresence>
                 {selectorField && (
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectorField(null)} className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100]" />
-                        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-0 inset-x-0 z-[101] bg-[#0D0D0E] p-8 rounded-t-[3rem] border-t border-white/20">
+                        <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-0 inset-x-0 z-[101] bg-[#0D0D0E] p-8 rounded-t-[3rem] border-t border-white/20 shadow-[0_-20px_60px_rgba(0,0,0,0.8)]">
                             <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
                             <h3 className="text-xl font-black text-center mb-8 uppercase tracking-tight">{FIELD_LABELS[selectorField]}</h3>
                             <div className="grid grid-cols-2 gap-4">
