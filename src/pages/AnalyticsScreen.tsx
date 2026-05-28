@@ -27,24 +27,36 @@ const calculateCompoundData = (principal: number, reinvest: number, pedals: Reco
     const monthlyRate = (totalApy / 100) / 12 || 0.0001;
     let balance = principal;
     const startDate = new Date();
-    const points = [{ month: 0, monthLabel: '0', dateLabel: startDate.toLocaleDateString('uk-UA', { month: 'short', year: 'numeric' }), value: principal }];
+    
+    const points = [{ 
+        month: 0, 
+        monthLabel: '0', 
+        dateLabel: startDate.toLocaleDateString('uk-UA', { month: 'short', year: 'numeric' }),
+        value: principal 
+    }];
+    
     let monthsToFreedom = 0;
     let freedomDateLabel = "";
     let reached = false;
 
     for (let i = 1; i <= 120; i++) {
         balance = balance * (1 + monthlyRate) + reinvest;
+        const currentMonthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+        
         if (!reached && balance >= goal) {
             monthsToFreedom = i;
-            const targetDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-            freedomDateLabel = targetDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
+            freedomDateLabel = currentMonthDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
             reached = true;
         }
-        points.push({
-            month: i, monthLabel: `${i}м`, value: Math.round(balance),
-            dateLabel: ''
+
+        points.push({ 
+            month: i, 
+            monthLabel: `${i}м`, 
+            dateLabel: currentMonthDate.toLocaleDateString('uk-UA', { month: 'short', year: 'numeric' }),
+            value: Math.round(balance) 
         });
-        if (reached && i >= monthsToFreedom + 5) break;
+
+        if (reached && i >= monthsToFreedom + 3) break;
     }
     return { points, monthsToFreedom, freedomDateLabel };
 };
@@ -79,7 +91,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     const [infoBooster, setInfoBooster] = useState<string | null>(null);
     const [selectedTrad, setSelectedTrad] = useState('Real Estate');
     const [selectedCrypto, setSelectedCrypto] = useState('Staking');
-    const [_modalInfo, setModalInfo] = useState<any>(null);
+    const [modalInfo, setModalInfo] = useState<any>(null);
 
     const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -94,18 +106,18 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
         calculateCompoundData(config.principal, config.reinvest, config.pedals, config.goal), 
     [config]);
 
+    const handleScroll = () => {
+        if (!sliderRef.current) return;
+        const index = Math.round(sliderRef.current.scrollLeft / sliderRef.current.offsetWidth);
+        if (TABS[index] && TABS[index].id !== activeChart) setActiveChart(TABS[index].id);
+    };
+
     const handleTabChange = (tabId: string) => {
         const index = TABS.findIndex(t => t.id === tabId);
         if (index !== -1 && sliderRef.current) {
             setActiveChart(tabId);
             sliderRef.current.scrollTo({ left: index * sliderRef.current.offsetWidth, behavior: 'smooth' });
         }
-    };
-
-    const handleScroll = () => {
-        if (!sliderRef.current) return;
-        const index = Math.round(sliderRef.current.scrollLeft / sliderRef.current.offsetWidth);
-        if (TABS[index] && TABS[index].id !== activeChart) setActiveChart(TABS[index].id);
     };
 
     const getRadarData = (assetId: string) => {
@@ -122,10 +134,12 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
     };
 
     const freedomText = freedomDateLabel 
-        ? `Ваша точка фінансової свободи буде досягнута в: ${freedomDateLabel.toUpperCase()} (через ${monthsToFreedom} міс.). Використовуйте додаткові інструменти Tyrex по максимуму.`
-        : `З поточною стратегією ціль за межами горизонту. Увімкніть більше інструментів!`;
+        ? `Ваша точка фінансової свободи буде досягнута в: ${freedomDateLabel.toUpperCase()} (через ${monthsToFreedom} міс.). Використовуйте додаткові інструменти Tyrex по максимуму, щоб скоротити цей термін.`
+        : `З поточною стратегією ціль за межами горизонту. Увімкніть більше педалей!`;
 
     if (loading) return <div className="min-h-screen bg-[#080808] flex items-center justify-center"><RefreshCw className="animate-spin text-[#FFB800]" /></div>;
+
+    const currentTab = TABS.find(t => t.id === activeChart);
 
     return (
         <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans relative overflow-hidden">
@@ -134,25 +148,25 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
             <div className="flex-1 flex flex-col pt-16">
                 <header className="px-5 mb-1 shrink-0">
                     <h1 className="text-2xl font-black uppercase tracking-tighter text-[#FFB800] leading-none">
-                        {TABS.find(t => t.id === activeChart)?.header}
+                        {currentTab?.header}
                     </h1>
                     <p className="text-[11px] text-white/60 leading-snug mt-1 max-w-[95%]">
-                        {activeChart === 'radar_trad' && "Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам."}
-                        {activeChart === 'radar_crypto' && "Сравни эффективность Tyrex с крипто инструментами по 6 ключевым метрикам."}
-                        {activeChart === 'forecast' && "Введіть ваші дані, щоб побачити, коли ваш пасивний дохід досягне Цілі."}
+                        {activeChart === 'radar_trad' && "Сравни эффективность Tyrex с рыночными альтернативами по 6 ключевым метрикам. Выбирай актив для сопоставления:"}
+                        {activeChart === 'radar_crypto' && "Сравни эффективность Tyrex с крипто инструментами по 6 ключевым метрикам. Выбирай актив для сопоставления:"}
+                        {activeChart === 'forecast' && "Введите ваши данные, чтобы увидеть, когда ваш пассивный доход достигнет Цели."}
                     </p>
                 </header>
 
                 <div ref={sliderRef} onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar flex-1" style={{ scrollBehavior: 'smooth' }}>
                     
-                    {/* (ЕКРАНИ 1 ТА 2 - РАДАР ЧАРТ) */}
-                    <div className="min-w-full snap-center px-5 py-2">
+                    {/* ЕКРАН 1: ТРАДИЦІЙНІ */}
+                    <div className="min-w-full snap-center px-5 py-2 overflow-y-auto no-scrollbar pb-20">
                         <div className="space-y-4">
                             <div className="grid grid-rows-2 grid-flow-col gap-2 overflow-x-auto no-scrollbar pb-1">
                                 {CATEGORY_ASSETS.traditional.map((asset: any) => {
                                     const isSelected = selectedTrad === asset.id;
                                     return (
-                                        <button key={asset.id} onClick={() => setSelectedTrad(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#00F0FF] text-white bg-[#00F0FF]/20 shadow-[0_0_20px_rgba(0,240,255,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E]")}>{asset.label}</button>
+                                        <button key={asset.id} onClick={() => setSelectedTrad(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#00F0FF] text-white bg-[#00F0FF]/20 shadow-[0_0_20px_rgba(0,240,255,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E] hover:border-white/40")}>{asset.label}</button>
                                     );
                                 })}
                             </div>
@@ -168,13 +182,14 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                         </div>
                     </div>
 
-                    <div className="min-w-full snap-center px-5 py-2">
+                    {/* ЕКРАН 2: КРИПТО */}
+                    <div className="min-w-full snap-center px-5 py-2 overflow-y-auto no-scrollbar pb-20">
                         <div className="space-y-4">
                             <div className="grid grid-rows-2 grid-flow-col gap-2 overflow-x-auto no-scrollbar pb-1">
                                 {CATEGORY_ASSETS.crypto.map((asset: any) => {
                                     const isSelected = selectedCrypto === asset.id;
                                     return (
-                                        <button key={asset.id} onClick={() => setSelectedCrypto(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#FF00E5] text-white bg-[#FF00E5]/20 shadow-[0_0_20px_rgba(255,0,229,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E]")}>{asset.label}</button>
+                                        <button key={asset.id} onClick={() => setSelectedCrypto(asset.id)} className={clsx("py-2.5 px-6 rounded-xl border-2 transition-all duration-300 text-[9px] font-black uppercase flex-shrink-0", isSelected ? "border-[#FF00E5] text-white bg-[#FF00E5]/20 shadow-[0_0_20px_rgba(255,0,229,0.4)]" : "border-white/20 text-white/60 bg-[#1A1A1E] hover:border-white/40")}>{asset.label}</button>
                                     );
                                 })}
                             </div>
@@ -190,27 +205,26 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                         </div>
                     </div>
 
-                    {/* ЕКРАН 3: ПРОГНОЗ (МАГІЯ) — НОВИЙ ПОРЯДОК БЛОКІВ */}
+                    {/* ЕКРАН 3: ПРОГНОЗ (ПОРЯДОК: ІНПУТИ -> ТЕКСТ -> ПЕДАЛІ -> ГРАФІК) */}
                     <div className="min-w-full snap-center px-5 pt-2 flex flex-col overflow-y-auto no-scrollbar pb-32">
-                        
-                        {/* 1. ВЕРХНІ 3 КАПСУЛИ (ВКЛАДАЮ / ДОДАЮ / ХОЧУ) */}
+                        {/* 1. Жовті інпути */}
                         <div className="shrink-0">
                             <NumericalInputsHUD config={config} onOpenSelector={setSelectorField} />
                         </div>
 
-                        {/* 2. БЕГУЩАЯ СТРОКА (РЕЗУЛЬТАТ) */}
+                        {/* 2. Текст прогнозу */}
                         <div className="bg-[#1A1A1E] border-l-4 border-[#FFB800] p-4 rounded-r-2xl my-4 shrink-0 shadow-lg">
                             <p className="text-[12px] font-black text-white italic leading-relaxed">
                                 <TypewriterText key={monthsToFreedom} text={freedomText} />
                             </p>
                         </div>
                         
-                        {/* 3. БЛОК ПЕДАЛЕЙ (ВЕРТИКАЛЬНИЙ СТЕК) */}
+                        {/* 3. Педалі (Сірі з жовтою рамкою) */}
                         <div className="shrink-0 mb-6">
                             <PedalList config={config} setConfig={setConfig} onOpenInfo={setInfoBooster} />
                         </div>
 
-                        {/* 4. ГРАФІК */}
+                        {/* 4. Графік */}
                         <div className="relative min-h-[280px] shrink-0">
                             <GrowthAreaChart 
                                 data={points} 
@@ -224,7 +238,7 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                 </div>
             </div>
 
-            {/* (МОДАЛКИ SELECTOR, INFO, LEGEND — БЕЗ ЗМІН) */}
+            {/* MODALS */}
             <AnimatePresence>
                 {selectorField && (
                     <>
@@ -252,7 +266,20 @@ const AnalyticsScreen: React.FC<{ scrollContainerRef?: React.RefObject<HTMLDivEl
                             <div className="w-16 h-16 bg-[#FFB800]/10 rounded-full flex items-center justify-center mx-auto mb-6"><Info size={32} className="text-[#FFB800]" /></div>
                             <h3 className="text-[#FFB800] font-black uppercase text-xl mb-4 tracking-widest">Довідка</h3>
                             <p className="text-white font-medium leading-relaxed text-lg italic opacity-90">{PEDAL_DESCRIPTIONS[infoBooster]}</p>
-                            <button className="mt-10 w-full py-5 bg-[#FFB800] text-black rounded-2xl font-black uppercase tracking-widest">Зрозуміло</button>
+                            <button className="mt-10 w-full py-4 bg-[#FFB800] text-black rounded-2xl font-black uppercase tracking-widest active:scale-95 shadow-lg">Зрозуміло</button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            
+            {/* LEGEND MODAL (RESTORED) */}
+            <AnimatePresence>
+                {modalInfo && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md" onClick={() => setModalInfo(null)}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-[#111111] border border-white/10 w-full max-w-sm rounded-[2.5rem] p-10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <h3 className="text-2xl font-black text-[#FFB800] uppercase tracking-tight mb-4">{modalInfo.label}</h3>
+                            <p className="text-[16px] text-white/80 leading-relaxed font-medium italic">{modalInfo.full}</p>
+                            <button onClick={() => setModalInfo(null)} className="mt-8 w-full py-4 bg-white/5 rounded-xl font-black uppercase text-xs">Закрити</button>
                         </motion.div>
                     </div>
                 )}
