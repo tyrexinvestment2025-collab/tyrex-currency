@@ -1,40 +1,40 @@
 import { Zap, TrendingUp, Target, Users, BarChart3, Rocket, Info, Edit2 } from 'lucide-react';
 import clsx from 'clsx';
 
-// --- ЖОВТІ ІНПУТИ (ГОЛОВНИЙ АКЦЕНТ) ---
+// --- БЛОК ВВОДУ: СТИСНУТИЙ СТЕК (#141414) ---
 export const NumericalInputsHUD = ({ config, onOpenSelector }: any) => (
-    <div className="space-y-1.5 w-full">
+    <div className="bg-[#141414] border border-[#222222] rounded-xl overflow-hidden divide-y divide-[#222222] shadow-2xl">
         {[
-            { label: 'Вкладаю відразу', key: 'principal', value: config.principal },
-            { label: 'Додаю в місяць', key: 'reinvest', value: config.reinvest },
-            { label: 'Хочу отримати', key: 'goal', value: config.goal },
+            { label: 'Вкладаю відразу', key: 'principal', value: config.principal, color: 'text-white' },
+            { label: 'Додаю в місяць', key: 'reinvest', value: config.reinvest, color: 'text-white' },
+            { label: 'Хочу отримати', key: 'goal', value: config.goal, color: 'text-[#FFB700]' },
         ].map((item) => (
             <button 
                 key={item.key}
                 onClick={() => onOpenSelector(item.key)}
-                className="w-full bg-[#FFB800] border border-[#FFB800] rounded-full px-6 py-2.5 flex justify-between items-center active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(255,184,0,0.2)]"
+                className="w-full px-5 py-3.5 flex justify-between items-center active:bg-white/[0.02] transition-all"
             >
-                <span className="text-[10px] font-black uppercase tracking-tighter text-black/50">{item.label}</span>
+                <span className="text-[13px] font-medium text-[#808080] uppercase tracking-wide">{item.label}</span>
                 <div className="flex items-center gap-3">
-                    <span className="text-2xl font-black tracking-tighter text-black">
+                    <span className={clsx("text-lg font-bold tracking-tight", item.color)}>
                         ${item.value.toLocaleString()}
                     </span>
-                    <Edit2 size={14} className="text-black opacity-30" />
+                    <Edit2 size={14} className="text-[#FFB700] opacity-40" />
                 </div>
             </button>
         ))}
     </div>
 );
 
-// --- СІРІ ПЕДАЛІ З ЖОВТОЮ РАМКОЮ (ПРИ НАТИСКАННІ) ---
+// --- ПЕДАЛІ: ІНСТРУМЕНТАЛЬНА ПАНЕЛЬ (52px) ---
 export const PedalList = ({ config, setConfig, onOpenInfo }: any) => {
     const BOOSTER_DEFS = [
-        { id: 'yield', label: 'Прибуток', val: 15, icon: <Zap size={14} /> },
-        { id: 'boosters', label: 'Бустери', val: 4, icon: <Rocket size={14} /> },
-        { id: 'spec', label: 'Спекуляції', val: 15, icon: <BarChart3 size={14} /> },
-        { id: 'btc', label: 'Ріст BTC', val: 40, icon: <TrendingUp size={14} /> },
-        { id: 'ref', label: 'Мережа', val: 5, icon: <Users size={14} /> },
-        { id: 'bonus', label: 'Бонус', val: 10, icon: <Target size={14} /> },
+        { id: 'yield', label: 'Прибуток', val: 15, icon: <Zap size={16} /> },
+        { id: 'boosters', label: 'Бустери', val: 4, icon: <Rocket size={16} /> },
+        { id: 'spec', label: 'Спекуляції', val: 15, icon: <BarChart3 size={16} /> },
+        { id: 'btc', label: 'Ріст BTC', val: 40, icon: <TrendingUp size={16} /> },
+        { id: 'ref', label: 'Мережа', val: 5, icon: <Users size={16} /> },
+        { id: 'bonus', label: 'Бонус', val: 10, icon: <Target size={16} /> },
     ];
 
     const togglePedal = (id: string, value: number) => {
@@ -46,58 +46,55 @@ export const PedalList = ({ config, setConfig, onOpenInfo }: any) => {
     };
 
     return (
-        <div className="space-y-2.5 w-full">
-            <div className="flex justify-between items-center px-1">
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Інструменти прискорення</span>
-            </div>
-            
+        <div className="mt-4 space-y-2">
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#808080] ml-1 mb-2">
+                Параметри прискорення
+            </p>
             {BOOSTER_DEFS.map((booster) => {
                 const isActive = config.pedals[booster.id] > 0;
                 return (
                     <div 
                         key={booster.id}
                         className={clsx(
-                            "w-full rounded-full border-2 p-1.5 transition-all duration-300 flex items-center justify-between",
-                            "bg-[#1A1A1E]", // Завжди сірий фон
+                            "h-[52px] w-full rounded-xl border transition-all duration-500 flex items-center justify-between px-4",
                             isActive 
-                                ? "border-[#FFB800] shadow-[0_5px_15px_rgba(255,184,0,0.1)]" 
-                                : "border-white/5 opacity-80"
+                                ? "bg-[#141414] border-[#FFB700] shadow-[0_0_15px_rgba(255,183,0,0.1)]" 
+                                : "bg-[#141414] border-[#222222] opacity-60"
                         )}
                     >
-                        <div className="flex items-center gap-3 pl-2">
+                        <div className="flex items-center gap-4">
                             <div className={clsx(
-                                "w-7 h-7 rounded-full flex items-center justify-center transition-colors",
-                                isActive ? "bg-[#FFB800] text-black" : "bg-white/5 text-white/30"
+                                "transition-all duration-500",
+                                isActive ? "text-[#FFB700] drop-shadow-[0_0_8px_#FFB700]" : "text-[#555555]"
                             )}>
                                 {booster.icon}
                             </div>
                             <div className="flex flex-col">
-                                <span className={clsx("text-[11px] font-black uppercase leading-none tracking-tight", isActive ? "text-white" : "text-white/40")}>
+                                <span className={clsx("text-[13px] font-bold leading-none", isActive ? "text-white" : "text-[#555555]")}>
                                     {booster.label}
                                 </span>
-                                <span className={clsx("text-[10px] font-bold", isActive ? "text-[#FFB800]" : "text-white/20")}>
+                                <span className={clsx("text-[11px] font-medium mt-0.5", isActive ? "text-[#FFB700]" : "text-[#555555]")}>
                                     {isActive ? `+${booster.val}%` : `${booster.val}%`}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-1 pr-1">
-                            <button 
-                                onClick={() => onOpenInfo(booster.id)}
-                                className={clsx("p-2 transition-colors", isActive ? "text-[#FFB800]" : "text-white/20")}
-                            >
-                                <Info size={16} />
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => onOpenInfo(booster.id)} className="p-1 text-[#555555] hover:text-white transition-colors">
+                                <Info size={14} />
                             </button>
+                            {/* TOGGLE SWITCH */}
                             <button 
                                 onClick={() => togglePedal(booster.id, booster.val)}
                                 className={clsx(
-                                    "px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border-2",
-                                    isActive 
-                                        ? "bg-[#FFB800] text-black border-[#FFB800]" 
-                                        : "bg-white/5 text-white/40 border-white/10"
+                                    "w-10 h-5 rounded-full relative transition-all duration-300 border",
+                                    isActive ? "bg-[#FFB700] border-[#FFB700]" : "bg-[#222222] border-[#222222]"
                                 )}
                             >
-                                {isActive ? 'ON' : 'OFF'}
+                                <div className={clsx(
+                                    "absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all duration-300",
+                                    isActive ? "left-[22px]" : "left-1"
+                                )} />
                             </button>
                         </div>
                     </div>
