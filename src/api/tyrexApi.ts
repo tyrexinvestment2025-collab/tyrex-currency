@@ -146,6 +146,13 @@ export const referralApi = {
         const response = await fetch(`${API_URL}/referrals/list`, { headers: getAuthHeader() });
         return response.json();
     },
+    claimRewards: async () => {
+        const response = await fetch(`${API_URL}/referrals/claim`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', ...getAuthHeader() } 
+        });
+        return response.json();
+    }
 };
 
 export const adminApi = {
