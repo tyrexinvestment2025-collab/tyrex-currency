@@ -7,7 +7,6 @@ import { useTyrexStore } from '../store/useTyrexStore';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
-
 const ReferralScreen: React.FC = () => {
     const navigate = useNavigate();
     const { btcPrice } = useTyrexStore();
@@ -37,6 +36,13 @@ const ReferralScreen: React.FC = () => {
         }
     };
 
+    // Конвертація SATS у повний формат BTC (8 знаків після коми)
+    const btcValue = useMemo(() => {
+        if (!data?.totalEarnedSats) return "0.00000000";
+        return (data.totalEarnedSats / 100000000).toFixed(8);
+    }, [data?.totalEarnedSats]);
+
+    // Розрахунок USD
     const currentUsdtValue = useMemo(() => {
         if (!btcPrice || !data?.totalEarnedSats) return "0.00";
         return ((data.totalEarnedSats / 100000000) * btcPrice).toFixed(2);
@@ -75,7 +81,7 @@ const ReferralScreen: React.FC = () => {
             <div className="min-h-screen bg-[#080808] text-white p-6 flex flex-col justify-center items-center text-center">
                 <div className="bg-[#141414] border border-[#222222] p-10 rounded-[3rem] shadow-2xl flex flex-col items-center">
                     <Lock className="w-12 h-12 text-[#FFB700] opacity-20 mb-6" />
-                    <h1 className="text-xl font-black uppercase italic tracking-tighter mb-2">Pool Locked</h1>
+                    <h1 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Pool Locked</h1>
                     <p className="text-[#808080] text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-8">
                         Purchase a mining card <br/> to unlock your referral link
                     </p>
@@ -103,7 +109,36 @@ const ReferralScreen: React.FC = () => {
 
             <div className="p-5 space-y-5">
 
-                {/* --- 2. РЕФЕРАЛЬНАЯ ССЫЛКА (ПЕРВАЯ) --- */}
+                {/* --- 2. ВАШ ДОХОД (DASHBOARD) --- */}
+                <div className="bg-[#141414] border border-[#FFB700]/20 rounded-[2.5rem] p-7 relative overflow-hidden shadow-2xl">
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFB700]/5 blur-[60px] rounded-full pointer-events-none" />
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#808080] mb-3">ВАШ ДОХОД ОТ ПАРТНЕРКИ</span>
+                        
+                        <div className="flex items-baseline gap-2 mb-1">
+                            <span className="text-4xl font-black text-white italic tracking-tighter leading-none">
+                                {btcValue}
+                            </span>
+                            <span className="text-sm font-black text-[#FFB700] uppercase">BTC</span>
+                        </div>
+                        <p className="text-xs font-bold text-[#808080] uppercase tracking-widest mb-6">
+                            ≈ ${currentUsdtValue} USDT
+                        </p>
+
+                        <button 
+                            onClick={handleClaim}
+                            disabled={claiming || (data?.totalEarnedSats || 0) <= 0}
+                            className={clsx(
+                                "w-full py-5 rounded-2xl font-black uppercase text-sm tracking-widest transition-all",
+                                (data?.totalEarnedSats || 0) > 0 ? "bg-[#FFB700] text-black shadow-[0_10px_30px_rgba(255,183,0,0.3)] active:scale-95" : "bg-[#222222] text-[#555555]"
+                            )}
+                        >
+                            {claiming ? <RefreshCw className="animate-spin mx-auto" size={20}/> : "ЗАБРАТЬ НАГРАДУ"}
+                        </button>
+                    </div>
+                </div>
+
+                {/* --- 3. РЕФЕРАЛЬНАЯ ССЫЛКА --- */}
                 <div className="bg-[#141414] border border-[#222222] p-5 rounded-[2rem] space-y-4 shadow-xl">
                     <div className="flex justify-between items-center px-1">
                         <p className="text-[10px] font-black text-[#FFB700] uppercase tracking-[0.2em]">ВАША РЕФЕРАЛЬНАЯ ССЫЛКА</p>
@@ -122,35 +157,6 @@ const ReferralScreen: React.FC = () => {
                     <p className="text-[10px] text-center text-[#808080] font-bold leading-relaxed uppercase tracking-tight">
                         Делитесь ссылкой с друзьями и получайте пассивный доход от работы их капитала.
                     </p>
-                </div>
-                
-                {/* --- 3. ВАШ ДОХОД (ВТОРАЯ) --- */}
-                <div className="bg-[#141414] border border-[#FFB700]/20 rounded-[2.5rem] p-7 relative overflow-hidden shadow-2xl">
-                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFB700]/5 blur-[60px] rounded-full pointer-events-none" />
-                    <div className="relative z-10 flex flex-col items-center text-center">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#808080] mb-3">ВАШ ДОХОД ОТ ПАРТНЕРКИ</span>
-                        
-                        <div className="flex items-baseline gap-2 mb-1">
-                            <span className="text-4xl font-black text-white italic tracking-tighter">
-                                {data?.totalEarnedSats?.toLocaleString()}
-                            </span>
-                            <span className="text-sm font-black text-[#FFB800] uppercase">SATS</span>
-                        </div>
-                        <p className="text-xs font-bold text-[#808080] uppercase tracking-widest mb-6">
-                            ≈ ${currentUsdtValue} USDT
-                        </p>
-
-                        <button 
-                            onClick={handleClaim}
-                            disabled={claiming || (data?.totalEarnedSats || 0) <= 0}
-                            className={clsx(
-                                "w-full py-5 rounded-2xl font-black uppercase text-sm tracking-widest transition-all",
-                                (data?.totalEarnedSats || 0) > 0 ? "bg-[#FFB700] text-black shadow-[0_10px_30px_rgba(255,183,0,0.3)] active:scale-95" : "bg-[#222222] text-[#555555]"
-                            )}
-                        >
-                            {claiming ? <RefreshCw className="animate-spin mx-auto" size={20}/> : "ЗАБРАТЬ НАГРАДУ"}
-                        </button>
-                    </div>
                 </div>
 
                 {/* --- TABS --- */}
@@ -179,21 +185,32 @@ const ReferralScreen: React.FC = () => {
                     {activeTab === 'RESULTS' ? (
                         <motion.div key="res" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
+                                {/* ВЕРХНІЙ РЯД */}
                                 <div className="bg-[#141414] p-5 rounded-[2rem] border border-[#222222] flex flex-col justify-between h-40">
                                     <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">ВСЕГО РЕГИСТРАЦИЙ</span>
-                                    <div className="text-4xl font-black text-white italic tracking-tighter">{data?.stats?.totalInvited}</div>
+                                    <div className="text-3xl font-black text-white italic tracking-tighter">
+                                        {data?.stats?.totalInvited} <span className="text-xs opacity-30 not-italic">чел.</span>
+                                    </div>
                                 </div>
                                 <div className="bg-[#141414] p-5 rounded-[2rem] border border-[#222222] flex flex-col justify-between h-40">
-                                    <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">КАПИТАЛ ПАРТНЕРОВ</span>
-                                    <div className="text-2xl font-black text-white italic tracking-tighter">${data?.stats?.totalPartnerCapital?.toLocaleString()}</div>
+                                    <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">ИЗ НИХ НЕ ИНВЕСТИРОВАЛИ</span>
+                                    <div className="text-3xl font-black text-[#FF7000] italic tracking-tighter">
+                                        {data?.stats?.nonInvestorsCount} <span className="text-xs opacity-30 not-italic">чел.</span>
+                                    </div>
+                                </div>
+                                
+                                {/* НИЖНІЙ РЯД */}
+                                <div className="bg-[#141414] p-5 rounded-[2rem] border border-[#222222] flex flex-col justify-between h-40">
+                                    <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">КАПИТАЛ ВАШИХ ПАРТНЕРОВ</span>
+                                    <div className="text-2xl font-black text-white italic tracking-tighter">
+                                        ${data?.stats?.totalPartnerCapital?.toLocaleString()}
+                                    </div>
                                 </div>
                                 <div className="bg-[#141414] p-5 rounded-[2rem] border border-[#FFB700]/60 flex flex-col justify-between h-40 shadow-[0_0_25px_rgba(255,183,0,0.1)]">
                                     <span className="text-[11px] font-black text-[#FFB700] uppercase tracking-widest leading-tight">КАПИТАЛ НЕ В РАБОТЕ</span>
-                                    <div className="text-2xl font-black text-[#FFB700] italic tracking-tighter">${data?.stats?.totalIdleCapital?.toLocaleString()}</div>
-                                </div>
-                                <div className="bg-[#141414] p-5 rounded-[2rem] border border-[#FF7000]/60 flex flex-col justify-between h-40 shadow-[0_0_25px_rgba(255,112,0,0.1)]">
-                                    <span className="text-[11px] font-black text-[#FF7000] uppercase tracking-widest leading-tight">НЕ ИНВЕСТИРОВАЛИ</span>
-                                    <div className="text-3xl font-black text-[#FF7000] italic tracking-tighter">{data?.stats?.nonInvestorsCount}</div>
+                                    <div className="text-2xl font-black text-[#FFB700] italic tracking-tighter">
+                                        ${data?.stats?.totalIdleCapital?.toLocaleString()}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -224,7 +241,7 @@ const ReferralScreen: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-sm font-black text-white tracking-tight uppercase">{p.username || 'Anonymous'}</p>
-                                                <p className="text-[9px] font-bold text-[#555555] uppercase tracking-wider">ID: {p.id.slice(-6)}</p>
+                                                <p className="text-[9px] font-bold text-[#555555] uppercase">ID: {p.id.slice(-6)}</p>
                                             </div>
                                         </div>
 
@@ -234,13 +251,10 @@ const ReferralScreen: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* --- БЛОК РОЗШИРЕНОЇ ІНФОРМАЦІЇ --- */}
                                     <AnimatePresence>
                                         {showExtended && (
                                             <motion.div 
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                exit={{ opacity: 0, height: 0 }}
+                                                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                                                 className="overflow-hidden"
                                             >
                                                 <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
