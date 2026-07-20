@@ -7,7 +7,7 @@ import { useTyrexStore } from '../store/useTyrexStore';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
-// Припускаємо, що ми додали це в конфіг
+// Конфіг для легенди
 const REFERRAL_LEGEND: any = {
     'REVENUE': { title: 'ВАШ ДОХОД', full: 'Это суммарная прибыль, которую вы получили от активности ваших партнеров. Начисляется автоматически в валюте актива, который приобрел партнер.' },
     'LINK': { title: 'РЕФЕРАЛЬНАЯ ССЫЛКА', full: 'Используйте эту ссылку для приглашения новых пользователей. Вы получаете процент от каждой их успешной инвестиции.' },
@@ -73,23 +73,17 @@ const ReferralScreen: React.FC = () => {
         toast.success('Ссылка скопирована!');
     };
 
-    // --- НОВА ФУНКЦІЯ: ПОДІЛИТИСЯ ---
     const handleShare = async () => {
         if (!data?.referralLink) return;
-
         if (navigator.share) {
             try {
                 await navigator.share({
                     title: 'Tyrex Currency',
-                    text: 'Присоединяйся к моей команде в Tyrex и начни зарабатывать на крипто-активах!',
+                    text: 'Присоединяйся к моей команде в Tyrex!',
                     url: data.referralLink,
                 });
-            } catch (err) {
-                // Якщо користувач скасував або сталася помилка - нічого не робимо
-                console.log('Share cancelled or failed');
-            }
+            } catch (err) { console.log('Share failed'); }
         } else {
-            // Фолбек для браузерів, які не підтримують системне "поділитися"
             copyLink();
             toast('Share API не поддерживается, ссылка скопирована', { icon: 'ℹ️' });
         }
@@ -143,8 +137,10 @@ const ReferralScreen: React.FC = () => {
                 <div 
                     onClick={() => openInfo('REVENUE')}
                     className={clsx(
-                        "bg-[#141414] border rounded-[2.5rem] p-7 relative overflow-hidden transition-all duration-300",
-                        activeWidget === 'REVENUE' ? "border-[#FFB700] shadow-[0_0_20px_rgba(255,183,0,0.2)]" : "border-[#FFB700]/20 shadow-2xl"
+                        "bg-[#141414] border-2 rounded-[2.5rem] p-7 relative overflow-hidden transition-all duration-300 cursor-pointer",
+                        activeWidget === 'REVENUE' 
+                            ? "border-[#FFB700] shadow-[0_0_40px_rgba(255,184,0,0.3)] ring-2 ring-[#FFB700]/20" 
+                            : "border-[#FFB700]/20"
                     )}
                 >
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFB700]/5 blur-[60px] rounded-full pointer-events-none" />
@@ -178,11 +174,13 @@ const ReferralScreen: React.FC = () => {
                 <div 
                     onClick={() => openInfo('LINK')}
                     className={clsx(
-                        "bg-[#141414] border rounded-[2rem] p-6 space-y-5 shadow-xl transition-all duration-300",
-                        activeWidget === 'LINK' ? "border-[#FFB700]" : "border-[#222222]"
+                        "bg-[#141414] border-2 rounded-[2rem] p-6 space-y-5 transition-all duration-300 cursor-pointer",
+                        activeWidget === 'LINK' 
+                            ? "border-[#FFB700] shadow-[0_0_30px_rgba(255,183,0,0.2)] ring-2 ring-[#FFB700]/10" 
+                            : "border-[#222222]"
                     )}
                 >
-                    <p className="text-[11px] text-center text-white font-medium leading-relaxed italic px-2">
+                    <p className="text-[11px] text-[#808080] font-medium leading-snug uppercase tracking-wider text-center px-2">
                         Делитесь своей реферальной ссылкой с друзьями и получайте пассивный доход от работы их капитала.
                     </p>
                     
@@ -191,13 +189,19 @@ const ReferralScreen: React.FC = () => {
                     </div>
 
                     <div className="flex justify-center gap-3">
-                        <button onClick={(e) => { e.stopPropagation(); copyLink(); }} className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#080808] border border-[#222222] rounded-xl active:border-[#FFB700] transition-all shadow-md group">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); copyLink(); }} 
+                            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#080808] border border-[#222222] rounded-xl active:border-[#FFB700] transition-all shadow-md group"
+                        >
                             <Copy size={16} className="text-[#FFB700] group-active:scale-90 transition-transform"/>
-                            <span className="text-[10px] font-black text-white/40 uppercase">Копировать</span>
+                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Копировать</span>
                         </button>
-                        {/* ТУТ ВИПРАВЛЕНО: Додано handleShare */}
-                        <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className="px-5 py-3 bg-[#080808] border border-[#222222] rounded-xl active:border-white transition-all shadow-md">
-                            <Share2 size={16} className="text-[#808080]"/>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleShare(); }} 
+                            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#080808] border border-[#222222] rounded-xl active:border-white transition-all shadow-md group"
+                        >
+                            <Share2 size={16} className="text-[#808080] group-active:scale-90 transition-transform"/>
+                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Поделиться</span>
                         </button>
                     </div>
                 </div>
@@ -228,11 +232,14 @@ const ReferralScreen: React.FC = () => {
                     {activeTab === 'RESULTS' ? (
                         <motion.div key="res" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
+                                {/* 1. Всего регистраций */}
                                 <div 
                                     onClick={() => openInfo('TOTAL_REG')}
                                     className={clsx(
-                                        "bg-[#141414] p-5 rounded-[2rem] border flex flex-col justify-between h-40 transition-all",
-                                        activeWidget === 'TOTAL_REG' ? "border-[#FFB700]" : "border-[#222222]"
+                                        "bg-[#141414] p-5 rounded-[2rem] border-2 flex flex-col justify-between h-40 transition-all cursor-pointer",
+                                        activeWidget === 'TOTAL_REG' 
+                                            ? "border-[#FFB700] shadow-[0_0_30px_rgba(255,183,0,0.25)]" 
+                                            : "border-[#222222]"
                                     )}
                                 >
                                     <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">ВСЕГО РЕГИСТРАЦИЙ</span>
@@ -240,11 +247,14 @@ const ReferralScreen: React.FC = () => {
                                         {data?.stats?.totalInvited} <span className="text-[10px] opacity-30 not-italic ml-1">чел.</span>
                                     </div>
                                 </div>
+                                {/* 2. Не инвестировали */}
                                 <div 
                                     onClick={() => openInfo('NON_INVEST')}
                                     className={clsx(
-                                        "bg-[#141414] p-5 rounded-[2rem] border flex flex-col justify-between h-40 transition-all",
-                                        activeWidget === 'NON_INVEST' ? "border-[#FF7000]" : "border-[#222222]"
+                                        "bg-[#141414] p-5 rounded-[2rem] border-2 flex flex-col justify-between h-40 transition-all cursor-pointer",
+                                        activeWidget === 'NON_INVEST' 
+                                            ? "border-[#FF7000] shadow-[0_0_30px_rgba(255,112,0,0.25)]" 
+                                            : "border-[#222222]"
                                     )}
                                 >
                                     <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">ИЗ НИХ НЕ ИНВЕСТИРОВАЛИ</span>
@@ -252,21 +262,27 @@ const ReferralScreen: React.FC = () => {
                                         {data?.stats?.nonInvestorsCount} <span className="text-[10px] opacity-30 not-italic ml-1">чел.</span>
                                     </div>
                                 </div>
+                                {/* 3. Капитал партнеров */}
                                 <div 
                                     onClick={() => openInfo('PARTNER_CAPITAL')}
                                     className={clsx(
-                                        "bg-[#141414] p-5 rounded-[2rem] border flex flex-col justify-between h-40 transition-all",
-                                        activeWidget === 'PARTNER_CAPITAL' ? "border-white" : "border-[#222222]"
+                                        "bg-[#141414] p-5 rounded-[2rem] border-2 flex flex-col justify-between h-40 transition-all cursor-pointer",
+                                        activeWidget === 'PARTNER_CAPITAL' 
+                                            ? "border-white shadow-[0_0_30px_rgba(255,255,255,0.15)]" 
+                                            : "border-[#222222]"
                                     )}
                                 >
                                     <span className="text-[11px] font-black text-[#808080] uppercase tracking-widest leading-tight">КАПИТАЛ ВАШИХ ПАРТНЕРОВ</span>
                                     <div className="text-2xl font-black text-white italic tracking-tighter leading-none">${data?.stats?.totalPartnerCapital?.toLocaleString()}</div>
                                 </div>
+                                {/* 4. Капитал не в работе */}
                                 <div 
                                     onClick={() => openInfo('IDLE_CAPITAL')}
                                     className={clsx(
-                                        "bg-[#141414] p-5 rounded-[2rem] border flex flex-col justify-between h-40 transition-all shadow-[0_0_25px_rgba(255,183,0,0.1)]",
-                                        activeWidget === 'IDLE_CAPITAL' ? "border-[#FFB700]" : "border-[#FFB700]/30"
+                                        "bg-[#141414] p-5 rounded-[2rem] border-2 flex flex-col justify-between h-40 transition-all cursor-pointer",
+                                        activeWidget === 'IDLE_CAPITAL' 
+                                            ? "border-[#FFB700] shadow-[0_0_35px_rgba(255,183,0,0.3)] ring-2 ring-[#FFB700]/10" 
+                                            : "border-[#FFB700]/30"
                                     )}
                                 >
                                     <span className="text-[11px] font-black text-[#FFB700] uppercase tracking-widest leading-tight">КАПИТАЛ НЕ В РАБОТЕ</span>
@@ -335,10 +351,10 @@ const ReferralScreen: React.FC = () => {
                 </AnimatePresence>
             </div>
 
-            {/* --- ПРЕМІАЛЬНИЙ ПОПАП --- */}
+            {/* --- ПРЕМИАЛЬНЫЙ ПОПАП --- */}
             <AnimatePresence>
                 {modalInfo && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md" onClick={() => { setModalInfo(null); setActiveWidget(null); }}>
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md" onClick={() => setModalInfo(null)}>
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
                             className="bg-[#141414] border border-[#222222] p-10 rounded-[3rem] max-w-sm shadow-2xl text-center relative overflow-hidden"
@@ -351,7 +367,7 @@ const ReferralScreen: React.FC = () => {
                             <h3 className="text-[#FFB700] font-black uppercase text-xl mb-4 tracking-widest leading-tight">{modalInfo.title}</h3>
                             <p className="text-white font-medium leading-relaxed text-lg italic opacity-90">{modalInfo.full}</p>
                             <button 
-                                onClick={() => { setModalInfo(null); setActiveWidget(null); }}
+                                onClick={() => setModalInfo(null)}
                                 className="mt-10 w-full py-5 bg-[#FFB800] text-black rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg"
                             >
                                 Понятно
