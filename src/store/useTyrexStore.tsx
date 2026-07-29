@@ -50,6 +50,10 @@ interface TyrexState {
   setInitialData: (userData: any, currentBtcPrice?: number) => void;
   loadCardTypes: (typesData: any[], currentBtcPrice: number) => void;
   simulateDailyInterest: () => void;
+  userProfile: {
+    isTrialActivated: boolean;
+    trialActivatedAt?: string;
+  } | null;
 }
 
 const parseVal = (value: any): number => {
@@ -65,6 +69,7 @@ const parseVal = (value: any): number => {
 };
 
 export const useTyrexStore = create<TyrexState>((set, _get) => ({
+  userProfile: null,
   btcPrice: 0,
   balance: {
     walletUsd: 0, walletSats: 0, referralSats: 0,
@@ -144,6 +149,10 @@ export const useTyrexStore = create<TyrexState>((set, _get) => ({
             pendingWithdrawalUsd: parseVal(balanceObj.pendingWithdrawalUsd),
             totalProfitUsd: parseVal(balanceObj.totalProfitUsd)
         }, 
+        userProfile: {
+            isTrialActivated: userData.isTrialActivated,
+            trialActivatedAt: userData.trialActivatedAt
+        },
         cards: updatedCards 
     };
   }),

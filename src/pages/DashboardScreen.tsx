@@ -10,6 +10,7 @@ import {
     QrCode, ArrowDown, Users, Zap
 } from 'lucide-react';
 import TyrexModal from '../components/common/TyrexModal';
+import TrialActivationModal from '../components/onboarding/TrialActivationModal'; 
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -30,13 +31,14 @@ const StatusIcon = ({ status }: { status: string }) => {
 const DashboardScreen: React.FC = () => {
     const navigate = useNavigate();
     const { tg, refreshAllData, user } = useTelegram();
-    const { simulateDailyInterest, balance, btcPrice, cards } = useTyrexStore();
+    const { balance, btcPrice, cards, userProfile } = useTyrexStore();
 
     // Состояния
     const [isDepositOpen, setDepositOpen] = useState(false);
     const [isWithdrawOpen, setWithdrawOpen] = useState(false);
     const [isHistoryOpen, setHistoryOpen] = useState(false);
     const [isNotifOpen, setNotifOpen] = useState(false);
+    const [isTrialOpen, setTrialOpen] = useState(false); 
     const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
     const [amount, setAmount] = useState('');
     const [walletOrHash, setWalletOrHash] = useState('');
@@ -52,7 +54,6 @@ const DashboardScreen: React.FC = () => {
         fetchNotifications();
         loadHistorySilently();
         const intv = setInterval(() => { 
-            simulateDailyInterest(); 
             fetchNotifications(); 
             loadHistorySilently();
         }, 30000); 
@@ -87,7 +88,6 @@ const DashboardScreen: React.FC = () => {
         } finally { setLoading(false); refreshAllData(); }
     };
 
-    // --- РАСЧЕТЫ КОНЦЕПЦИИ "BTC KING" ---
     const btcStats = useMemo(() => {
         const activeCards = cards.filter(c => c.status === 'Active');
         const walletBtc = balance.walletUsd / btcPrice;
@@ -128,6 +128,22 @@ const DashboardScreen: React.FC = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* ПРЫГАЮЩАЯ КНОПКА (ТОЛЬКО ДЛЯ НОВИЧКОВ) */}
+            {userProfile && !userProfile.isTrialActivated && (
+                <motion.button
+                    initial={{ y: 0 }} animate={{ y: [-12, 0, -12] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    onClick={() => setTrialOpen(true)}
+                    className="fixed bottom-28 right-6 z-[100] bg-gradient-to-r from-[#FFB700] to-[#FF7000] p-4 rounded-full shadow-[0_0_40px_rgba(255,183,0,0.4)] border-2 border-white/20 active:scale-90 transition-all"
+                >
+                    <Zap size={24} className="text-black fill-black" />
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-[8px] font-black px-2 py-1 rounded-full animate-pulse text-white uppercase tracking-tighter">Gift</span>
+                </motion.button>
+            )}
+
+            {/* КОМПОНЕНТ МОДАЛКИ ОНБОРДИНГА */}
+            <TrialActivationModal isOpen={isTrialOpen} onClose={() => setTrialOpen(false)} />
 
             {/* --- 1. HEADER --- */}
             <header className="px-6 pt-8 flex justify-between items-center">
@@ -273,20 +289,54 @@ const DashboardScreen: React.FC = () => {
                 </section>
             </main>
 
-            {/* --- MODALS (REUSED) --- */}
+            {/* --- MODALS --- */}
             {selectedTransaction && <TransactionDetailModal tx={selectedTransaction} onClose={() => setSelectedTransaction(null)} />}
             <AnimatePresence>{isNotifOpen && <NotifModal notifications={notifications} onClose={() => setNotifOpen(false)} />}</AnimatePresence>
-            <HistoryModal isOpen={isHistoryOpen} history={history} onClose={() => setHistoryOpen(false)} onSelect={(tx:any) => {setSelectedTransaction(tx); setHistoryOpen(false);}} />
-            <DepositModal isOpen={isDepositOpen} onClose={() => setDepositOpen(false)} amount={amount} setAmount={setAmount} walletOrHash={walletOrHash} setWalletOrHash={setWalletOrHash} handleAction={() => handleAction(() => userApi.requestDeposit(Number(amount), walletOrHash))} loading={loading} />
-            <WithdrawModal isOpen={isWithdrawOpen} onClose={() => setWithdrawOpen(false)} amount={amount} setAmount={setAmount} walletOrHash={walletOrHash} setWalletOrHash={setWalletOrHash} handleAction={() => handleAction(() => userApi.requestWithdrawal(Number(amount), walletOrHash))} balance={balance.walletUsd} loading={loading} />
-            <TyrexModal isOpen={resultModal.isOpen} title={resultModal.title} message={resultModal.message} actionText="OK" onAction={() => setResultModal(prev => ({ ...prev, isOpen: false }))} onClose={function (): void {
-                throw new Error('Function not implemented.');
-            } } />
+            
+            <HistoryModal 
+                isOpen={isHistoryOpen} 
+                history={history} 
+                onClose={() => setHistoryOpen(false)} 
+                onSelect={(tx:any) => {setSelectedTransaction(tx); setHistoryOpen(false);}} 
+            />
+            
+            <DepositModal 
+                isOpen={isDepositOpen} 
+                onClose={() => setDepositOpen(false)} 
+                amount={amount} 
+                setAmount={setAmount} 
+                walletOrHash={walletOrHash} 
+                setWalletOrHash={setWalletOrHash} 
+                handleAction={() => handleAction(() => userApi.requestDeposit(Number(amount), walletOrHash))} 
+                loading={loading} 
+            />
+            
+            <WithdrawModal 
+                isOpen={isWithdrawOpen} 
+                onClose={() => setWithdrawOpen(false)} 
+                amount={amount} 
+                setAmount={setAmount} 
+                walletOrHash={walletOrHash} 
+                setWalletOrHash={setWalletOrHash} 
+                handleAction={() => handleAction(() => userApi.requestWithdrawal(Number(amount), walletOrHash))} 
+                balance={balance.walletUsd} 
+                loading={loading} 
+            />
+            
+            <TyrexModal 
+                isOpen={resultModal.isOpen} 
+                title={resultModal.title} 
+                message={resultModal.message} 
+                actionText="OK" 
+                onAction={() => setResultModal(prev => ({ ...prev, isOpen: false }))} 
+                onClose={() => setResultModal(prev => ({ ...prev, isOpen: false }))} 
+            />
         </div>
     );
 };
 
 // --- SUB-COMPONENTS ---
+
 const QuickAction = ({ icon: Icon, label, onClick, accent = false }: any) => (
     <div onClick={onClick} className="flex flex-col items-center space-y-2 cursor-pointer group active:opacity-60">
         <div className={clsx("w-14 h-14 rounded-full flex items-center justify-center border transition-all", accent ? "bg-tyrex-ultra-gold-glow text-black border-transparent shadow-lg shadow-amber-500/10" : "bg-white/[0.05] border-white/10 text-white/50")}>
@@ -374,7 +424,6 @@ const WithdrawModal = ({ isOpen, onClose, amount, setAmount, walletOrHash, setWa
     );
 };
 
-// --- КОМПОНЕНТ ДЕТАЛЕЙ (ЧЕК) ---
 const TransactionDetailModal = ({ tx, onClose }: { tx: any, onClose: () => void }) => {
     if (!tx) return null;
     return (
@@ -411,4 +460,4 @@ const TransactionDetailModal = ({ tx, onClose }: { tx: any, onClose: () => void 
     );
 };
 
-export default DashboardScreen; 
+export default DashboardScreen;

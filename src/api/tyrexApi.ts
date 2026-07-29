@@ -97,7 +97,16 @@ export const cardsApi = {
     getHistoryBySerial: async (typeId: string, serial: number) => {
         const response = await fetch(`${API_URL}/cards/history/${typeId}/${serial}`);
         return response.ok ? await response.json() : [];
-    }
+    },
+    activateTrialCard: async () => {
+        const response = await fetch(`${API_URL}/cards/activate-trial`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Error');
+        return data;
+    },
 };
 
 export const userApi = {
@@ -134,7 +143,14 @@ export const userApi = {
     },
     markNotificationsRead: async () => {
         await fetch(`${API_URL}/user/notifications/read`, { method: 'POST', headers: getAuthHeader() });
-    }
+    },
+    checkSubscription: async () => {
+        const response = await fetch(`${API_URL}/user/check-subscription`, {
+            method: 'POST',
+            headers: getAuthHeader(),
+        });
+        return await response.json();
+    },
 };
 
 export const referralApi = {
