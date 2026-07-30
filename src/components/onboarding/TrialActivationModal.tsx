@@ -59,7 +59,7 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
                 toast.success("Підписку підтверджено!");
             } else {
                 toast.error("Ви ще не підписалися");
-                window.open('https://t.me/your_channel_username', '_blank');
+                window.open('https://t.me/TYREXcompany', '_blank');
             }
         } catch (e) { toast.error("Помилка зв'язку"); } finally { setVerifying(false); }
     };
