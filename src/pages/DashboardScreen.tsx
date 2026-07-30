@@ -31,7 +31,7 @@ const StatusIcon = ({ status }: { status: string }) => {
 const DashboardScreen: React.FC = () => {
     const navigate = useNavigate();
     const { tg, refreshAllData, user } = useTelegram();
-    const { balance, btcPrice, cards, userProfile } = useTyrexStore();
+    const { balance, btcPrice, cards, userProfile, isPriceLive } = useTyrexStore();
 
     // Состояния
     const [isDepositOpen, setDepositOpen] = useState(false);
@@ -165,17 +165,30 @@ const DashboardScreen: React.FC = () => {
             <main className="mt-10 space-y-10">
                 
                 {/* --- 2. HERO BALANCE SECTION --- */}
-                <section className="px-8 flex flex-col items-center text-center">
+                {/* --- СЕКЦИЯ БАЛАНСА С ЗАЩИТОЙ --- */}
+                <section className="px-8 flex flex-col items-center text-center relative">
                     <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-4">Total Assets</p>
-                    <h1 className="text-[42px] font-mono font-bold tracking-tighter leading-none mb-3 text-white flex items-center justify-center">
-                        <span className="text-tyrex-ultra-gold-glow mr-3">₿</span>
-                        {btcStats.totalEquityBtc.toFixed(8)}
-                    </h1>
-                    <p className="text-[17px] font-medium text-slate-500 mb-8 tabular-nums tracking-tight">
-                        <span className="opacity-20 font-sans mr-1">≈</span>
-                        <span className="opacity-20 font-sans">$</span>
-                        {btcStats.totalEquityUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </p>
+                    
+                    {/* Если цена еще не "живая" (isPriceLive === false), блюрим весь блок */}
+                    <div className={clsx("transition-all duration-700", !isPriceLive && "blur-xl opacity-30 scale-90 pointer-events-none")}>
+                        <h1 className="text-[42px] font-mono font-bold tracking-tighter leading-none mb-3 text-white flex items-center justify-center">
+                            <span className="text-tyrex-ultra-gold-glow mr-3">₿</span>
+                            {btcStats.totalEquityBtc.toFixed(8)}
+                        </h1>
+                        <p className="text-[17px] font-medium text-slate-500 mb-8 tabular-nums tracking-tight">
+                            <span className="opacity-20 font-sans mr-1">≈</span>
+                            <span className="opacity-20 font-sans">$</span>
+                            {btcStats.totalEquityUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
+
+                    {/* Индикатор синхронизации, пока цена не жива */}
+                    {!isPriceLive && (
+                        <div className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center space-y-2">
+                            <Loader2 className="animate-spin text-tyrex-ultra-gold-glow w-8 h-8" />
+                            <span className="text-[10px] font-black text-[#FFB700] uppercase tracking-widest animate-pulse">Live Syncing...</span>
+                        </div>
+                    )}
 
                     <div className="bg-white/[0.03] border border-white/[0.08] px-6 py-3 rounded-full flex items-center space-x-4 shadow-xl">
                         <div className="flex items-center space-x-2">
