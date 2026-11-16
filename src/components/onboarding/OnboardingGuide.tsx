@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import type { OnboardingStep } from '../../config/onboardingSteps';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   step: OnboardingStep;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const OnboardingGuide: React.FC<Props> = ({ step, isLastStep, onNext, onFinish }) => {
+  const { t } = useTranslation('onboarding');
   // Состояние координат подсветки
   const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({
     opacity: 0, // Скрываем рамку, пока не найдем элемент
@@ -117,10 +119,11 @@ const OnboardingGuide: React.FC<Props> = ({ step, isLastStep, onNext, onFinish }
       >
         <div className="flex justify-between items-start mb-3">
             <h4 className="font-bold text-lg text-tyrex-ultra-gold-glow leading-tight pr-4">
-                {step.title}
+                {t(`steps.${step.key}.title`)}
             </h4>
             <button 
                 onClick={onFinish} 
+                aria-label={t('skip')}
                 className="text-white/40 hover:text-white transition-colors"
             >
                 <X className="w-5 h-5"/>
@@ -128,7 +131,7 @@ const OnboardingGuide: React.FC<Props> = ({ step, isLastStep, onNext, onFinish }
         </div>
         
         <p className="text-sm text-white/80 mb-6 leading-relaxed">
-            {step.description}
+            {t(`steps.${step.key}.description`)}
         </p>
         
         <div className="flex gap-3 mt-auto">
@@ -136,7 +139,7 @@ const OnboardingGuide: React.FC<Props> = ({ step, isLastStep, onNext, onFinish }
                 onClick={isLastStep ? onFinish : onNext}
                 className="flex-1 bg-tyrex-ultra-gold-glow text-black font-bold py-2.5 px-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all"
             >
-                {isLastStep ? "Начать!" : "Далее"}
+                {isLastStep ? t('start') : t('next')}
             </button>
         </div>
       </div>

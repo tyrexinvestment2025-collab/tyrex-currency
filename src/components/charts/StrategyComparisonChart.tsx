@@ -3,10 +3,22 @@ import {
     ComposedChart, Line, Area, XAxis, YAxis, 
     ResponsiveContainer, Tooltip, ReferenceDot 
 } from 'recharts';
-import { ShieldCheck } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { fmtUsd } from '../../lib/format';
 
-const StrategyComparisonChart = memo(({ data }: { data: any[] }) => {
+export interface ComparisonPoint {
+    month: number;
+    marketUsd: number;
+    tyrexUsd: number;
+    quantity: number;
+    isDip: boolean;
+}
+
+const StrategyComparisonChart = memo(({ data }: { data: ComparisonPoint[] }) => {
+    const { t } = useTranslation('analytics');
     const startPoint = data[0];
+    if (!startPoint) return null;
 
     return (
         <div className="relative w-full bg-[#0F0F11] rounded-[2.5rem] p-6 border border-white/5 overflow-hidden">
@@ -31,24 +43,24 @@ const StrategyComparisonChart = memo(({ data }: { data: any[] }) => {
                                     const d = payload[0].payload;
                                     return (
                                         <div className="bg-[#1C1C1C] p-4 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md z-50">
-                                            <p className="text-[10px] uppercase text-white/40 mb-2 font-black tracking-widest">Аналіз точки</p>
+                                            <p className="text-[10px] uppercase text-white/40 mb-2 font-black tracking-widest">{t('strategy.pointAnalysis')}</p>
                                             <div className="space-y-2">
                                                 <div className="flex justify-between gap-8 text-xs font-bold">
-                                                    <span className="text-white/60">Ринок (BTC):</span>
-                                                    <span className="text-white/90">${d.marketUsd.toLocaleString()}</span>
+                                                    <span className="text-white/60">{t('strategy.market')}:</span>
+                                                    <span className="text-white/90">{fmtUsd(d.marketUsd, 0)}</span>
                                                 </div>
                                                 <div className="flex justify-between gap-8 text-xs font-bold">
-                                                    <span className="text-[#FDB931]">Tyrex Strategy:</span>
-                                                    <span className="text-[#FDB931]">${d.tyrexUsd.toLocaleString()}</span>
+                                                    <span className="text-[#FDB931]">{t('strategy.tyrex')}:</span>
+                                                    <span className="text-[#FDB931]">{fmtUsd(d.tyrexUsd, 0)}</span>
                                                 </div>
                                                 <div className="pt-2 border-t border-white/5 flex justify-between gap-8 text-[10px] text-purple-400 font-black">
-                                                    <span>Баланс монет:</span>
+                                                    <span>{t('strategy.coinBalance')}:</span>
                                                     <span>{d.quantity.toFixed(4)} BTC</span>
                                                 </div>
                                             </div>
                                             {d.isDip && (
-                                                <div className="mt-3 flex items-center gap-2 text-[9px] text-green-400 font-bold bg-green-400/10 p-2 rounded-lg border border-green-400/20">
-                                                    <ShieldCheck className="w-3 h-3" /> ЗАХИСТ АКТИВОВАНО
+                                                <div className="mt-3 flex items-center gap-2 text-[9px] text-red-400 font-bold bg-red-400/10 p-2 rounded-lg border border-red-400/20">
+                                                    <TrendingDown className="w-3 h-3" /> {t('strategy.dip')}
                                                 </div>
                                             )}
                                         </div>
@@ -99,15 +111,15 @@ const StrategyComparisonChart = memo(({ data }: { data: any[] }) => {
             <div className="mt-6 flex justify-center gap-6">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-[2px] border-t-2 border-dashed border-[#777]" />
-                    <span className="text-[10px] font-bold text-white/40 uppercase">Ринок (BTC)</span>
+                    <span className="text-[10px] font-bold text-white/40 uppercase">{t('strategy.market')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-1 bg-[#FDB931] rounded-full" />
-                    <span className="text-[10px] font-bold text-white/80 uppercase">Стратегія Tyrex</span>
+                    <span className="text-[10px] font-bold text-white/80 uppercase">{t('strategy.tyrex')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-purple-500/20 rounded-md border border-purple-500/30" />
-                    <span className="text-[10px] font-bold text-purple-400/60 uppercase">Накопичення</span>
+                    <span className="text-[10px] font-bold text-purple-400/60 uppercase">{t('strategy.accumulation')}</span>
                 </div>
             </div>
         </div>

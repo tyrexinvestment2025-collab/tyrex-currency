@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import './i18n'
 
 // Включаем консоль только в режиме разработки или если есть специальный параметр в URL
 // Например: https://your-site.com?debug=true

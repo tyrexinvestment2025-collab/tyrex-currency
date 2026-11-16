@@ -1,0 +1,19 @@
+{
+  "app": {
+    "loading": "Loading…",
+    "openInTelegram": { "title": "Open in Telegram", "text": "This app works only inside Telegram. Open it via the bot." },
+    "banned": { "title": "Account blocked", "text": "Your account has been blocked. Contact support if you think this is a mistake." },
+    "error": { "title": "Something went wrong", "text": "We couldn't connect to the server. Check your connection and try again." },
+    "priceSyncing": "Syncing BTC price…"
+  },
+  "actions": {
+    "retry": "Retry", "close": "Close", "cancel": "Cancel", "confirm": "Confirm", "copy": "Copy", "copied": "Copied",
+    "save": "Save", "back": "Back", "next": "Next", "done": "Done", "share": "Share", "send": "Send", "submit": "Submit"
+  },
+  "nav": { "home": "Home", "market": "Market", "vault": "Vault", "partners": "Partners", "analytics": "Analytics", "profile": "Profile" },
+  "language": { "title": "Language" },
+  "status": { "pending": "Pending", "confirmed": "Confirmed", "processed": "Processed", "rejected": "Rejected" },
+  "cardStatus": { "Inactive": "Not started", "Active": "Mining", "Cooling": "Cooling down", "Finished": "Finished", "OnSale": "On sale" },
+  "units": { "days": "{{count}} d", "hours": "{{count}} h", "minutes": "{{count}} min" },
+  "comingSoon": "Coming soon"
+}

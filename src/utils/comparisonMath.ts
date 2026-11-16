@@ -1,8 +1,10 @@
-export const generateComparisonData = (period: 'bear' | 'bull' | 'current') => {
+import type { ComparisonPoint } from '../components/charts/StrategyComparisonChart';
+
+export const generateComparisonData = (period: 'bear' | 'bull' | 'current'): ComparisonPoint[] => {
     const points = 30; // 30 точек (например, месяцев)
     let btcPrice = 64000;
     let myQuantity = 1.0; // Стартуем с 1 BTC
-    const data = [];
+    const data: ComparisonPoint[] = [];
 
     // Настройки в зависимости от периода
     const volatility = period === 'bear' ? -0.05 : 0.03;

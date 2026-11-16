@@ -1,0 +1,7 @@
+{
+  "trial_activated": { "title": "🌟 Your luck smiled!", "message": "You got a unique Tyrex Mini coin! Your number: #{{serial}}" },
+  "deposit_confirmed": { "title": "Deposit confirmed", "message": "Your balance has been topped up by ${{amount}}." },
+  "deposit_rejected": { "title": "Deposit rejected", "message": "Your deposit of ${{amount}} was rejected. Reason: {{reason}}" },
+  "withdrawal_processed": { "title": "Withdrawal processed", "message": "Your withdrawal of ${{amount}} has been sent." },
+  "withdrawal_rejected": { "title": "Withdrawal rejected", "message": "Your withdrawal of ${{amount}} was rejected. Reason: {{reason}}. The funds are back on your balance." }
+}

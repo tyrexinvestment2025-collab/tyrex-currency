@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { Rocket, Turtle, Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { fmtUsd, fmtNum } from '../../lib/format';
 
 interface TimeSavingChartProps {
     principal: number;
@@ -19,6 +21,7 @@ const calculateYears = (p: number, g: number, annualRate: number) => {
 };
 
 const TimeSavingChart = memo(({ principal, goal, pedals }: TimeSavingChartProps) => {
+    const { t } = useTranslation('analytics');
     // Рассчитываем суммарный APY для Turbo (все педали)
     const turboAPY = Object.values(pedals).reduce((sum, v) => sum + v, 0);
     
@@ -43,11 +46,11 @@ const TimeSavingChart = memo(({ principal, goal, pedals }: TimeSavingChartProps)
         <div className="relative w-full bg-[#151517] rounded-[2.5rem] p-8 border border-white/5 overflow-hidden shadow-2xl">
             <div className="flex justify-between items-start mb-12">
                 <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-black text-white/40 tracking-[0.2em]">Економія часу</p>
-                    <h3 className="text-xl font-black italic uppercase text-white">Гонка до свободи</h3>
+                    <p className="text-[10px] uppercase font-black text-white/40 tracking-[0.2em]">{t('timeSaving.subtitle')}</p>
+                    <h3 className="text-xl font-black italic uppercase text-white">{t('timeSaving.title')}</h3>
                 </div>
                 <div className="bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
-                    <span className="text-[10px] font-black text-[#FDB931] uppercase tracking-tighter">Мета: {goal.toLocaleString()} $</span>
+                    <span className="text-[10px] font-black text-[#FDB931] uppercase tracking-tighter">{t('timeSaving.goal', { value: fmtUsd(goal, 0) })}</span>
                 </div>
             </div>
 
@@ -66,7 +69,7 @@ const TimeSavingChart = memo(({ principal, goal, pedals }: TimeSavingChartProps)
                     </svg>
                     <div className="absolute top-[-15px] left-1/2 -translate-x-1/2 bg-[#FDB931] px-4 py-2 rounded-full shadow-[0_10px_20px_rgba(253,185,49,0.4)] border border-black/10">
                         <span className="text-[11px] font-black text-black whitespace-nowrap italic uppercase">
-                            − {timeSaved} РОКІВ ЖИТТЯ
+                            {t('timeSaving.saved', { count: timeSaved })}
                         </span>
                     </div>
                 </div>
@@ -87,7 +90,7 @@ const TimeSavingChart = memo(({ principal, goal, pedals }: TimeSavingChartProps)
                             <LabelList 
                                 dataKey="years" 
                                 position="top" 
-                                formatter={(v: any) => typeof v === 'number' ? `${v.toFixed(1)} р.` : ''}
+                                formatter={(v: unknown) => typeof v === 'number' ? t('timeSaving.yearsShort', { value: fmtNum(v, 1) }) : ''}
                                 style={{ fill: '#fff', fontSize: 12, fontWeight: '900' }}
                             />
                         </Bar>

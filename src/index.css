@@ -70,3 +70,11 @@ g:focus {
     scrollbar-width: none;
   }
 } */
+/* --- Безопасные зоны Telegram (Bot API 8.0+) ---
+   В полноэкранном режиме системные кнопки Telegram (закрыть/меню) перекрывают верх экрана.
+   --tg-safe-area-* и --tg-content-safe-area-* выставляет telegram-web-app.js. */
+:root {
+  --safe-top: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
+  --safe-bottom: max(var(--tg-safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
+}
+.pt-safe { padding-top: var(--safe-top); }

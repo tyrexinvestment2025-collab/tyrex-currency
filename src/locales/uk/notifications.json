@@ -1,0 +1,7 @@
+{
+  "trial_activated": { "title": "🌟 Тобі посміхнулася удача!", "message": "Ви отримали унікальну монету Tyrex Mini! Ваш номер: #{{serial}}" },
+  "deposit_confirmed": { "title": "Поповнення підтверджено", "message": "Ваш баланс поповнено на ${{amount}}." },
+  "deposit_rejected": { "title": "Поповнення відхилено", "message": "Поповнення на ${{amount}} відхилено. Причина: {{reason}}" },
+  "withdrawal_processed": { "title": "Виведення виконано", "message": "Виведення ${{amount}} надіслано." },
+  "withdrawal_rejected": { "title": "Виведення відхилено", "message": "Виведення ${{amount}} відхилено. Причина: {{reason}}. Кошти повернуто на баланс." }
+}

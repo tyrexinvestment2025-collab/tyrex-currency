@@ -1,62 +1,49 @@
-import { 
-    Building2, Landmark, LineChart, Coins, Briefcase, 
-    PieChart, Layers, Pickaxe, MousePointer2, Zap, LayoutGrid, Signal 
+import type { LucideIcon } from 'lucide-react';
+import {
+    Building2, Landmark, LineChart, Coins, Briefcase,
+    PieChart, Layers, Pickaxe, MousePointer2, Zap, LayoutGrid, Signal
 } from 'lucide-react';
 
-export const ASSET_CONCLUSIONS: Record<string, string> = {
-    'Real Estate': 'Недвижимость имеет высокую надежность, но требует большого стартового капитала и имеет низкую ликвидность. Tyrex сохраняет надежность, обеспечивая доступный старт и мгновенный доступ к кэшу.',
-    'Bank Deposit': 'Банковские вклады безопасны, но доходность часто ниже инфляции, а доступ к средствам ограничен. Tyrex значительно доходнее и обеспечивает полную свободу распоряжения капиталом.',
-    'S&P 500': 'Акции доходны на дистанции, но сложны в управлении и требуют специфических знаний рынка. Tyrex обеспечивает стабильный профит в пассивном режиме без необходимости личного участия.',
-    'Gold': 'Золото отлично хранит ценность, но почти не генерирует пассивный доход и сложно в хранении. Tyrex сочетает защитные свойства с высокой доходностью и цифровым удобством.',
-    'Business': 'Свой бизнес дает высокий потенциал дохода (если все пойдет хорошо), но несет критические риски и требует полной вовлеченности. Tyrex автоматизирует получение прибыли, полностью освобождая ваше время.',
-    'Funds': 'Фонды просты в управлении, но берут высокие комиссии и не дают контроля над активами. Tyrex предлагает прозрачную стратегию с прямой выплатой прибыли без посредников.',
-    'Staking': 'Стейкинг безопасен, но доходность часто минимальна, а монеты заморожены на долгий срок. Tyrex обеспечивает более высокий процент при возможности забрать тело капитала в любой момент.',
-    'Mining': 'Майнинг дает стабильный поток монет, но требует покупки дорогого «железа» и постоянного апгрейда оборудования. Tyrex дает доходность уровня майнинга без затрат на оборудование и электричество.',
-    'Trading': 'Трейдинг нацелен на сверхприбыль, но несет риск полной потери депозита и требует постоянного участия. Tyrex дает сопоставимый доход в пассивном режиме с защитой от торговых сливов.',
-    'Altcoins': 'Альткоины теоретически могут дать «иксы», но имеют экстремальные риски падения в ноль. Tyrex балансирует доходность, защищая основной капитал от непредсказуемых обвалов рынка.',
-    'Bots': 'Боты автоматизируют торговлю, но часто работают в минус на нестабильном рынке. Алгоритм Tyrex адаптирован к любой фазе рынка, гарантируя исполнение стратегии без ошибок ПО.',
-    'Signals': 'Сигналы обещают быстрый рост, но зависят от чужих ошибок и ручного исполнения заявок. Tyrex заменяет интуицию и риск математическим алгоритмом с авто-исполнением.'
-};
+/**
+ * Конфигурация экрана аналитики. Все тексты — в src/locales/<lang>/analytics.json:
+ *  - assets.<id>.label / assets.<id>.conclusion
+ *  - metrics.<key>.axis / title / short / full
+ *  - tabs.<id>.label / header / description
+ *  - pedals.<id>.label / description
+ */
 
-export const LEGEND_DATA: any = {
-    'ДОХОДНОСТЬ': { short: 'Сколько актив приносит прибыли в год', full: 'Демонстрирует, насколько вырастет ваш капитал за один год использования выбранного инструмента. Измеряется в % годовых.' },
-    'ПОТЕНЦИАЛ РОСТА': { short: 'Вероятность многократного роста цены актива', full: 'Оценка «иксов». Показывает долгосрочную ценность актива и его способность дорожать независимо от выплачиваемых дивидендов.' },
-    'ПРОСТОТА': { short: 'Уровень сложности управления', full: 'Порог необходимых знаний и усилий. Высокий балл означает, что актив не требует большой компетенции или вовлеченности.' },
-    'ЛИКВИДНОСТЬ': { short: 'Насколько просто превратить актив в наличные', full: 'Возможность быстро забрать средства без потери стоимости. Высокое значение означает мгновенный доступ к кэшу в любой момент.' },
-    'ПОРОГ ВХОДА': { short: 'Сколько денег нужно для старта', full: 'Финансовая доступность инструмента. Чем выше этот показатель на графике, тем МЕНЬШАЯ сумма требуется для начала.' },
-    'БЕЗОПАСНОСТЬ': { short: 'Насколько велик риск потерять деньги', full: 'Комплексный показатель надежности. Высокое значение означает минимальную вероятность просадки.' }
-};
+/** Метрики сравнения — совпадают с полями бенчмарков на бэке */
+export const METRIC_KEYS = ['yield', 'growth', 'passive', 'liquidity', 'entry', 'safety'] as const;
+export type MetricKey = typeof METRIC_KEYS[number];
 
-export const CATEGORY_ASSETS: any = {
+export interface AssetDef {
+    /** Совпадает с полем subject в бенчмарках бэка */
+    id: string;
+    icon: LucideIcon;
+}
+
+export const CATEGORY_ASSETS: Record<'traditional' | 'crypto', AssetDef[]> = {
     traditional: [
-        { id: 'Real Estate', label: 'Недвижимость', icon: Building2 },
-        { id: 'Bank Deposit', label: 'Банк', icon: Landmark },
-        { id: 'S&P 500', label: 'Акции', icon: LineChart },
-        { id: 'Gold', label: 'Золото', icon: Coins },
-        { id: 'Business', label: 'Бизнес', icon: Briefcase },
-        { id: 'Funds', label: 'Фонды', icon: PieChart },
+        { id: 'Real Estate', icon: Building2 },
+        { id: 'Bank Deposit', icon: Landmark },
+        { id: 'S&P 500', icon: LineChart },
+        { id: 'Gold', icon: Coins },
+        { id: 'Business', icon: Briefcase },
+        { id: 'Funds', icon: PieChart },
     ],
     crypto: [
-        { id: 'Staking', label: 'Стейкинг', icon: Layers },
-        { id: 'Mining', label: 'Майнинг', icon: Pickaxe },
-        { id: 'Trading', label: 'Трейдинг', icon: MousePointer2 },
-        { id: 'Altcoins', label: 'Альткоины', icon: Zap },
-        { id: 'Bots', label: 'Боты', icon: LayoutGrid },
-        { id: 'Signals', label: 'Сигналы', icon: Signal },
+        { id: 'Staking', icon: Layers },
+        { id: 'Mining', icon: Pickaxe },
+        { id: 'Trading', icon: MousePointer2 },
+        { id: 'Altcoins', icon: Zap },
+        { id: 'Bots', icon: LayoutGrid },
+        { id: 'Signals', icon: Signal },
     ]
 };
 
-export const TABS = [
-    { id: 'radar_trad', label: 'ВЫГОДА', header: 'СРАВНЕНИЕ АКТИВОВ', sub: '' },
-    { id: 'radar_crypto', label: 'КРИПТО', header: 'КРИПТО ИНСТРУМЕНТЫ', sub: '' },
-    { id: 'forecast', label: 'ПРОГНОЗ', header: 'МАГІЯ TYREX', sub: 'Введите ваши данные, чтобы увидеть, когда ваш пассивный доход достигнет Цели.' }
-];
+export const TAB_IDS = ['radar_trad', 'radar_crypto', 'forecast'] as const;
+export type TabId = typeof TAB_IDS[number];
 
-export const PEDAL_DESCRIPTIONS: Record<string, string> = {
-    yield: 'Базова прибутковість від стейкінгу активів у системі Tyrex.',
-    boosters: 'Додаткові множники прибутку, що активуються при участі в спеціальних пулах.',
-    spec: 'Прибуток від реалізації торгових стратегій та ринкових спекуляцій.',
-    btc: 'Прогнозний показник росту ринкової вартості Біткоїна на обраній дистанції.',
-    ref: 'Винагороди за розвиток ком’юніті та активність у партнерській програмі.',
-    bonus: 'Спеціальні бонуси та додаткові нарахування від платформи за лояльність.'
-};
+export const PEDAL_IDS = ['yield', 'boosters', 'spec', 'btc', 'ref', 'bonus'] as const;
+export type PedalId = typeof PEDAL_IDS[number];
+export type Pedals = Record<PedalId, number>;

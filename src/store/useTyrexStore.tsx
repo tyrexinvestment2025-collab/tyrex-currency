@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { ApiJson } from '../api/tyrexApi';
 
 const SATS_IN_BTC = 100000000;
 
@@ -18,6 +19,7 @@ export interface TyrexCard {
     serialNumber?: number;
     imageUrl?: string;
     listingPriceUsd?: number;
+    isTrial?: boolean;
 }
 
 export interface TyrexCardType {
@@ -54,12 +56,12 @@ interface TyrexState {
     } | null;
     
     updateBtcPrice: (price: number) => void;
-    setInitialData: (userData: any, currentBtcPrice?: number) => void;
-    loadCardTypes: (typesData: any[], currentBtcPrice: number) => void;
+    setInitialData: (userData: ApiJson, currentBtcPrice?: number) => void;
+    loadCardTypes: (typesData: ApiJson[], currentBtcPrice: number) => void;
     simulateDailyInterest: () => void;
 }
 
-const parseVal = (value: any): number => {
+const parseVal = (value: ApiJson): number => {
     if (value === undefined || value === null) return 0;
     if (typeof value === 'number') return isNaN(value) ? 0 : value;
     if (typeof value === 'object') {
@@ -73,7 +75,7 @@ const parseVal = (value: any): number => {
 
 export const useTyrexStore = create<TyrexState>()(
     persist(
-        (set, _get) => ({
+        (set) => ({
             userProfile: null,
             btcPrice: 0,
             isPriceLive: false,
@@ -99,10 +101,10 @@ export const useTyrexStore = create<TyrexState>()(
                 };
             }),
 
-            loadCardTypes: (typesData: any[], currentBtcPrice: number) => set((state) => {
+            loadCardTypes: (typesData: ApiJson[], currentBtcPrice: number) => set((state) => {
                 if (!Array.isArray(typesData)) return {};
-                // Если у нас уже есть живая цена, игнорируем ту, что пришла в списке типов
-                const price = state.isPriceLive ? state.btcPrice : (currentBtcPrice || state.btcPrice);
+                // Сервер и сокет берут цену из одного источника — берём самую свежую доступную
+                const price = currentBtcPrice || state.btcPrice;
                 
                 const marketCards = typesData.map(type => {
                     const nominalSats = parseVal(type.nominalSats);
@@ -121,20 +123,19 @@ export const useTyrexStore = create<TyrexState>()(
                         isAvailable: type.isActive && type.available > 0,
                     };
                 });
-                return { marketCardTypes: marketCards, btcPrice: price };
+                return { marketCardTypes: marketCards, btcPrice: price, isPriceLive: state.isPriceLive || Boolean(currentBtcPrice) };
             }),
 
             setInitialData: (userData, currentBtcPrice) => set((state) => {
                 if (!userData) return {};
                 const balanceObj = userData.balance || {};
                 
-                // ПРОВЕРКА: Если цена в приложении уже "живая", не позволяем серверу
-                // перезаписать её старым значением из профиля
-                const price = state.isPriceLive ? state.btcPrice : (currentBtcPrice || state.btcPrice);
+                // Цена с сервера (если есть) всегда принимается; сокет обновит её дальше
+                const price = currentBtcPrice || state.btcPrice;
                 
                 const userCards = Array.isArray(userData.cards) ? userData.cards : [];
 
-                const updatedCards: TyrexCard[] = userCards.map((card: any) => {
+                const updatedCards: TyrexCard[] = userCards.map((card: ApiJson) => {
                     const rawTypeId = card.cardTypeId?._id || card.cardTypeId;
                     const cardType = (card.cardTypeId && typeof card.cardTypeId === 'object')
                         ? card.cardTypeId : { name: 'Miner', clientAPY: 0, referralAPY: 0, imageUrl: '' };
@@ -152,12 +153,14 @@ export const useTyrexStore = create<TyrexState>()(
                         currentProfitUsd: parseVal(card.currentProfitUsd),
                         unlockTimestamp: card.unlockAt ? new Date(card.unlockAt).getTime() : undefined,
                         serialNumber: card.serialNumber,
+                        isTrial: Boolean(card.isTrial),
                         imageUrl: card.imageUrl || cardType.imageUrl || ''
                     };
                 });
 
                 return {
                     btcPrice: price,
+                    isPriceLive: state.isPriceLive || Boolean(currentBtcPrice),
                     balance: {
                         walletUsd: parseVal(balanceObj.walletUsd),
                         walletSats: balanceObj.walletSats || 0,
@@ -178,11 +181,12 @@ export const useTyrexStore = create<TyrexState>()(
             simulateDailyInterest: () => set((state) => { return state; }),
         }),
         {
-            name: 'tyrex-v2-storage', // Новое имя ключа для чистого старта
+            name: 'tyrex-v3-storage',
             storage: createJSONStorage(() => localStorage),
+            // isPriceLive НЕ сохраняем: иначе после первого запуска сервер больше не мог обновить курс,
+            // а при отвалившемся сокете курс «замерзал» между сессиями
             partialize: (state) => ({ 
                 btcPrice: state.btcPrice,
-                isPriceLive: state.isPriceLive,
                 balance: state.balance
             }),
         }

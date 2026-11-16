@@ -48,8 +48,9 @@ const FloatingNav: React.FC<FloatingNavProps> = ({ tabs, activeTab, setActiveTab
                 opacity: isVisible ? 1 : 0 
             }}
             transition={{ type: "spring", stiffness: 280, damping: 28, mass: 0.8 }}
-            style={{ left: '50%' }}
-            className="fixed top-4 z-[9999] flex justify-center pointer-events-none w-full"
+            // Учитываем безопасную зону Telegram (полноэкранный режим), иначе плашку перекрывают кнопки клиента
+            style={{ left: '50%', top: 'calc(var(--safe-top, 0px) + 16px)' }}
+            className="fixed z-[9999] flex justify-center pointer-events-none w-full"
         >
             {/* The Shell: Внешний корпус плашки */}
             <motion.div 

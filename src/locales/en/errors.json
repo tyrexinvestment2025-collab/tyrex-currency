@@ -1,0 +1,23 @@
+{
+  "INSUFFICIENT_BALANCE": "Insufficient balance",
+  "SOLD_OUT": "Sold out",
+  "SERIAL_TAKEN": "This number has already been sold. Pick another one.",
+  "INVALID_SERIAL": "Invalid card number",
+  "INVALID_TYPE": "Card series not found",
+  "PRICE_UNAVAILABLE": "BTC price is syncing. Try again in a few seconds.",
+  "INVALID_STATUS": "This action isn't available for the card right now",
+  "CONFLICT": "The data has changed. Refresh and try again.",
+  "INVALID_AMOUNT": "Enter a valid amount",
+  "BELOW_MINIMUM": "Minimum amount is ${{min}}",
+  "INVALID_ADDRESS": "Enter a valid USDT TRC20 address (starts with T)",
+  "INVALID_TX_HASH": "Enter a valid transaction hash (64 characters)",
+  "DUPLICATE_TX": "This transaction has already been submitted",
+  "NOT_SUBSCRIBED": "Subscribe to the channel first",
+  "SUBSCRIPTION_CHECK_FAILED": "Couldn't verify the subscription. Try again later.",
+  "ALREADY_CLAIMED": "You've already received your gift",
+  "NOTHING_TO_CLAIM": "Nothing to claim yet",
+  "BANNED": "Your account is blocked",
+  "NETWORK_ERROR": "No connection to the server",
+  "SERVER_ERROR": "Server error. Try again later.",
+  "UNKNOWN": "Something went wrong. Try again."
+}

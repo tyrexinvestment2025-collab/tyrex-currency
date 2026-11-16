@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    MessageCircle, Users, 
-    CheckCircle2, Loader2, RefreshCw, 
+import {
+    MessageCircle, Users,
+    CheckCircle2, Loader2, RefreshCw,
     Sparkles, Trophy, ArrowRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cardsApi, userApi } from '../../api/tyrexApi';
+import type { ApiError } from '../../api/tyrexApi';
 import { useTelegram } from '../../hooks/useTelegram';
+import { useTyrexStore } from '../../store/useTyrexStore';
+import { errorText } from '../../lib/i18nHelpers';
+import { haptic, openLink } from '../../lib/telegram';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 import clsx from 'clsx';
 import NftCardVisual from '../NftCardVisual';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
-const BASE_URL = API_URL.replace('/api/v1', '');
+const BASE_URL = API_URL.replace(/\/api\/v1\/?$/, '');
+const CHANNEL_URL = (import.meta.env.VITE_CHANNEL_URL as string | undefined) || 'https://t.me/TYREXcompany';
+const DEFAULT_TRIAL_DAYS = 30;
+
+interface WonCard { imageUrl?: string; serialNumber: number; unlockAt?: string; createdAt?: string }
 
 interface TrialActivationModalProps {
     isOpen: boolean;
@@ -24,12 +33,19 @@ interface TrialActivationModalProps {
 
 const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const navigate = useNavigate();
-    const { refreshAllData, tg } = useTelegram(); 
-    
+    const { t } = useTranslation('onboarding');
+    const { refreshAllData } = useTelegram();
+    const miniApy = useTyrexStore(s => s.marketCardTypes.find(c => /^tyrex mini$/i.test(c.name))?.clientAPY);
+
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(false);
+    // Только для UX: реальную подписку проверяет сервер при выдаче подарка
     const [isSubscribed, setIsSubscribed] = useState(false);
-    const [wonCard, setWonCard] = useState<any>(null);
+    const [wonCard, setWonCard] = useState<WonCard | null>(null);
+
+    const trialDays = wonCard?.unlockAt && wonCard?.createdAt
+        ? Math.max(1, Math.round((new Date(wonCard.unlockAt).getTime() - new Date(wonCard.createdAt).getTime()) / 86_400_000))
+        : DEFAULT_TRIAL_DAYS;
 
     const formatImageUrl = (path: string) => {
         if (!path) return '';
@@ -40,7 +56,7 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
     const fireCelebration = () => {
         const count = 150;
         const defaults = { origin: { y: 0.6 }, zIndex: 1000 };
-        function fire(particleRatio: number, opts: any) {
+        function fire(particleRatio: number, opts: confetti.Options) {
             confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) });
         }
         fire(0.25, { spread: 26, startVelocity: 55 });
@@ -55,28 +71,38 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
             const res = await userApi.checkSubscription();
             if (res.success) {
                 setIsSubscribed(true);
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                toast.success("Підписку підтверджено!");
+                haptic.success();
+                toast.success(t('trial.subscribed'));
             } else {
-                toast.error("Ви ще не підписалися");
-                window.open('https://t.me/TYREXcompany', '_blank');
+                haptic.error();
+                toast.error(t('trial.notSubscribed'));
+                openLink(CHANNEL_URL);
             }
-        } catch (e) { toast.error("Помилка зв'язку"); } finally { setVerifying(false); }
+        } catch (e) {
+            toast.error(errorText(e));
+        } finally { setVerifying(false); }
     };
 
     const handleActivate = async () => {
-        if (!isSubscribed) return;
+        if (!isSubscribed || loading) return;
         setLoading(true);
         try {
-            const res = await cardsApi.activateTrialCard();
-            if (res.success) {
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            const res = await cardsApi.activateTrialCard() as { success?: boolean; serialNumber?: number; card?: WonCard };
+            if (res.success && res.card) {
+                haptic.success();
                 fireCelebration();
-                setWonCard(res.card);
+                setWonCard({ ...res.card, serialNumber: res.serialNumber ?? res.card.serialNumber });
                 if (onSuccess) onSuccess();
                 refreshAllData();
             }
-        } catch (e: any) { toast.error(e.message || "Помилка активації"); } finally { setLoading(false); }
+        } catch (e) {
+            haptic.error();
+            const code = (e as ApiError)?.code;
+            // Сервер не подтвердил подписку — снова просим подписаться
+            if (code === 'NOT_SUBSCRIBED') setIsSubscribed(false);
+            toast.error(errorText(e));
+            if (code === 'ALREADY_CLAIMED') refreshAllData();
+        } finally { setLoading(false); }
     };
 
     return (
@@ -85,7 +111,7 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
                 <>
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={!wonCard ? onClose : undefined} className="fixed inset-0 bg-black/98 backdrop-blur-2xl z-[300]" />
 
-                    <motion.div 
+                    <motion.div
                         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         className="fixed inset-x-0 bottom-0 z-[310] bg-[#080808] border-t border-white/10 rounded-t-[3rem] p-6 pb-8 shadow-2xl overflow-hidden"
@@ -96,8 +122,8 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
                             {!wonCard ? (
                                 <motion.div key="tasks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col">
                                     <div className="text-center mb-6">
-                                        <h2 className="text-3xl font-black italic tracking-tighter text-[#FFB700] uppercase mb-1">ОТРИМАЙ ПОДАРУНОК</h2>
-                                        <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest opacity-80">ВИКОНАЙ ЗАВДАННЯ ТА ВИЙМИ РАНДОМНУ МОНЕТУ</p>
+                                        <h2 className="text-3xl font-black italic tracking-tighter text-[#FFB700] uppercase mb-1">{t('trial.title')}</h2>
+                                        <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest opacity-80">{t('trial.subtitle')}</p>
                                     </div>
 
                                     <div className="space-y-3 mb-8">
@@ -106,17 +132,17 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
                                                 <div className={clsx("w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg", isSubscribed ? "bg-emerald-500 text-black" : "bg-white/5 text-slate-500")}>
                                                     <MessageCircle size={20} fill={isSubscribed ? "currentColor" : "none"} />
                                                 </div>
-                                                <span className={clsx("text-[10px] font-black uppercase tracking-tight", isSubscribed ? "text-white" : "text-slate-400")}>Підписка на канал</span>
+                                                <span className={clsx("text-[10px] font-black uppercase tracking-tight", isSubscribed ? "text-white" : "text-slate-400")}>{t('trial.taskSubscribe')}</span>
                                             </div>
                                             {isSubscribed ? <CheckCircle2 size={24} className="text-emerald-500" /> : (
-                                                <button onClick={handleCheckSubscription} disabled={verifying} className="bg-[#FFB700] text-black px-4 py-2 rounded-xl text-[9px] font-black uppercase active:scale-90">{verifying ? <RefreshCw size={12} className="animate-spin" /> : "Перевірити"}</button>
+                                                <button onClick={handleCheckSubscription} disabled={verifying} className="bg-[#FFB700] text-black px-4 py-2 rounded-xl text-[9px] font-black uppercase active:scale-90">{verifying ? <RefreshCw size={12} className="animate-spin" /> : t('trial.check')}</button>
                                             )}
                                         </div>
 
                                         <div className="bg-white/[0.01] border border-white/5 p-5 rounded-3xl flex items-center justify-between opacity-30 grayscale">
                                             <div className="flex items-center space-x-4">
                                                 <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500"><Users size={20} /></div>
-                                                <span className="text-[10px] font-black uppercase text-slate-500">Запросити партнера</span>
+                                                <span className="text-[10px] font-black uppercase text-slate-500">{t('trial.taskInvite')}</span>
                                             </div>
                                             <div className="w-5 h-5 rounded-full border-2 border-white/10" />
                                         </div>
@@ -127,12 +153,13 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
                                             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : (
                                                 <>
                                                     <Sparkles size={16} className={isSubscribed ? "animate-pulse" : "opacity-0"} />
-                                                    <span>ЗАБРАТИ МІЙ TYREX MINI</span>
+                                                    <span>{t('trial.claim')}</span>
                                                 </>
                                             )}
                                         </div>
                                         {isSubscribed && <motion.div animate={{ x: ['-150%', '150%'] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full -skew-x-12" />}
                                     </button>
+                                    <p className="text-[9px] text-slate-600 text-center mt-3">{t('trial.disclaimer', { count: DEFAULT_TRIAL_DAYS })}</p>
                                 </motion.div>
                             ) : (
                                 <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center relative">
@@ -140,30 +167,30 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
 
                                     <div className="text-center mb-4">
                                         <Trophy size={32} className="text-[#FFB700] mx-auto mb-2 drop-shadow-[0_0_10px_rgba(255,183,0,0.5)]" />
-                                        <h2 className="text-3xl font-black italic text-[#FFB700] uppercase leading-none">ВІТАЄМО!</h2>
-                                        <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">ЦЯ МОНЕТА ТЕПЕР ТВОЯ</p>
+                                        <h2 className="text-3xl font-black italic text-[#FFB700] uppercase leading-none">{t('trial.congrats')}</h2>
+                                        <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{t('trial.yours')}</p>
                                     </div>
 
                                     {/* Зменшений візуал монети (sizeClass="w-48") */}
-                                    <motion.div 
-                                        initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} 
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                                         transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.2 }}
                                         className="relative mb-4"
                                     >
-                                        <NftCardVisual 
-                                            imageUrl={formatImageUrl(wonCard.imageUrl)} 
-                                            name="Tyrex Mini" 
-                                            sizeClass="w-48" 
-                                            serialNumber={wonCard.serialNumber} 
+                                        <NftCardVisual
+                                            imageUrl={formatImageUrl(wonCard.imageUrl || '')}
+                                            name="Tyrex Mini"
+                                            sizeClass="w-48"
+                                            serialNumber={wonCard.serialNumber}
                                         />
                                         <div className="absolute inset-0 bg-[#FFB700]/15 blur-[60px] -z-10 rounded-full animate-pulse" />
                                     </motion.div>
 
                                     <div className="grid grid-cols-3 gap-2 w-full mb-6">
                                         {[
-                                            { label: 'APY', val: '6%', color: 'text-emerald-400' },
-                                            { label: 'SERIAL', val: `#${wonCard.serialNumber}`, color: 'text-white' },
-                                            { label: 'TERM', val: '30D', color: 'text-[#FFB800]' }
+                                            { label: t('trial.apy'), val: miniApy || '—', color: 'text-emerald-400' },
+                                            { label: t('trial.serial'), val: `#${wonCard.serialNumber}`, color: 'text-white' },
+                                            { label: t('trial.term'), val: t('trial.termValue', { count: trialDays }), color: 'text-[#FFB800]' }
                                         ].map((m, idx) => (
                                             <div key={idx} className="bg-[#111112] border border-white/10 rounded-2xl py-3 flex flex-col items-center shadow-inner">
                                                 <span className="text-[7px] font-black text-white/30 uppercase mb-0.5">{m.label}</span>
@@ -172,12 +199,12 @@ const TrialActivationModal: React.FC<TrialActivationModalProps> = ({ isOpen, onC
                                         ))}
                                     </div>
 
-                                    <motion.button 
+                                    <motion.button
                                         initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
                                         onClick={() => { onClose(); navigate('/collection'); }}
                                         className="w-full py-5 bg-white text-black rounded-[2rem] font-black uppercase tracking-wider text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-2"
                                     >
-                                        <span>ПЕРЕЙТИ В КОЛЕКЦІЮ</span>
+                                        <span>{t('trial.toVault')}</span>
                                         <ArrowRight size={16} />
                                     </motion.button>
                                 </motion.div>

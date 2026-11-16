@@ -1,42 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { onboardingSteps } from '../config/onboardingSteps';
-import { useTelegram } from './useTelegram'; // Импортируем, чтобы знать, кто вошел
+import { useTelegram } from './useTelegram';
+
+const keyFor = (userId: string) => `tyrex_onboarding_completed_${userId}`;
+
+const isCompleted = (userId: string): boolean => {
+  try { return localStorage.getItem(keyFor(userId)) === 'true'; } catch { return false; }
+};
 
 export const useOnboarding = () => {
-  const { userProfile } = useTelegram(); // Получаем данные текущего юзера
-  const [isActive, setIsActive] = useState(false);
+  const { userProfile } = useTelegram();
+  const userId = userProfile?._id ? String(userProfile._id) : null;
+
   const [currentStep, setCurrentStep] = useState(0);
+  // Пользователь, для которого онбординг завершён в этой сессии (localStorage может быть недоступен)
+  const [finishedFor, setFinishedFor] = useState<string | null>(null);
 
-  useEffect(() => {
-    // 1. Ждем, пока профиль загрузится с сервера
-    if (!userProfile || !userProfile._id) return;
+  // Онбординг активен, когда профиль загружен и ЭТОТ пользователь его ещё не проходил
+  const isActive = Boolean(userId) && finishedFor !== userId && !isCompleted(userId as string);
 
-    // 2. Формируем УНИКАЛЬНЫЙ ключ для этого пользователя
-    // Например: "tyrex_onboarding_completed_65d4f..."
-    const userKey = `tyrex_onboarding_completed_${userProfile._id}`;
-    
-    const hasCompleted = localStorage.getItem(userKey);
-
-    // 3. Если для ЭТОГО id записи нет — запускаем
-    if (hasCompleted !== 'true') {
-      setIsActive(true);
-    }
-  }, [userProfile]); // Эффект сработает, как только userProfile прилетит с бекенда
+  const finishOnboarding = () => {
+    if (!userId) return;
+    try { localStorage.setItem(keyFor(userId), 'true'); } catch { /* storage недоступен */ }
+    setFinishedFor(userId);
+  };
 
   const nextStep = () => {
     if (currentStep < onboardingSteps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
       finishOnboarding();
-    }
-  };
-
-  const finishOnboarding = () => {
-    setIsActive(false);
-    if (userProfile && userProfile._id) {
-        // Запоминаем, что именно ЭТОТ юзер прошел обучение
-        const userKey = `tyrex_onboarding_completed_${userProfile._id}`;
-        localStorage.setItem(userKey, 'true');
     }
   };
 

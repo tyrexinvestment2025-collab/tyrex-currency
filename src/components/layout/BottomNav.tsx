@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { Home, Store, Repeat2, Wallet, BarChart3 } from 'lucide-react'; // Импортировали BarChart3 вместо User
+import { Home, Store, Repeat2, Wallet, BarChart3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const ACTIVE_ICON_COLOR = 'text-tyrex-ultra-gold-glow'; 
 const ACTIVE_LABEL_COLOR = 'text-tyrex-ultra-gold-glow'; 
@@ -10,14 +11,15 @@ const INACTIVE_ICON_COLOR = 'text-white';
 const INACTIVE_LABEL_COLOR = 'text-white'; 
 
 const navItems = [
-    { path: '/', icon: Home, label: 'Home', id: 'nav-home' }, 
-    { path: '/marketplace', icon: Store, label: 'Market', id: 'nav-market' }, 
-    { path: '/collection', icon: Repeat2, label: 'Cards', isCenter: true, id: 'nav-collection' }, 
-    { path: '/referral', icon: Wallet, label: 'Partner', id: 'nav-partner' }, 
-    { path: '/analytics', icon: BarChart3, label: 'Analytics', id: 'nav-analytics' }, // Изменили тут
+    { path: '/', icon: Home, labelKey: 'nav.home', id: 'nav-home' }, 
+    { path: '/marketplace', icon: Store, labelKey: 'nav.market', id: 'nav-market' }, 
+    { path: '/collection', icon: Repeat2, labelKey: 'nav.vault', isCenter: true, id: 'nav-collection' }, 
+    { path: '/referral', icon: Wallet, labelKey: 'nav.partners', id: 'nav-partner' }, 
+    { path: '/analytics', icon: BarChart3, labelKey: 'nav.analytics', id: 'nav-analytics' },
 ];
 
 const BottomNav: React.FC = () => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,7 +44,7 @@ const BottomNav: React.FC = () => {
       >
         <item.icon className={`w-6 h-6 mb-0.5 ${iconColor}`} strokeWidth={isActive ? 3 : 2} />
         <span className={`text-[10px] font-medium ${labelColor}`}>
-            {item.label}
+            {t(item.labelKey)}
         </span>
       </button>
     );
@@ -54,7 +56,7 @@ const BottomNav: React.FC = () => {
     <div 
         className="fixed bottom-0 left-0 right-0 z-50 border-t border-tyrex-graphite/30" 
         style={{ 
-            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+            paddingBottom: 'calc(var(--safe-bottom) + 8px)',
             backgroundColor: '#0A0A0A', 
         }}
     >
@@ -69,6 +71,7 @@ const BottomNav: React.FC = () => {
         <div className="w-1/5 flex justify-center -mt-5 z-20">
           <button
             id={centerItem.id} 
+            aria-label={t(centerItem.labelKey)}
             onClick={() => handleNavClick(centerItem.path)} 
             className={clsx(
               "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",

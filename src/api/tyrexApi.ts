@@ -1,23 +1,73 @@
 import { io, Socket } from 'socket.io-client';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'); 
+/** JSON-ответ сервера: граница без строгой схемы, экраны сами приводят нужные поля */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ApiJson = any;
+
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
 const TOKEN_STORAGE_KEY = 'authToken';
 
-const getAuthHeader = (): Record<string, string> => {
-  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-  if (token) return { Authorization: `Bearer ${token}` };
-  return {};
+const getToken = (): string | null => { try { return localStorage.getItem(TOKEN_STORAGE_KEY); } catch { return null; } };
+const setToken = (t: string | null) => {
+    try { if (t) localStorage.setItem(TOKEN_STORAGE_KEY, t); else localStorage.removeItem(TOKEN_STORAGE_KEY); } catch { /* ignore */ }
 };
 
+/** Ошибка API: code — машинный код с бэка (переводится через namespace errors) */
+export class ApiError extends Error {
+    status: number;
+    code: string;
+    data: ApiJson;
+    constructor(status: number, code: string, message: string, data?: ApiJson) {
+        super(message);
+        this.status = status;
+        this.code = code;
+        this.data = data;
+    }
+}
+
+/** Вызывается при 401 — сессия перелогинивается (устанавливается из useSession) */
+let onUnauthorized: (() => Promise<boolean>) | null = null;
+export const setUnauthorizedHandler = (fn: () => Promise<boolean>) => { onUnauthorized = fn; };
+
+type Opts = { method?: string; body?: unknown; auth?: boolean; retry?: boolean };
+
+async function request<T = ApiJson>(path: string, { method = 'GET', body, auth = true, retry = true }: Opts = {}): Promise<T> {
+    const headers: Record<string, string> = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const token = auth ? getToken() : null;
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    let res: Response;
+    try {
+        res = await fetch(`${API_URL}${path}`, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
+    } catch {
+        throw new ApiError(0, 'NETWORK_ERROR', 'Network error');
+    }
+
+    if (res.status === 401 && auth && retry && onUnauthorized) {
+        if (await onUnauthorized()) return request<T>(path, { method, body, auth, retry: false });
+    }
+
+    let data: ApiJson = null;
+    try { data = await res.json(); } catch { /* пустое тело */ }
+
+    if (!res.ok) {
+        const code = data?.code || (res.status === 503 ? 'PRICE_UNAVAILABLE' : res.status === 403 && data?.code ? data.code : `HTTP_${res.status}`);
+        throw new ApiError(res.status, code, data?.message || `HTTP ${res.status}`, data);
+    }
+    return data as T;
+}
+
 // --- WebSocket Service ---
-const SOCKET_URL = API_URL.replace('/api/v1', '');
+// Если API_URL относительный (/api/v1) — сокет подключается к текущему origin
+const SOCKET_URL = API_URL.replace(/\/api\/v1\/?$/, '') || undefined;
 let socket: Socket | null = null;
 
 export const socketService = {
     connect: (onPriceUpdate: (price: number) => void) => {
         if (socket) return;
-        socket = io(SOCKET_URL, {
-            transports: ['websocket'],
+        socket = io(SOCKET_URL as string, {
+            transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionAttempts: Infinity,
             reconnectionDelay: 1000,
@@ -36,209 +86,60 @@ export const socketService = {
 
 export const authApi = {
     login: async (initData: string) => {
-        try {
-            const response = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ initData }),
-            });
-            if (!response.ok) throw new Error(`Login failed`);
-            const data = await response.json();
-            if (data.token) localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
-            return data;
-        } catch (e) { return { error: true, message: 'Login Error' }; }
-    }
+        const data = await request<{ token: string; user: ApiJson }>('/auth/login', { method: 'POST', body: { initData }, auth: false });
+        if (data?.token) setToken(data.token);
+        return data;
+    },
+    logout: () => setToken(null),
+    hasToken: () => Boolean(getToken()),
 };
 
 export const cardsApi = {
-    getMarketTypes: async () => {
-        const response = await fetch(`${API_URL}/cards/types`);
-        return response.ok ? await response.json() : [];
-    },
-    getCollectionItems: async (typeId: string) => {
-        const response = await fetch(`${API_URL}/cards/types/${typeId}/items`);
-        if (!response.ok) throw new Error('Failed');
-        return await response.json();
-    },
-    getMyCards: async () => {
-        const response = await fetch(`${API_URL}/cards/my`, { headers: getAuthHeader() });
-        return response.ok ? await response.json() : [];
-    },
-    buyCard: async (cardTypeId: string, serialNumber: number) => {
-        const response = await fetch(`${API_URL}/cards/buy`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify({ cardTypeId, serialNumber }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Error');
-        return data;
-    },
-    startCard: async (cardId: string) => {
-        const response = await fetch(`${API_URL}/cards/${cardId}/start`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() }
-        });
-        if (!response.ok) throw new Error('Error');
-        return await response.json();
-    },
-    stopCard: async (cardId: string) => {
-        const response = await fetch(`${API_URL}/cards/${cardId}/stop`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() }
-        });
-        if (!response.ok) throw new Error('Error');
-        return await response.json();
-    },
-    sellCardBack: async (cardId: string) => {
-        const response = await fetch(`${API_URL}/cards/${cardId}/sell-back`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() }
-        });
-        if (!response.ok) throw new Error('Error');
-        return await response.json();
-    },
-    getHistoryBySerial: async (typeId: string, serial: number) => {
-        const response = await fetch(`${API_URL}/cards/history/${typeId}/${serial}`);
-        return response.ok ? await response.json() : [];
-    },
-    activateTrialCard: async () => {
-        const response = await fetch(`${API_URL}/cards/activate-trial`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Error');
-        return data;
-    },
+    getMarketTypes: () => request<ApiJson[]>('/cards/types', { auth: false }),
+    getCollectionItems: (typeId: string) => request(`/cards/types/${typeId}/items`, { auth: false }),
+    getMyCards: () => request<ApiJson[]>('/cards/my'),
+    buyCard: (cardTypeId: string, serialNumber: number) => request('/cards/buy', { method: 'POST', body: { cardTypeId, serialNumber } }),
+    startCard: (cardId: string) => request(`/cards/${cardId}/start`, { method: 'POST' }),
+    stopCard: (cardId: string) => request(`/cards/${cardId}/stop`, { method: 'POST' }),
+    sellCardBack: (cardId: string) => request(`/cards/${cardId}/sell-back`, { method: 'POST' }),
+    getHistoryBySerial: (typeId: string, serial: number) => request<ApiJson[]>(`/cards/history/${typeId}/${serial}`, { auth: false }).catch(() => []),
+    activateTrialCard: () => request('/cards/activate-trial', { method: 'POST' }),
 };
 
 export const userApi = {
-    getProfile: async () => {
-        const response = await fetch(`${API_URL}/user/me`, { headers: getAuthHeader() });
-        if (!response.ok) throw new Error(`Profile error`);
-        return await response.json();
-    },
-    requestWithdrawal: async (amountUsd: number, walletAddress: string) => {
-        const response = await fetch(`${API_URL}/user/withdraw`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify({ amountUsd, walletAddress }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Error');
-        return data;
-    },
-    requestDeposit: async (amountUsd: number, txHash: string) => {
-        const response = await fetch(`${API_URL}/user/deposit`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify({ amountUsd, txHash }), 
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Error');
-        return data;
-    },
-    getHistory: async () => {
-        const response = await fetch(`${API_URL}/user/history`, { headers: getAuthHeader() });
-        return await response.json();
-    },
-    getNotifications: async () => {
-        const response = await fetch(`${API_URL}/user/notifications`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    markNotificationsRead: async () => {
-        await fetch(`${API_URL}/user/notifications/read`, { method: 'POST', headers: getAuthHeader() });
-    },
-    checkSubscription: async () => {
-        const response = await fetch(`${API_URL}/user/check-subscription`, {
-            method: 'POST',
-            headers: getAuthHeader(),
-        });
-        return await response.json();
-    },
+    getProfile: () => request('/user/me'),
+    requestWithdrawal: (amountUsd: number, walletAddress: string) => request('/user/withdraw', { method: 'POST', body: { amountUsd, walletAddress } }),
+    requestDeposit: (amountUsd: number, txHash: string) => request('/user/deposit', { method: 'POST', body: { amountUsd, txHash } }),
+    getHistory: () => request<ApiJson[]>('/user/history'),
+    getNotifications: () => request<ApiJson[]>('/user/notifications'),
+    markNotificationsRead: () => request('/user/notifications/read', { method: 'POST' }).catch(() => null),
+    checkSubscription: () => request<{ success: boolean; code?: string }>('/user/check-subscription', { method: 'POST' }),
 };
 
 export const referralApi = {
-    getReferralInfo: async () => {
-        const response = await fetch(`${API_URL}/referrals/info`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    getReferralList: async () => {
-        const response = await fetch(`${API_URL}/referrals/list`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    claimRewards: async () => {
-        const response = await fetch(`${API_URL}/referrals/claim`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json', ...getAuthHeader() } 
-        });
-        return response.json();
-    }
+    getReferralInfo: () => request('/referrals/info'),
+    getReferralList: () => request<ApiJson[]>('/referrals/list'),
+    claimRewards: () => request('/referrals/claim', { method: 'POST' }),
 };
 
 export const adminApi = {
-    getStats: async () => {
-        const response = await fetch(`${API_URL}/admin/stats`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    getPendingDeposits: async () => {
-        const response = await fetch(`${API_URL}/admin/deposits/pending`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    getPendingWithdrawals: async () => {
-        const response = await fetch(`${API_URL}/admin/withdrawals/pending`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    confirmDeposit: async (id: string) => {
-        const response = await fetch(`${API_URL}/admin/deposit/${id}/confirm`, { method: 'POST', headers: getAuthHeader() });
-        return response.json();
-    },
-    processWithdrawal: async (id: string) => {
-        const response = await fetch(`${API_URL}/admin/withdrawal/${id}/process`, { method: 'POST', headers: getAuthHeader() });
-        return response.json();
-    },
-    getUsers: async (page = 1, search = '') => {
+    getStats: () => request('/admin/stats'),
+    getPendingDeposits: () => request<ApiJson[]>('/admin/deposits/pending'),
+    getPendingWithdrawals: () => request<ApiJson[]>('/admin/withdrawals/pending'),
+    confirmDeposit: (id: string) => request(`/admin/deposit/${id}/confirm`, { method: 'POST' }),
+    processWithdrawal: (id: string) => request(`/admin/withdrawal/${id}/process`, { method: 'POST' }),
+    getUsers: (page = 1, search = '') => {
         const query = new URLSearchParams({ page: page.toString(), limit: '10' });
         if (search) query.append('search', search);
-        const response = await fetch(`${API_URL}/admin/users?${query.toString()}`, { headers: getAuthHeader() });
-        return response.json();
+        return request(`/admin/users?${query.toString()}`);
     },
-    getUserFullReport: async (userId: string) => {
-        const response = await fetch(`${API_URL}/admin/users/${userId}/full-report`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    banUser: async (userId: string) => {
-        const response = await fetch(`${API_URL}/admin/users/${userId}/ban`, { method: 'POST', headers: getAuthHeader() });
-        return response.json();
-    },
-    updateCardType: async (typeId: string, data: any) => {
-        const response = await fetch(`${API_URL}/admin/card-types/${typeId}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify(data)
-        });
-        return response.json();
-    },
-    rejectDeposit: async (id: string, adminComment: string) => {
-        const response = await fetch(`${API_URL}/admin/deposit/${id}/reject`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify({ adminComment })
-        });
-        return response.json();
-    },
-    rejectWithdrawal: async (id: string, adminComment: string) => {
-        const response = await fetch(`${API_URL}/admin/withdrawal/${id}/reject`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify({ adminComment })
-        });
-        return response.json();
-    },
+    getUserFullReport: (userId: string) => request(`/admin/users/${userId}/full-report`),
+    banUser: (userId: string) => request(`/admin/users/${userId}/ban`, { method: 'POST' }),
+    updateCardType: (typeId: string, data: Record<string, unknown>) => request(`/admin/card-types/${typeId}`, { method: 'PUT', body: data }),
+    rejectDeposit: (id: string, adminComment: string) => request(`/admin/deposit/${id}/reject`, { method: 'POST', body: { adminComment } }),
+    rejectWithdrawal: (id: string, adminComment: string) => request(`/admin/withdrawal/${id}/reject`, { method: 'POST', body: { adminComment } }),
 };
 
 export const analyticsApi = {
-    getDashboard: async () => {
-        const response = await fetch(`${API_URL}/analytics/dashboard`, { headers: getAuthHeader() });
-        return response.json();
-    },
-    submitQuiz: async (questionId: number, answerIndex: number) => {
-        const response = await fetch(`${API_URL}/analytics/quiz/submit`, { 
-            method: 'POST', headers: getAuthHeader(),
-            body: JSON.stringify({ questionId, answerIndex })
-        });
-        return response.json();
-    }
+    getDashboard: () => request('/analytics/dashboard'),
 };

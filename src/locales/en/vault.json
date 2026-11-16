@@ -1,0 +1,41 @@
+{
+  "title": "Vault",
+  "refresh": "Refresh",
+  "gift": "Gift",
+  "banner": {
+    "title": "How nodes work",
+    "text": "Start a purchased node to begin mining. When you stop it, the node cools down for {{days}} days, then its purchase price and the earned profit are credited to your wallet automatically. A stopped node can't be restarted. A node that has never been started can be sold back at its purchase price."
+  },
+  "list": { "currentYield": "Current yield", "coolingUntil": "Payout on" },
+  "tabs": { "CONTROL": "Control", "HISTORY": "History" },
+  "control": { "liveProfit": "Accrued profit", "purchasePrice": "Purchase price" },
+  "hint": {
+    "inactive": "The node isn't running yet. Start it to begin earning, or sell it back at the purchase price. After starting, the node can only be stopped with a {{days}}-day cool-down.",
+    "active": "The node is mining. If you stop it, it cools down for {{days}} days, after which the purchase price and the profit go to your wallet. Stopping is final — the node can't be restarted.",
+    "cooling": "Cooling down. The purchase price and the earned profit will be credited to your wallet automatically on {{date}}.",
+    "finished": "Cycle completed. The purchase price and the profit have been credited to your wallet.",
+    "trialActive": "This is a gift node. It mines until {{date}} and can't be stopped or sold.",
+    "trialFinished": "The gift period is over."
+  },
+  "actions": {
+    "start": "Start node",
+    "stop": "Stop node",
+    "sell": "Sell back for {{price}}"
+  },
+  "confirm": {
+    "stop": "Stop the node? It will cool down for {{days}} days, then {{price}} plus the earned profit will be credited to your wallet. The node can't be restarted.",
+    "sell": "Sell the node back? {{price}} (the purchase price) will be credited to your wallet."
+  },
+  "toast": {
+    "started": "Mining started",
+    "stopped": "Node stopped. Payout in {{days}} days",
+    "sold": "Node sold. {{price}} credited to your wallet"
+  },
+  "history": {
+    "MINING_SESSION": "Mining session",
+    "PURCHASE": "Purchase",
+    "SOLD_BACK": "Sold back",
+    "empty": "No history yet"
+  },
+  "empty": { "title": "You have no nodes yet", "cta": "Open market" }
+}
