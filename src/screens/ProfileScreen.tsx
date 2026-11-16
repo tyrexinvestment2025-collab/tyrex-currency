@@ -11,6 +11,7 @@ import type { ThemePreference } from '../theme/theme';
 import { useTgBackButton, nativeBackAvailable } from '../lib/tgButtons';
 import { copyText, openLink } from '../lib/telegram';
 import { InfoSheet, type InfoKind } from '../features/profile/InfoSheets';
+import NotificationSettings from '../features/profile/NotificationSettings';
 
 const SUPPORT_URL = 'https://t.me/tyrex_support';
 const APP_VERSION = '2.0.0';
@@ -115,6 +116,9 @@ const ProfileScreen: React.FC = () => {
                     <Toggle checked={prefs.hideBalance} onChange={(v) => prefs.set('hideBalance', v)} label={t('hideBalance.label')} />
                 </div>
             </Surface>
+
+            <SectionHeader title={t('sections.notifications')} />
+            <NotificationSettings />
 
             <SectionHeader title={t('sections.help')} />
             <List>

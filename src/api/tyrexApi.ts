@@ -114,6 +114,9 @@ export const userApi = {
     getNotifications: () => request<ApiJson[]>('/user/notifications'),
     markNotificationsRead: () => request('/user/notifications/read', { method: 'POST' }).catch(() => null),
     checkSubscription: () => request<{ success: boolean; code?: string }>('/user/check-subscription', { method: 'POST' }),
+    updateBotAccess: (allowed: boolean | undefined, timezone: string) => request('/user/bot-access', { method: 'POST', body: { allowed, timezone } }),
+    updatePrefs: (body: { lang?: string; notifPrefs?: Partial<Record<'cards' | 'partners' | 'news' | 'digest' | 'btc', boolean>> }) =>
+        request<{ success: boolean; lang: string; notifPrefs: Record<string, boolean> }>('/user/prefs', { method: 'PATCH', body }),
 };
 
 export const referralApi = {

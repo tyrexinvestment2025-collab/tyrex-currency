@@ -10,6 +10,7 @@ import { usePrefs } from './store/usePrefs';
 import { initTheme } from './theme/theme';
 import { tg } from './lib/telegram';
 import { useTgSettingsButton } from './lib/tgButtons';
+import { syncBotAccess, startRoute } from './lib/botLink';
 import { Button } from './ui';
 import AppHeader from './shell/AppHeader';
 import TabBar from './shell/TabBar';
@@ -38,6 +39,40 @@ const StatusScreen: React.FC<{ icon: React.ReactNode; title: string; text?: stri
   </div>
 );
 
+/**
+ * Связь с ботом при запуске (один раз):
+ *  - экран из ссылки startapp=p_<раздел> / adm_…;
+ *  - язык из профиля (его мог сменить /lang в боте);
+ *  - после онбординга — часовой пояс и разрешение боту писать (с пояснением, один раз).
+ */
+let botLinkDone = false;
+let startRouteDone = false;
+const useBotLink = () => {
+  const navigate = useNavigate();
+  const { t } = useTranslation('profile2');
+  const user = useSession(s => s.user);
+  const prefsLoaded = usePrefs(s => s.loaded);
+  const onboardingDone = usePrefs(s => s.onboardingDone);
+
+  useEffect(() => {
+    if (!user || startRouteDone) return;
+    startRouteDone = true;
+    const route = startRoute(user.role === 'ADMIN');
+    if (route) navigate(route, { replace: true });
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (!user || !prefsLoaded || botLinkDone) return;
+    const serverLang = user.lang;
+    if (serverLang && serverLang !== usePrefs.getState().language) usePrefs.getState().set('language', serverLang, { sync: false });
+    if (!onboardingDone) return;
+    botLinkDone = true;
+    syncBotAccess(t('notifications.explain')).then(allowed => {
+      if (typeof allowed === 'boolean') useSession.setState(s => (s.user ? { user: { ...s.user, canMessage: allowed || Boolean(s.user.canMessage) } } : s));
+    });
+  }, [user, prefsLoaded, onboardingDone, t]);
+};
+
 /** Вкладки показывают шапку и нижнюю навигацию; вложенные экраны (кошелёк, профиль, админка) — без вкладок */
 const TAB_PATHS = ['/', '/shop', '/cards', '/analytics', '/partners'];
 
@@ -47,6 +82,7 @@ const Shell: React.FC = () => {
   const isTab = TAB_PATHS.includes(location.pathname);
 
   useTgSettingsButton(() => navigate('/profile'));
+  useBotLink();
 
   // Наверх при смене экрана
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);

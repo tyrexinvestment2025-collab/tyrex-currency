@@ -3,6 +3,7 @@ import WebApp from '@twa-dev/sdk';
 import { applyTheme, type ThemePreference } from '../theme/theme';
 import { setLanguage, SUPPORTED_LANGUAGES, type AppLanguage } from '../i18n';
 import i18n from '../i18n';
+import { userApi } from '../api/tyrexApi';
 
 /**
  * Настройки пользователя: язык, тема, главная валюта, скрытие баланса, онбординг.
@@ -23,7 +24,8 @@ export interface Prefs {
 interface PrefsState extends Prefs {
     loaded: boolean;
     load: () => Promise<void>;
-    set: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
+    /** opts.sync=false — не отправлять язык на сервер (когда он пришёл с сервера) */
+    set: <K extends keyof Prefs>(key: K, value: Prefs[K], opts?: { sync?: boolean }) => void;
 }
 
 const KEY = 'tyrex_prefs';
@@ -83,12 +85,16 @@ export const usePrefs = create<PrefsState>()((set, get) => ({
         writeLocal(merged);
     },
 
-    set: (key, value) => {
+    set: (key, value, opts) => {
         set({ [key]: value } as Partial<PrefsState>);
         const p = pickPrefs(get());
         writeLocal(p);
         writeCloud(p);
         if (key === 'theme') applyTheme(value as ThemePreference);
-        if (key === 'language') setLanguage(value as AppLanguage);
+        if (key === 'language') {
+            setLanguage(value as AppLanguage);
+            // Язык общий для бота и приложения
+            if (opts?.sync !== false) userApi.updatePrefs({ lang: value as string }).catch(() => null);
+        }
     },
 }));

@@ -18,6 +18,9 @@ export interface SessionUser {
     trialActivatedAt?: string;
     referralCode?: string;
     accountStatus?: string;
+    lang?: 'ru' | 'uk' | 'en' | null;
+    canMessage?: boolean;
+    notifPrefs?: Partial<Record<'cards' | 'partners' | 'news' | 'digest' | 'btc', boolean>>;
     [key: string]: unknown;
 }
 
