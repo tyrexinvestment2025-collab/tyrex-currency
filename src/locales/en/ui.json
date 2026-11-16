@@ -1,0 +1,40 @@
+{
+  "close": "Close",
+  "max": "Max",
+  "paste": "Paste",
+  "scanQr": "Scan QR",
+  "scanHint": "Point the camera at the QR code",
+  "gift": "Gift",
+  "priceSyncing": "Updating the BTC rate…",
+  "perDay": "+{{amount}} per day",
+  "cardStatus": {
+    "Inactive": "Not started",
+    "Active": "Working",
+    "Cooling": "Paused",
+    "CoolingUntil": "Paused until {{date}}",
+    "Finished": "Cycle finished",
+    "OnSale": "On sale"
+  },
+  "opStatus": {
+    "pending": "Processing",
+    "credited": "Credited",
+    "paid": "Paid out",
+    "rejected": "Rejected"
+  },
+  "tabs": {
+    "home": "Home",
+    "shop": "Shop",
+    "cards": "My cards",
+    "wallet": "Wallet",
+    "partners": "Partners"
+  },
+  "header": {
+    "profile": "Profile and settings",
+    "notifications": "Notifications",
+    "unread": "{{count}} unread"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet"
+  }
+}

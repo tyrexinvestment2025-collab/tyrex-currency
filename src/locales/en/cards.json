@@ -1,0 +1,76 @@
+{
+  "title": "My cards",
+  "subtitle_one": "{{count}} card",
+  "subtitle_other": "{{count}} cards",
+  "filters": { "all": "All", "active": "Working", "waiting": "To start", "paused": "Paused" },
+  "needsStartHint_one": "{{count}} card is waiting to start — it doesn't earn until you start it.",
+  "needsStartHint_other": "{{count}} cards are waiting to start — they don't earn until you start them.",
+  "emptyFilter": {
+    "all": "No cards",
+    "active": "No working cards",
+    "waiting": "All cards are started",
+    "paused": "No cards on pause"
+  },
+  "empty": { "text": "You don't have any cards yet", "cta": "Go to the shop" },
+  "footerDaily": "Working cards bring about {{amount}} per day at the current rate.",
+  "row": { "perDay": "{{amount}} per day" },
+  "actions": {
+    "start": "Start",
+    "stop": "Stop and collect income",
+    "sell": "Sell for {{amount}}"
+  },
+  "progress": {
+    "payoutIn_one": "Payout in {{count}} day",
+    "payoutIn_other": "Payout in {{count}} days",
+    "trialLeft_one": "{{count}} day of the gift term left",
+    "trialLeft_other": "{{count}} days of the gift term left"
+  },
+  "toast": {
+    "started": "{{name}} is working",
+    "stopped": "Card paused. Payout on {{date}}",
+    "sold": "Card sold. {{amount}} returned to your wallet"
+  },
+  "confirm": {
+    "stop": "Stop the card? It will be paused for {{days}} days. On {{date}} about {{amount}} (purchase price + income) will be credited to your wallet. The card can't be restarted.",
+    "sell": "Sell {{name}} #{{serial}}? We'll return the purchase price of {{amount}} to your wallet."
+  },
+  "sheet": {
+    "tabManage": "Manage",
+    "tabHistory": "History",
+    "cycleIncome": "Income of the current cycle",
+    "perDay": "≈ {{amount}} per day at the current rate",
+    "price": "Purchase price",
+    "gift": "Gift",
+    "rate": "Rate",
+    "rateValue": "{{rate}} per year",
+    "nominal": "Card value",
+    "bought": "Received",
+    "payoutDate": "Payout date",
+    "rateNote": "The rate isn't guaranteed and may change. The dollar amount depends on the BTC price.",
+    "termsTitle": "Terms",
+    "termStart": "After starting, the card earns income every minute.",
+    "termStop_one": "You can stop it at any time: the card pauses for {{days}} day, then the purchase price and income go to your wallet.",
+    "termStop_other": "You can stop it at any time: the card pauses for {{days}} days, then the purchase price and income go to your wallet.",
+    "termSell": "Until you start it, the card can be sold: we return the purchase price of {{amount}}. After starting, selling isn't possible.",
+    "stopNote_one": "After stopping, the card pauses for {{days}} day. Then the purchase price and the income go to your wallet automatically, and the bot will message you.",
+    "stopNote_other": "After stopping, the card pauses for {{days}} days. Then the purchase price and the income go to your wallet automatically, and the bot will message you."
+  },
+  "statusHint": {
+    "Inactive": "Start the card so it begins to earn.",
+    "Active": "The card is earning income.",
+    "Cooling": "Paused. The purchase price and income will be credited on {{date}}.",
+    "Finished": "The cycle has finished, the payout has been credited to your wallet.",
+    "OnSale": "The card is on sale.",
+    "trialActive": "Gift card. Works until {{date}}.",
+    "trialFinished": "The gift term has ended.",
+    "trialInactive": "Gift card.",
+    "trialCooling": "Gift card on pause."
+  },
+  "history": {
+    "empty": "No history for this card yet",
+    "PURCHASE": "Purchase",
+    "MINING_SESSION": "Cycle stopped",
+    "SOLD_BACK": "Sold",
+    "income": "income"
+  }
+}

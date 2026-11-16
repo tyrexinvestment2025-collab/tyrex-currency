@@ -1,17 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, Inter, "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 /* Важный момент: убираем скроллбар и выделение текста для native-feel */
 body {
-  background-color: var(--tg-theme-bg-color, #ffffff);
-  color: var(--tg-theme-text-color, #000000);
+  background-color: rgb(var(--c-bg));
+  color: rgb(var(--c-text));
   overflow-x: hidden;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -78,3 +77,17 @@ g:focus {
   --safe-bottom: max(var(--tg-safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
 }
 .pt-safe { padding-top: var(--safe-top); }
+
+/* --- Дизайн-система: значения по умолчанию до применения темы (тёмная) --- */
+:root {
+  --c-bg: 16 16 18; --c-surface: 27 27 30; --c-raised: 38 38 42; --c-border: 47 47 52;
+  --c-text: 244 244 246; --c-text-secondary: 156 156 166;
+  --c-accent: 242 179 61; --c-on-accent: 30 21 0;
+  --c-positive: 52 199 123; --c-negative: 255 100 100; --c-info: 77 163 255;
+}
+.tabular-nums { font-variant-numeric: tabular-nums; }
+input, textarea { user-select: text; -webkit-user-select: text; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

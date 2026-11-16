@@ -1,0 +1,40 @@
+{
+  "close": "Закрыть",
+  "max": "Макс.",
+  "paste": "Вставить",
+  "scanQr": "Сканировать QR",
+  "scanHint": "Наведите камеру на QR-код",
+  "gift": "Подарок",
+  "priceSyncing": "Обновляем курс BTC…",
+  "perDay": "+{{amount}} за день",
+  "cardStatus": {
+    "Inactive": "Не запущена",
+    "Active": "Работает",
+    "Cooling": "Пауза",
+    "CoolingUntil": "Пауза до {{date}}",
+    "Finished": "Цикл завершён",
+    "OnSale": "На продаже"
+  },
+  "opStatus": {
+    "pending": "В обработке",
+    "credited": "Зачислено",
+    "paid": "Выплачено",
+    "rejected": "Отклонено"
+  },
+  "tabs": {
+    "home": "Главная",
+    "shop": "Магазин",
+    "cards": "Мои карты",
+    "wallet": "Кошелёк",
+    "partners": "Партнёры"
+  },
+  "header": {
+    "profile": "Профиль и настройки",
+    "notifications": "Уведомления",
+    "unread": "Непрочитанных: {{count}}"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "empty": "Уведомлений пока нет"
+  }
+}

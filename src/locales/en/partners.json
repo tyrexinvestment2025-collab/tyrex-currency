@@ -1,0 +1,83 @@
+{
+  "title": "Partners",
+  "available": "Available",
+  "sats_one": "{{count}} sat",
+  "sats_other": "{{count}} sats",
+  "error": "Couldn't load the partner program",
+  "retry": "Try again",
+  "locked": "The partner program opens after you buy your first card",
+  "toShop": "Go to the shop",
+  "claim": {
+    "button": "Claim {{amount}}",
+    "buttonEmpty": "Nothing to claim",
+    "nothing": "New rewards are credited once a day",
+    "success": "{{amount}} credited to your wallet"
+  },
+  "stats": {
+    "invited": "Invited",
+    "bought_one": "{{count}} bought a card",
+    "bought_other": "{{count}} bought a card",
+    "earned": "Earned in total"
+  },
+  "link": {
+    "title": "Your link",
+    "copy": "Copy",
+    "share": "Share",
+    "qr": "QR",
+    "copied": "Link copied",
+    "shareText": "I use Tyrex — take a look. Before buying, read the terms and risks.",
+    "qrTitle": "QR code",
+    "qrHint": "Let a friend scan this code with the phone camera — the link will open in Telegram."
+  },
+  "how": {
+    "title": "How it works",
+    "step1": { "title": "Share your link", "text": "A friend opens Tyrex via your link and becomes your partner." },
+    "step2": { "title": "The partner runs a card", "text": "Your bonus depends on the card series: {{range}} per year of the card value." },
+    "step3": { "title": "Rewards come once a day", "text": "They're credited while both you and your partner have a working card. Claim them to your wallet at any time." },
+    "note": "The bonus rate isn't guaranteed and may change. It's calculated in BTC and converted to dollars at the rate at the moment you claim."
+  },
+  "list": {
+    "title": "Your partners",
+    "empty": "No partners yet. Share your link with friends.",
+    "anonymous": "No name",
+    "yourIncome": "your income"
+  },
+  "status": {
+    "registered": "Signed up",
+    "gift": "Got a gift",
+    "bought": "Bought a card",
+    "working": "Card is working"
+  },
+  "sheet": {
+    "status": "Status",
+    "registered": "Signed up",
+    "yourIncome": "Your income from the partner",
+    "lastReward": "Last reward",
+    "sats_one": "{{count}} sat",
+    "sats_other": "{{count}} sats",
+    "messageTitle": "Message",
+    "toneFriendly": "Friendly",
+    "toneShort": "Short",
+    "write": "Copy and write",
+    "writeHint": "The text will be copied — paste it in the chat.",
+    "noUsername": "The partner has no Telegram username, so you can't write from here."
+  },
+  "scripts": {
+    "registered": {
+      "friendly": "Hi! I see you signed up in Tyrex. There's a free Mini card for subscribing to the channel — a good way to see how it works without spending anything. Ask me if anything is unclear.",
+      "short": "Hi! In Tyrex you can get a free Mini card for subscribing to the channel — try it."
+    },
+    "gift": {
+      "friendly": "Hi! How's the gift card going? If you have questions about how cards and cycles work, I'm happy to explain. Read the terms before buying.",
+      "short": "Hi! How's the gift card? Ask if you have questions."
+    },
+    "bought": {
+      "friendly": "Hi! I see you bought a card. Don't forget to start it — it only earns while it's working.",
+      "short": "Hi! Don't forget to start your card — it earns only while working."
+    },
+    "working": {
+      "friendly": "Hi! Your card is working. If anything is unclear about cycles or withdrawals — write me.",
+      "short": "Hi! Your card is working. Write if you have questions."
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "balance": { "label": "Total assets" },
+  "actions": { "deposit": "Deposit", "withdraw": "Withdraw", "history": "History" },
+  "gift": {
+    "title": "A Mini card as a gift",
+    "text": "Subscribe to our channel and get a Mini card for 30 days.",
+    "cta": "Get the gift",
+    "dismiss": "Hide"
+  },
+  "summary": {
+    "cards": "Cards",
+    "partners": "Partners",
+    "noCards": "No cards yet",
+    "working_one": "{{count}} working",
+    "working_other": "{{count}} working",
+    "needsStart_one": "{{count}} waiting to start",
+    "needsStart_other": "{{count}} waiting to start",
+    "available": "{{amount}} available",
+    "invite": "Invite friends"
+  },
+  "empty": { "text": "You don't have any cards yet", "cta": "Choose your first card" },
+  "recent": { "title": "Recent operations", "all": "All", "empty": "No operations yet" },
+  "explain": {
+    "title": "How it's calculated",
+    "wallet": "Wallet, available",
+    "pending": "Processing (withdrawals and paused cards)",
+    "cards": "Cards in work, at purchase price",
+    "accrued": "Income of the current cycle",
+    "total": "Total assets",
+    "cardsNote": "Gift cards aren't included in assets — you didn't pay for them, but their income counts.",
+    "dailyTitle": "Income per day",
+    "dailyFormula": "Card value in BTC × annual rate ÷ 365 × BTC rate, summed over working cards.",
+    "dailyNote": "An estimate at the current rate. The rate can change, and the dollar amount follows the BTC price.",
+    "btcRate": "BTC rate",
+    "updated": "Updated",
+    "rateNote": "The rate comes from Binance and updates in real time."
+  }
+}

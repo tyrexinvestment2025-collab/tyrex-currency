@@ -1,0 +1,31 @@
+{
+  "title": "Gift card",
+  "task": {
+    "intro_one": "Complete a simple task and get a Tyrex Mini card for {{count}} day.",
+    "intro_other": "Complete a simple task and get a Tyrex Mini card for {{count}} days.",
+    "step": "Step {{n}}",
+    "subscribe": "Subscribe to the Tyrex channel",
+    "openChannel": "Open channel",
+    "confirm": "Confirm the subscription",
+    "confirmHint": "We'll check the subscription and give you the card.",
+    "check": "I've subscribed",
+    "note": "One gift per account. The card number is chosen at random."
+  },
+  "done": {
+    "toast": "Card #{{serial}} is yours",
+    "title": "Mini card #{{serial}} is yours",
+    "text": "The card is already working and earning income. You don't need to start it.",
+    "rate": "Annual rate",
+    "rateValue": "{{apy}}, not guaranteed",
+    "term": "Term",
+    "termValue_one": "{{count}} day",
+    "termValue_other": "{{count}} days",
+    "until": "Works until",
+    "note": "When the term ends, the card stops. It can't be sold or stopped earlier.",
+    "cta": "Go to my cards"
+  },
+  "claimed": {
+    "title": "Gift already received",
+    "text": "You've already got your gift card. You can find it in My cards."
+  }
+}

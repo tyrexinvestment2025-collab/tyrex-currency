@@ -1,0 +1,56 @@
+{
+  "title": "Profile",
+  "back": "Back",
+  "copyId": "Copy ID",
+  "idCopied": "ID copied",
+  "selected": "Selected",
+  "sections": { "language": "Language", "appearance": "Appearance", "help": "Help and terms" },
+  "theme": { "label": "Theme", "system": "As in Telegram", "light": "Light", "dark": "Dark" },
+  "currency": { "label": "Main currency", "usd": "$ Dollar", "btc": "₿ Bitcoin" },
+  "hideBalance": { "label": "Hide balance", "hint": "Amounts are replaced with dots" },
+  "support": "Contact support",
+  "admin": "Admin panel",
+  "version": "Version {{version}}",
+  "info": {
+    "disclaimer": "This is a short summary, not legal advice or an offer. Read the full terms before buying.",
+    "how": {
+      "title": "How it works",
+      "intro": "In short: you buy a card, start it, it earns income, and after the cycle the money comes back to your wallet.",
+      "card": { "title": "What a card is", "text": "A card is tied to a fixed amount in BTC (its face value) and has an annual rate. You pay for it in dollars at the current BTC rate." },
+      "start": { "title": "Start", "text": "A purchased card earns nothing until you start it. Once started, income accrues every minute." },
+      "cycle": { "title": "Stopping", "text": "When you stop a card, its income is fixed and the card goes on a 30-day pause." },
+      "pause": { "title": "After the pause", "text": "After 30 days, the purchase price plus the fixed income is credited to your wallet automatically. A card that has finished its cycle can't be started again." },
+      "sell": { "title": "Selling a card", "text": "Only a card that hasn't been started can be sold. You get back exactly its purchase price, regardless of the current BTC rate." },
+      "wallet": { "title": "Wallet", "text": "Deposits and withdrawals go through the wallet. Each request is checked by an administrator manually." }
+    },
+    "risks": {
+      "title": "Where income comes from and risks",
+      "intro": "Please read this before buying a card.",
+      "source": { "title": "Where income comes from", "text": "Income is accrued by the service at the card's annual rate. The rate is set by the service and is not guaranteed." },
+      "rate": { "title": "The rate can change", "text": "The annual rate of a series may be changed. Past income doesn't guarantee future income." },
+      "btc": { "title": "BTC rate", "text": "Card value and income are tied to BTC, so their dollar amount goes up and down with the BTC price." },
+      "manual": { "title": "Manual processing", "text": "Deposits and withdrawals are confirmed by an administrator manually. Processing takes time and a request may be rejected." },
+      "loss": { "title": "You may lose money", "text": "As with any crypto product, there is a risk of losing part or all of the funds. Only use money you can afford to lose." }
+    },
+    "terms": {
+      "title": "Terms",
+      "intro": "Main terms of using Tyrex.",
+      "cards": { "title": "Cards", "text": "A card is a digital product with a face value in BTC and an annual rate. The price in dollars is calculated at the current BTC rate at the time of purchase." },
+      "cycle": { "title": "Cycle and pause", "text": "After you stop a card, a 30-day pause starts. When it ends, the purchase price and fixed income are credited to the wallet. The card can't be restarted." },
+      "sell": { "title": "Selling back", "text": "A card that hasn't been started can be sold back to the service for its purchase price. Started, paused and finished cards can't be sold." },
+      "rate": { "title": "Rate", "text": "The annual rate is not guaranteed and may be changed by the service." },
+      "deposits": { "title": "Deposits", "text": "You send BTC to the service address and submit the transaction hash. The administrator checks the transaction and credits the amount." },
+      "withdrawals": { "title": "Withdrawals", "text": "Withdrawals are made in USDT (TRC20) to the address you specify, after the administrator confirms the request. Check the address carefully — transfers can't be reversed." },
+      "risk": { "title": "Risks", "text": "You may lose part or all of the funds. The service doesn't promise profit." },
+      "changes": { "title": "Changes", "text": "Terms may change. We'll let you know about important changes in the app." }
+    },
+    "privacy": {
+      "title": "Privacy",
+      "intro": "What data we store and why.",
+      "data": { "title": "What we store", "text": "Your Telegram ID, username, interface language, and the history of your operations and cards in the service." },
+      "use": { "title": "Why", "text": "To sign you in, show your balance and cards, process requests and send notifications in the bot." },
+      "share": { "title": "Who we share it with", "text": "We don't sell your data. We don't share it with third parties, except where required by law." },
+      "delete": { "title": "Deleting data", "text": "To delete your data, contact support." }
+    }
+  }
+}

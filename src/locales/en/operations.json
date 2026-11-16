@@ -1,0 +1,11 @@
+{
+  "type": {
+    "deposit": "Deposit",
+    "withdrawal": "Withdrawal",
+    "referral": "Partner reward",
+    "refund": "Card sold",
+    "refundCard": "Card sold: {{card}} #{{serial}}",
+    "payout": "Cycle payout",
+    "payoutCard": "Cycle payout: {{card}} #{{serial}}"
+  }
+}

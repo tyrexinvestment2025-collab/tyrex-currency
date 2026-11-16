@@ -1,0 +1,11 @@
+{
+  "type": {
+    "deposit": "Пополнение",
+    "withdrawal": "Вывод",
+    "referral": "Награда за партнёров",
+    "refund": "Продажа карты",
+    "refundCard": "Продажа карты: {{card}} #{{serial}}",
+    "payout": "Выплата за цикл",
+    "payoutCard": "Выплата за цикл: {{card}} #{{serial}}"
+  }
+}

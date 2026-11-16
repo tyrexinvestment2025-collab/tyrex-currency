@@ -1,0 +1,40 @@
+{
+  "close": "Закрити",
+  "max": "Макс.",
+  "paste": "Вставити",
+  "scanQr": "Сканувати QR",
+  "scanHint": "Наведіть камеру на QR-код",
+  "gift": "Подарунок",
+  "priceSyncing": "Оновлюємо курс BTC…",
+  "perDay": "+{{amount}} за день",
+  "cardStatus": {
+    "Inactive": "Не запущена",
+    "Active": "Працює",
+    "Cooling": "Пауза",
+    "CoolingUntil": "Пауза до {{date}}",
+    "Finished": "Цикл завершено",
+    "OnSale": "У продажу"
+  },
+  "opStatus": {
+    "pending": "В обробці",
+    "credited": "Зараховано",
+    "paid": "Виплачено",
+    "rejected": "Відхилено"
+  },
+  "tabs": {
+    "home": "Головна",
+    "shop": "Магазин",
+    "cards": "Мої карти",
+    "wallet": "Гаманець",
+    "partners": "Партнери"
+  },
+  "header": {
+    "profile": "Профіль і налаштування",
+    "notifications": "Сповіщення",
+    "unread": "Непрочитаних: {{count}}"
+  },
+  "notifications": {
+    "title": "Сповіщення",
+    "empty": "Сповіщень поки немає"
+  }
+}

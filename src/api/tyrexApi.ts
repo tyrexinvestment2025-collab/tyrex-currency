@@ -135,6 +135,7 @@ export const adminApi = {
     },
     getUserFullReport: (userId: string) => request(`/admin/users/${userId}/full-report`),
     banUser: (userId: string) => request(`/admin/users/${userId}/ban`, { method: 'POST' }),
+    getCardTypes: () => request<ApiJson[]>('/admin/card-types'),
     updateCardType: (typeId: string, data: Record<string, unknown>) => request(`/admin/card-types/${typeId}`, { method: 'PUT', body: data }),
     rejectDeposit: (id: string, adminComment: string) => request(`/admin/deposit/${id}/reject`, { method: 'POST', body: { adminComment } }),
     rejectWithdrawal: (id: string, adminComment: string) => request(`/admin/withdrawal/${id}/reject`, { method: 'POST', body: { adminComment } }),

@@ -1,7 +1,30 @@
 {
-  "trial_activated": { "title": "🌟 Тебе улыбнулась удача!", "message": "Вы получили уникальную монету Tyrex Mini! Ваш номер: #{{serial}}" },
-  "deposit_confirmed": { "title": "Пополнение подтверждено", "message": "Ваш баланс пополнен на ${{amount}}." },
-  "deposit_rejected": { "title": "Пополнение отклонено", "message": "Пополнение на ${{amount}} отклонено. Причина: {{reason}}" },
-  "withdrawal_processed": { "title": "Вывод выполнен", "message": "Вывод ${{amount}} отправлен." },
-  "withdrawal_rejected": { "title": "Вывод отклонён", "message": "Вывод ${{amount}} отклонён. Причина: {{reason}}. Средства возвращены на баланс." }
+  "trial_activated": {
+    "title": "🌟 Тебе улыбнулась удача!",
+    "message": "Вы получили карту Tyrex Mini! Ваш номер: #{{serial}}"
+  },
+  "deposit_confirmed": {
+    "title": "Пополнение подтверждено",
+    "message": "Ваш баланс пополнен на ${{amount}}."
+  },
+  "deposit_rejected": {
+    "title": "Пополнение отклонено",
+    "message": "Пополнение на ${{amount}} отклонено. Причина: {{reason}}"
+  },
+  "withdrawal_processed": {
+    "title": "Вывод выполнен",
+    "message": "Вывод ${{amount}} отправлен."
+  },
+  "withdrawal_rejected": {
+    "title": "Вывод отклонён",
+    "message": "Вывод ${{amount}} отклонён. Причина: {{reason}}. Средства возвращены на баланс."
+  },
+  "card_payout": {
+    "title": "Цикл завершён",
+    "message": "{{cardName}} #{{serial}}: на кошелёк зачислено ${{amount}} (тело ${{principal}} + доход ${{profit}})."
+  },
+  "trial_finished": {
+    "title": "Подарочная карта завершилась",
+    "message": "Срок {{cardName}} #{{serial}} закончился. Выберите первую карту в магазине, чтобы продолжить."
+  }
 }

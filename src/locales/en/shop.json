@@ -1,0 +1,48 @@
+{
+  "title": "Shop",
+  "subtitle": "Mining cards. The price follows the BTC rate.",
+  "priceSyncing": "Updating the BTC rate…",
+  "empty": "There are no cards for sale right now",
+  "disclaimer": "The rate isn't guaranteed and may change. The dollar value of a card depends on the BTC price.",
+  "list": {
+    "rate": "{{apy}}% per year, the rate may change",
+    "price": "Price",
+    "left": "Left",
+    "leftValue": "{{available}} of {{total}}",
+    "soldOut": "Sold out"
+  },
+  "pick": {
+    "title": "{{name}}: choose a number",
+    "loading": "Loading numbers…",
+    "free_one": "{{count}} number available",
+    "free_other": "{{count}} numbers available",
+    "search": "Search by number",
+    "notFound": "No such number",
+    "error": "Couldn't load the numbers",
+    "retry": "Try again",
+    "taken": "taken",
+    "choose": "Choose a number",
+    "continue": "Continue with #{{serial}}"
+  },
+  "buy": {
+    "cta": "Buy for {{price}}",
+    "topUp": "Top up by {{amount}}",
+    "notEnough": "Your wallet is {{amount}} short. Top it up and come back to the purchase.",
+    "priceSyncing": "Updating the rate…",
+    "changeNumber": "Change number",
+    "rate": "Rate",
+    "rateValue": "{{apy}}% per year",
+    "inviterBonus": "Bonus to the person who invited you",
+    "income30": "Over 30 days at the current rate",
+    "wallet": "In your wallet",
+    "calcNote": "An estimate at today's BTC rate, without any forecast of its growth. The rate isn't guaranteed.",
+    "success": "{{name}} #{{serial}} is yours. Start it in My cards."
+  },
+  "terms": {
+    "title": "Terms",
+    "cycle": "After you start it, the card works until you stop it.",
+    "stop": "After you stop it, there is a {{days}}-day pause. Then the purchase price and the income go to your wallet automatically.",
+    "sell": "A card that hasn't been started can be sold back at the purchase price. A started card can't be sold.",
+    "rate": "The rate isn't guaranteed and may change."
+  }
+}

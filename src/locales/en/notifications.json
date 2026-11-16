@@ -1,7 +1,30 @@
 {
-  "trial_activated": { "title": "🌟 Your luck smiled!", "message": "You got a unique Tyrex Mini coin! Your number: #{{serial}}" },
-  "deposit_confirmed": { "title": "Deposit confirmed", "message": "Your balance has been topped up by ${{amount}}." },
-  "deposit_rejected": { "title": "Deposit rejected", "message": "Your deposit of ${{amount}} was rejected. Reason: {{reason}}" },
-  "withdrawal_processed": { "title": "Withdrawal processed", "message": "Your withdrawal of ${{amount}} has been sent." },
-  "withdrawal_rejected": { "title": "Withdrawal rejected", "message": "Your withdrawal of ${{amount}} was rejected. Reason: {{reason}}. The funds are back on your balance." }
+  "trial_activated": {
+    "title": "🌟 Your luck smiled!",
+    "message": "You got a Tyrex Mini card! Your number: #{{serial}}"
+  },
+  "deposit_confirmed": {
+    "title": "Deposit confirmed",
+    "message": "Your balance has been topped up by ${{amount}}."
+  },
+  "deposit_rejected": {
+    "title": "Deposit rejected",
+    "message": "Your deposit of ${{amount}} was rejected. Reason: {{reason}}"
+  },
+  "withdrawal_processed": {
+    "title": "Withdrawal processed",
+    "message": "Your withdrawal of ${{amount}} has been sent."
+  },
+  "withdrawal_rejected": {
+    "title": "Withdrawal rejected",
+    "message": "Your withdrawal of ${{amount}} was rejected. Reason: {{reason}}. The funds are back on your balance."
+  },
+  "card_payout": {
+    "title": "Cycle finished",
+    "message": "{{cardName}} #{{serial}}: ${{amount}} credited to your wallet (principal ${{principal}} + income ${{profit}})."
+  },
+  "trial_finished": {
+    "title": "Gift card finished",
+    "message": "The term of {{cardName}} #{{serial}} has ended. Choose your first card in the shop to keep earning."
+  }
 }
