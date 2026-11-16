@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownToLine, ArrowUpFromLine, History, Gift, X, Layers, Users, Receipt } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, History, Gift, X, Layers, Users, Receipt, Wallet, ChevronRight } from 'lucide-react';
 import { Page, ActionButton, BalanceBlock, SectionHeader, List, SkeletonRows, EmptyState, Surface, Button, useMoney, cn } from '../ui';
 import { usePortfolio } from '../features/portfolio/usePortfolio';
 import ExplainSheet from '../features/portfolio/ExplainSheet';
@@ -59,7 +59,7 @@ const HomeScreen: React.FC = () => {
             {/* Подарок новичку: спокойный баннер, который можно закрыть */}
             {showGift && (
                 <Surface className="mt-5 p-4 flex items-start gap-3">
-                    <span className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center shrink-0"><Gift className="w-5 h-5" aria-hidden /></span>
+                    <span className="w-10 h-10 rounded-full bg-link/15 text-link flex items-center justify-center shrink-0"><Gift className="w-5 h-5" aria-hidden /></span>
                     <div className="flex-1 min-w-0">
                         <p className="text-headline text-fg">{t('gift.title')}</p>
                         <p className="text-callout text-muted mt-0.5">{t('gift.text')}</p>
@@ -71,15 +71,25 @@ const HomeScreen: React.FC = () => {
                 </Surface>
             )}
 
+            {/* Кошелёк — отдельный экран, открывается отсюда */}
+            <button onClick={() => navigate('/wallet')} className="mt-5 w-full bg-surface rounded-card p-4 flex items-center gap-3 text-left active:opacity-80">
+                <span className="w-10 h-10 rounded-full bg-link/15 text-link flex items-center justify-center shrink-0"><Wallet className="w-5 h-5" strokeWidth={1.75} aria-hidden /></span>
+                <span className="flex-1 min-w-0">
+                    <span className="block text-headline text-fg">{t('summary.wallet')}</span>
+                    <span className="block text-callout text-muted mt-0.5">{t('summary.walletAvailable', { amount: primary(p.walletUsd) })}</span>
+                </span>
+                <ChevronRight className="w-5 h-5 text-muted shrink-0" aria-hidden />
+            </button>
+
             {/* Сводка: карты и партнёры ведут в свои вкладки */}
-            <div className="grid grid-cols-2 gap-3 mt-5">
+            <div className="grid grid-cols-2 gap-3 mt-3">
                 <button onClick={() => navigate('/cards')} className="bg-surface rounded-card p-4 text-left active:opacity-80">
                     <span className="flex items-center gap-2 text-headline text-fg"><Layers className="w-5 h-5" strokeWidth={1.75} aria-hidden />{t('summary.cards')}</span>
                     <span className="block text-callout text-muted mt-1">
                         {p.counts.total === 0 ? t('summary.noCards') : t('summary.working', { count: p.counts.active })}
                     </span>
                     {p.counts.needsStart > 0 && (
-                        <span className="block text-callout text-accent mt-0.5">{t('summary.needsStart', { count: p.counts.needsStart })}</span>
+                        <span className="block text-callout text-link mt-0.5">{t('summary.needsStart', { count: p.counts.needsStart })}</span>
                     )}
                 </button>
                 <button onClick={() => navigate('/partners')} className="bg-surface rounded-card p-4 text-left active:opacity-80">

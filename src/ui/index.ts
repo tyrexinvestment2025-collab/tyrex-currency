@@ -1,6 +1,6 @@
 /**
- * Дизайн-система «Спокойный сейф» — все экраны собираются из этих компонентов.
- * Цвета: классы bg-bg / bg-surface / bg-raised / text-fg / text-muted / text-accent /
+ * Дизайн-система (палитра «Ночное золото») — все экраны собираются из этих компонентов.
+ * Цвета: классы bg-bg / bg-surface / bg-raised / text-fg / text-muted / text-link /
  * text-positive / text-negative / text-info / border-line (токены из src/theme/theme.ts).
  * Типографика: text-display / text-title / text-headline / text-body / text-callout / text-caption.
  * Радиусы: rounded-card (16) / rounded-control (12) / rounded-sheet (20).
@@ -14,4 +14,5 @@ export { SignedAmount, BalanceBlock } from './Amounts';
 export { useMoney, fmtBtcAmount } from './money';
 export { MainAction } from './feedback';
 export { notify } from './notify';
+export { BackLink } from './BackLink';
 export { cn } from './cn';

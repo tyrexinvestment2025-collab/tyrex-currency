@@ -104,18 +104,30 @@ export function useTgMainButton(opts: MainButtonOpts): boolean {
     return available;
 }
 
-/** Нативная кнопка «Назад» Telegram */
+/**
+ * Нативная кнопка «Назад» Telegram — тоже стек: экран (кошелёк, профиль) и открытый поверх лист.
+ * Нажатие получает верхний владелец; когда лист закрывается, кнопка остаётся у экрана.
+ */
+const backStack: Array<{ current: (() => void) | null }> = [];
+let backBound = false;
+const backDispatch = () => backStack[backStack.length - 1]?.current?.();
+const syncBack = () => {
+    if (!backBound) { tg.BackButton.onClick(backDispatch); backBound = true; }
+    if (backStack.length) tg.BackButton.show(); else tg.BackButton.hide();
+};
+
 export function useTgBackButton(onBack: (() => void) | null) {
     const ref = useRef(onBack);
     useEffect(() => { ref.current = onBack; });
     useEffect(() => {
         if (!atLeast('6.1') || !onBack) return;
-        const handler = () => ref.current?.();
-        tg.BackButton.onClick(handler);
-        tg.BackButton.show();
+        const entry = ref;
+        backStack.push(entry);
+        syncBack();
         return () => {
-            tg.BackButton.offClick(handler);
-            tg.BackButton.hide();
+            const i = backStack.lastIndexOf(entry);
+            if (i >= 0) backStack.splice(i, 1);
+            syncBack();
         };
     }, [Boolean(onBack)]); // eslint-disable-line react-hooks/exhaustive-deps
 }

@@ -18,6 +18,7 @@ import HomeScreen from './screens/HomeScreen';
 import ShopScreen from './screens/ShopScreen';
 import CardsScreen from './screens/CardsScreen';
 import WalletScreen from './screens/WalletScreen';
+import AnalyticsScreen from './pages/AnalyticsScreen';
 import PartnersScreen from './screens/PartnersScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import AdminScreen from './screens/AdminScreen';
@@ -37,8 +38,8 @@ const StatusScreen: React.FC<{ icon: React.ReactNode; title: string; text?: stri
   </div>
 );
 
-/** Вкладки показывают шапку и нижнюю навигацию; вложенные экраны (профиль, админка) — без вкладок */
-const TAB_PATHS = ['/', '/shop', '/cards', '/wallet', '/partners'];
+/** Вкладки показывают шапку и нижнюю навигацию; вложенные экраны (кошелёк, профиль, админка) — без вкладок */
+const TAB_PATHS = ['/', '/shop', '/cards', '/analytics', '/partners'];
 
 const Shell: React.FC = () => {
   const location = useLocation();
@@ -52,13 +53,15 @@ const Shell: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg text-fg pt-safe" style={{ ['--tabbar-h' as string]: isTab ? 'calc(57px + var(--safe-bottom))' : '0px' }}>
-      {isTab && <AppHeader />}
+      {/* У старой аналитики своё верхнее меню (FloatingNav) — шапку там не показываем */}
+      {isTab && location.pathname !== '/analytics' && <AppHeader />}
       <main className={isTab ? 'pb-[calc(72px+var(--safe-bottom))]' : 'pb-[calc(16px+var(--safe-bottom))]'}>
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/shop" element={<ShopScreen />} />
           <Route path="/cards" element={<CardsScreen />} />
           <Route path="/wallet" element={<WalletScreen />} />
+          <Route path="/analytics" element={<AnalyticsScreen />} />
           <Route path="/partners" element={<PartnersScreen />} />
           <Route path="/profile" element={<ProfileScreen />} />
           <Route path="/admin" element={<AdminRoute />} />
@@ -66,7 +69,6 @@ const Shell: React.FC = () => {
           <Route path="/marketplace" element={<Navigate to="/shop" replace />} />
           <Route path="/collection" element={<Navigate to="/cards" replace />} />
           <Route path="/referral" element={<Navigate to="/partners" replace />} />
-          <Route path="/analytics" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -97,10 +99,10 @@ const AppContent: React.FC = () => {
   }, [updateBtcPrice]);
 
   if (status === 'idle' || status === 'loading') {
-    return <StatusScreen icon={<Loader2 className="w-8 h-8 animate-spin text-accent" aria-hidden />} title={t('app.loading')} />;
+    return <StatusScreen icon={<Loader2 className="w-8 h-8 animate-spin text-link" aria-hidden />} title={t('app.loading')} />;
   }
   if (status === 'no-telegram') {
-    return <StatusScreen icon={<Send className="w-8 h-8 text-accent" aria-hidden />} title={t('app.openInTelegram.title')} text={t('app.openInTelegram.text')} />;
+    return <StatusScreen icon={<Send className="w-8 h-8 text-link" aria-hidden />} title={t('app.openInTelegram.title')} text={t('app.openInTelegram.text')} />;
   }
   if (status === 'banned') {
     return <StatusScreen icon={<ShieldAlert className="w-8 h-8 text-negative" aria-hidden />} title={t('app.banned.title')} text={t('app.banned.text')} />;

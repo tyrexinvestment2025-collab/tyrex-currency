@@ -31,6 +31,7 @@ export const haptic = {
     success: () => { try { if (supports('6.1')) tg.HapticFeedback.notificationOccurred('success'); } catch { /* ignore */ } },
     error: () => { try { if (supports('6.1')) tg.HapticFeedback.notificationOccurred('error'); } catch { /* ignore */ } },
     tap: () => { try { if (supports('6.1')) tg.HapticFeedback.impactOccurred('light'); } catch { /* ignore */ } },
+    select: () => { try { if (supports('6.1')) tg.HapticFeedback.selectionChanged(); } catch { /* ignore */ } },
 };
 
 /** Копирование с фолбэком для WebView, где clipboard API недоступен */

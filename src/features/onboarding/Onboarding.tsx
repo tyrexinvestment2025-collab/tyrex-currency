@@ -67,7 +67,7 @@ const OnboardingFlow: React.FC = () => {
                             transition={{ duration: reduce ? 0 : 0.2, ease: 'easeOut' }}
                             className="flex flex-col items-center text-center"
                         >
-                            <span className="w-20 h-20 rounded-full bg-accent/15 text-accent flex items-center justify-center">
+                            <span className="w-20 h-20 rounded-full bg-link/15 text-link flex items-center justify-center">
                                 <Icon className="w-9 h-9" strokeWidth={1.75} aria-hidden />
                             </span>
                             <h1 className="text-title mt-6">{t(`steps.${key}.title`)}</h1>
@@ -75,7 +75,7 @@ const OnboardingFlow: React.FC = () => {
                             <ul className="mt-5 space-y-2 text-left w-full max-w-[340px]">
                                 {(t(`steps.${key}.points`, { returnObjects: true }) as string[]).map((p, i) => (
                                     <li key={i} className="flex gap-2 text-callout text-fg">
-                                        <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" aria-hidden />
+                                        <Check className="w-4 h-4 text-link mt-0.5 shrink-0" aria-hidden />
                                         <span>{p}</span>
                                     </li>
                                 ))}
@@ -94,7 +94,7 @@ const OnboardingFlow: React.FC = () => {
                         />
                         <span className="text-callout text-fg">
                             {t('consent.prefix')}{' '}
-                            <button type="button" onClick={(e) => { e.preventDefault(); setTermsOpen(true); }} className="text-accent underline underline-offset-2">
+                            <button type="button" onClick={(e) => { e.preventDefault(); setTermsOpen(true); }} className="text-link underline underline-offset-2">
                                 {t('consent.link')}
                             </button>
                             {t('consent.suffix')}

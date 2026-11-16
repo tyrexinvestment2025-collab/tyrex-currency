@@ -146,7 +146,7 @@ const CardsScreen: React.FC = () => {
                     />
 
                     {p.counts.needsStart > 0 && filter !== 'waiting' && (
-                        <p className="text-callout text-accent mt-3">{t('needsStartHint', { count: p.counts.needsStart })}</p>
+                        <p className="text-callout text-link mt-3">{t('needsStartHint', { count: p.counts.needsStart })}</p>
                     )}
 
                     {visible.length === 0 ? (

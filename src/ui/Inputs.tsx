@@ -29,7 +29,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({ value, onChange, label
     return (
         <div>
             <label htmlFor={id} className="text-callout text-muted">{label}</label>
-            <div className={cn('mt-1.5 flex items-center gap-2 bg-surface rounded-control px-4 h-16 border', error ? 'border-negative' : 'border-transparent focus-within:border-accent')}>
+            <div className={cn('mt-1.5 flex items-center gap-2 bg-surface rounded-control px-4 h-16 border', error ? 'border-negative' : 'border-transparent focus-within:border-link')}>
                 <input
                     id={id}
                     inputMode="decimal"
@@ -47,7 +47,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({ value, onChange, label
                     <button
                         type="button"
                         onClick={() => { haptic.tap(); onChange((Math.floor(max * 100) / 100).toFixed(2)); }}
-                        className="text-callout font-semibold text-accent min-h-[44px] px-2 active:opacity-60"
+                        className="text-callout font-semibold text-link min-h-[44px] px-2 active:opacity-60"
                     >
                         {t('max')}
                     </button>
@@ -87,7 +87,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({ value, onChange, lab
     return (
         <div>
             <label htmlFor={id} className="text-callout text-muted">{label}</label>
-            <div className={cn('mt-1.5 bg-surface rounded-control border', error ? 'border-negative' : 'border-transparent focus-within:border-accent')}>
+            <div className={cn('mt-1.5 bg-surface rounded-control border', error ? 'border-negative' : 'border-transparent focus-within:border-link')}>
                 <textarea
                     id={id}
                     rows={2}
@@ -101,11 +101,11 @@ export const AddressInput: React.FC<AddressInputProps> = ({ value, onChange, lab
                     aria-invalid={Boolean(error)}
                 />
                 <div className="flex gap-1 px-2 pb-1">
-                    <button type="button" onClick={paste} className="flex items-center gap-1.5 text-callout text-accent min-h-[44px] px-2 active:opacity-60">
+                    <button type="button" onClick={paste} className="flex items-center gap-1.5 text-callout text-link min-h-[44px] px-2 active:opacity-60">
                         <ClipboardPaste className="w-4 h-4" aria-hidden /> {t('paste')}
                     </button>
                     {qrScanAvailable() && (
-                        <button type="button" onClick={scan} className="flex items-center gap-1.5 text-callout text-accent min-h-[44px] px-2 active:opacity-60">
+                        <button type="button" onClick={scan} className="flex items-center gap-1.5 text-callout text-link min-h-[44px] px-2 active:opacity-60">
                             <ScanLine className="w-4 h-4" aria-hidden /> {t('scanQr')}
                         </button>
                     )}

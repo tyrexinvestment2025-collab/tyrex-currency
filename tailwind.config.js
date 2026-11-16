@@ -10,8 +10,8 @@ export default {
   ],
   theme: {
     extend: {
-      // Дизайн-система «Спокойный сейф»: значения задаются в src/theme/theme.ts
-      // из темы Telegram (themeParams) с запасными цветами для светлой/тёмной темы.
+      // Палитра «Ночное золото»: значения задаются в src/theme/theme.ts
+      // для светлой и тёмной темы. Золото (accent) — только заливкой; текстовый акцент — link.
       colors: {
         bg: token('bg'),
         surface: token('surface'),
@@ -21,6 +21,9 @@ export default {
         muted: token('text-secondary'),
         accent: token('accent'),
         'on-accent': token('on-accent'),
+        link: token('link'),
+        violet: token('violet'),
+        chart: token('chart'),
         positive: token('positive'),
         negative: token('negative'),
         info: token('info'),

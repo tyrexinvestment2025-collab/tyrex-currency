@@ -25,7 +25,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
 const Field: React.FC<{ id: string; label: string; value: string; onChange: (v: string) => void; suffix?: string; error?: string | null; hint?: string }> = ({ id, label, value, onChange, suffix, error, hint }) => (
     <div className="mt-4">
         <label htmlFor={id} className="text-callout text-muted">{label}</label>
-        <div className={cn('mt-1.5 flex items-center gap-2 bg-surface rounded-control px-4 h-12 border', error ? 'border-negative' : 'border-transparent focus-within:border-accent')}>
+        <div className={cn('mt-1.5 flex items-center gap-2 bg-surface rounded-control px-4 h-12 border', error ? 'border-negative' : 'border-transparent focus-within:border-link')}>
             <input
                 id={id}
                 inputMode="decimal"

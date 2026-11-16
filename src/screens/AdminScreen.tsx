@@ -25,7 +25,7 @@ const AdminScreen: React.FC = () => {
     return (
         <Page>
             {!nativeBackAvailable() && (
-                <button onClick={back} className="flex items-center gap-1 text-callout text-accent min-h-[44px] -ml-1 mt-1 active:opacity-60">
+                <button onClick={back} className="flex items-center gap-1 text-callout text-link min-h-[44px] -ml-1 mt-1 active:opacity-60">
                     <ChevronLeft className="w-5 h-5" aria-hidden /> {t('back')}
                 </button>
             )}

@@ -25,8 +25,9 @@
     "home": "Home",
     "shop": "Shop",
     "cards": "My cards",
-    "wallet": "Wallet",
-    "partners": "Partners"
+    "analytics": "Analytics",
+    "partners": "Partners",
+    "wallet": "Wallet"
   },
   "header": {
     "profile": "Profile and settings",
@@ -36,5 +37,6 @@
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet"
-  }
+  },
+  "back": "Back"
 }

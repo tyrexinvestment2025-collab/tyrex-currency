@@ -46,7 +46,7 @@ const ProfileScreen: React.FC = () => {
     return (
         <Page>
             {!nativeBack && (
-                <button onClick={goBack} className="flex items-center gap-1 text-body text-accent min-h-[44px] -ml-1 mt-1 active:opacity-60">
+                <button onClick={goBack} className="flex items-center gap-1 text-body text-link min-h-[44px] -ml-1 mt-1 active:opacity-60">
                     <ChevronLeft className="w-5 h-5" aria-hidden /> {t('back')}
                 </button>
             )}
@@ -77,7 +77,7 @@ const ProfileScreen: React.FC = () => {
                         key={lang}
                         title={LANGUAGE_LABELS[lang as AppLanguage]}
                         onClick={() => prefs.set('language', lang)}
-                        value={prefs.language === lang ? <Check className="w-5 h-5 text-accent" aria-label={t('selected')} /> : undefined}
+                        value={prefs.language === lang ? <Check className="w-5 h-5 text-link" aria-label={t('selected')} /> : undefined}
                     />
                 ))}
             </List>
@@ -127,7 +127,7 @@ const ProfileScreen: React.FC = () => {
 
             {sessionUser?.role === 'ADMIN' && (
                 <List className="mt-6">
-                    <ListRow icon={<ShieldCheck className="w-5 h-5 text-accent" aria-hidden />} title={t('admin')} onClick={() => navigate('/admin')} chevron />
+                    <ListRow icon={<ShieldCheck className="w-5 h-5 text-link" aria-hidden />} title={t('admin')} onClick={() => navigate('/admin')} chevron />
                 </List>
             )}
 

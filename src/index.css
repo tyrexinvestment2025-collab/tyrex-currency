@@ -59,7 +59,6 @@ g:focus {
 *:focus {
     outline: none !important;
 }
-/* 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -68,7 +67,7 @@ g:focus {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-} */
+}
 /* --- Безопасные зоны Telegram (Bot API 8.0+) ---
    В полноэкранном режиме системные кнопки Telegram (закрыть/меню) перекрывают верх экрана.
    --tg-safe-area-* и --tg-content-safe-area-* выставляет telegram-web-app.js. */
@@ -80,10 +79,10 @@ g:focus {
 
 /* --- Дизайн-система: значения по умолчанию до применения темы (тёмная) --- */
 :root {
-  --c-bg: 16 16 18; --c-surface: 27 27 30; --c-raised: 38 38 42; --c-border: 47 47 52;
-  --c-text: 244 244 246; --c-text-secondary: 156 156 166;
-  --c-accent: 242 179 61; --c-on-accent: 30 21 0;
-  --c-positive: 52 199 123; --c-negative: 255 100 100; --c-info: 77 163 255;
+  --c-bg: 11 16 38; --c-surface: 21 27 58; --c-raised: 30 38 73; --c-border: 42 51 94;
+  --c-text: 238 240 250; --c-text-secondary: 160 167 204;
+  --c-accent: 245 185 74; --c-on-accent: 26 18 3; --c-link: 245 196 99; --c-violet: 157 140 255; --c-chart: 245 185 74;
+  --c-positive: 61 214 140; --c-negative: 255 122 122; --c-info: 108 178 255;
 }
 .tabular-nums { font-variant-numeric: tabular-nums; }
 input, textarea { user-select: text; -webkit-user-select: text; }

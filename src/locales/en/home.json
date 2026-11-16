@@ -1,6 +1,12 @@
 {
-  "balance": { "label": "Total assets" },
-  "actions": { "deposit": "Deposit", "withdraw": "Withdraw", "history": "History" },
+  "balance": {
+    "label": "Total assets"
+  },
+  "actions": {
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "history": "History"
+  },
   "gift": {
     "title": "A Mini card as a gift",
     "text": "Subscribe to our channel and get a Mini card for 30 days.",
@@ -16,10 +22,19 @@
     "needsStart_one": "{{count}} waiting to start",
     "needsStart_other": "{{count}} waiting to start",
     "available": "{{amount}} available",
-    "invite": "Invite friends"
+    "invite": "Invite friends",
+    "wallet": "Wallet",
+    "walletAvailable": "Available {{amount}} · deposit, withdraw, history"
   },
-  "empty": { "text": "You don't have any cards yet", "cta": "Choose your first card" },
-  "recent": { "title": "Recent operations", "all": "All", "empty": "No operations yet" },
+  "empty": {
+    "text": "You don't have any cards yet",
+    "cta": "Choose your first card"
+  },
+  "recent": {
+    "title": "Recent operations",
+    "all": "All",
+    "empty": "No operations yet"
+  },
   "explain": {
     "title": "How it's calculated",
     "wallet": "Wallet, available",

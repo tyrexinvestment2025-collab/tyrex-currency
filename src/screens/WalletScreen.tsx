@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowDownToLine, ArrowUpFromLine, Receipt } from 'lucide-react';
-import { Page, ScreenTitle, Surface, Button, Segmented, List, SkeletonRows, EmptyState, useMoney } from '../ui';
+import { Page, ScreenTitle, Surface, Button, Segmented, List, SkeletonRows, EmptyState, BackLink, useMoney } from '../ui';
 import { OperationRow, type Operation } from '../features/operations/OperationRow';
 import { usePortfolio } from '../features/portfolio/usePortfolio';
 import DepositSheet from '../features/wallet/DepositSheet';
@@ -25,6 +25,7 @@ const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 /** Кошелёк: где мои деньги и как их двигать */
 const WalletScreen: React.FC = () => {
     const { t } = useTranslation('wallet');
+    const navigate = useNavigate();
     const [params, setParams] = useSearchParams();
     const { primary } = useMoney();
     const { walletUsd, pendingUsd } = usePortfolio();
@@ -94,6 +95,7 @@ const WalletScreen: React.FC = () => {
 
     return (
         <Page>
+            <BackLink onBack={() => navigate('/')} />
             <ScreenTitle>{t('title')}</ScreenTitle>
 
             <Surface className="p-4">

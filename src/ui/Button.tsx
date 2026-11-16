@@ -16,7 +16,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANTS: Record<Variant, string> = {
     primary: 'bg-accent text-on-accent',
     secondary: 'bg-surface text-fg',
-    text: 'bg-transparent text-accent',
+    text: 'bg-transparent text-link',
     danger: 'bg-transparent text-negative',
 };
 

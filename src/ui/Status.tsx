@@ -15,7 +15,7 @@ const TONE: Record<Tone, string> = {
     negative: 'bg-negative/15 text-negative',
     info: 'bg-info/15 text-info',
     neutral: 'bg-muted/15 text-muted',
-    accent: 'bg-accent/15 text-accent',
+    accent: 'bg-link/15 text-link',
 };
 
 export const Badge: React.FC<{ tone: Tone; icon?: React.ReactNode; children: React.ReactNode; className?: string }> = ({ tone, icon, children, className }) => (

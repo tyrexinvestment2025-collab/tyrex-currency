@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, ShoppingBag, Layers, Wallet, Users } from 'lucide-react';
+import { Home, ShoppingBag, Layers, BarChart3, Users } from 'lucide-react';
 import { haptic } from '../lib/telegram';
 import { cn } from '../ui';
 
@@ -9,11 +9,11 @@ const TABS = [
     { to: '/', key: 'home', Icon: Home, end: true },
     { to: '/shop', key: 'shop', Icon: ShoppingBag },
     { to: '/cards', key: 'cards', Icon: Layers },
-    { to: '/wallet', key: 'wallet', Icon: Wallet },
+    { to: '/analytics', key: 'analytics', Icon: BarChart3 },
     { to: '/partners', key: 'partners', Icon: Users },
 ] as const;
 
-/** Пять вкладок по задачам пользователя. Активная — акцентом, центральной кнопки нет. */
+/** Пять вкладок: Главная, Магазин, Мои карты, Аналитика, Партнёры. Кошелёк открывается с Главной. */
 const TabBar: React.FC = () => {
     const { t } = useTranslation('ui');
     return (
@@ -31,7 +31,7 @@ const TabBar: React.FC = () => {
                         onClick={() => haptic.tap()}
                         className={({ isActive }) => cn(
                             'flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 min-h-[56px] transition-colors duration-150',
-                            isActive ? 'text-accent' : 'text-muted',
+                            isActive ? 'text-link' : 'text-muted',
                         )}
                     >
                         <Icon className="w-6 h-6" strokeWidth={1.75} aria-hidden />

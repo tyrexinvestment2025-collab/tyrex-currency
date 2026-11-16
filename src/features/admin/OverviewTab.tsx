@@ -16,7 +16,7 @@ const Tile: React.FC<{ label: string; value: string; onClick?: () => void; accen
     return (
         <Tag onClick={onClick} className="bg-surface rounded-card p-3 text-left min-h-[72px] active:opacity-80">
             <span className="block text-caption text-muted">{label}</span>
-            <span className={`block text-headline tabular-nums mt-1 ${accent ? 'text-accent' : 'text-fg'}`}>{value}</span>
+            <span className={`block text-headline tabular-nums mt-1 ${accent ? 'text-link' : 'text-fg'}`}>{value}</span>
         </Tag>
     );
 };

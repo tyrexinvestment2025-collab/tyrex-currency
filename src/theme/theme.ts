@@ -1,9 +1,15 @@
 import WebApp from '@twa-dev/sdk';
 
 /**
- * Токены дизайн-системы.
- * Базовые цвета берём из темы Telegram (themeParams), остальное — фирменные значения
- * для светлой/тёмной схемы. Всё пишется в CSS-переменные --c-<token> в формате "R G B",
+ * Палитра «Ночное золото».
+ * Золото и фиолетовый на глубоком синем (тёмная тема) / на светлом сине-сером (светлая).
+ * Правило: золото — только заливкой с тёмным текстом (кнопки, активные элементы, графики Tyrex).
+ * Текстовый акцент (ссылки, иконки, активная вкладка) — токен link: золото в тёмной теме,
+ * фиолетовый в светлой, чтобы золото на белом не превращалось в коричневый.
+ * Графики: chart — золото, в светлой теме чуть темнее (контраст ≥ 3:1 к белому).
+ *
+ * Из Telegram берём только схему (светлая/тёмная), цвета — фирменные.
+ * Всё пишется в CSS-переменные --c-<token> в формате "R G B",
  * Tailwind читает их через rgb(var(--c-x) / alpha).
  */
 export type ColorScheme = 'light' | 'dark';
@@ -11,22 +17,24 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 
 type Tokens = Record<
     'bg' | 'surface' | 'raised' | 'border' | 'text' | 'text-secondary' |
-    'accent' | 'on-accent' | 'positive' | 'negative' | 'info',
+    'accent' | 'on-accent' | 'link' | 'violet' | 'chart' | 'positive' | 'negative' | 'info',
     string
 >;
 
-const FALLBACK: Record<ColorScheme, Tokens> = {
+export const PALETTE: Record<ColorScheme, Tokens> = {
     dark: {
-        bg: '#101012', surface: '#1B1B1E', raised: '#26262A', border: '#2F2F34',
-        text: '#F4F4F6', 'text-secondary': '#9C9CA6',
-        accent: '#F2B33D', 'on-accent': '#1E1500',
-        positive: '#34C77B', negative: '#FF6464', info: '#4DA3FF',
+        bg: '#0B1026', surface: '#151B3A', raised: '#1E2649', border: '#2A335E',
+        text: '#EEF0FA', 'text-secondary': '#A0A7CC',
+        accent: '#F5B94A', 'on-accent': '#1A1203',
+        link: '#F5C463', violet: '#9D8CFF', chart: '#F5B94A',
+        positive: '#3DD68C', negative: '#FF7A7A', info: '#6CB2FF',
     },
     light: {
-        bg: '#FFFFFF', surface: '#F2F2F5', raised: '#FFFFFF', border: '#E2E2E8',
-        text: '#111114', 'text-secondary': '#6B6B76',
-        accent: '#9A6200', 'on-accent': '#FFFFFF',
-        positive: '#13804A', negative: '#C62828', info: '#1565C0',
+        bg: '#F3F4FA', surface: '#FFFFFF', raised: '#E9ECF7', border: '#DDE0EE',
+        text: '#121636', 'text-secondary': '#585E86',
+        accent: '#F2B33D', 'on-accent': '#1A1203',
+        link: '#5A43D1', violet: '#6E58E8', chart: '#C98A12',
+        positive: '#0F7A46', negative: '#C42B2B', info: '#1D5FC4',
     },
 };
 
@@ -41,17 +49,14 @@ const hexToRgb = (hex: string): string | null => {
     return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
 };
 
-/** Яркость цвета 0..1 — чтобы понять, светлая ли тема Telegram на самом деле */
-const luminance = (hex: string): number => {
-    const rgb = hexToRgb(hex);
-    if (!rgb) return 0;
-    const [r, g, b] = rgb.split(' ').map(Number);
-    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-};
-
+/**
+ * Схема Telegram. telegram-web-app.js отдаёт colorScheme = 'light' по умолчанию,
+ * даже если клиент не передал тему (так бывает в Telegram Web) — тогда верим системе.
+ */
 const tgScheme = (): ColorScheme => {
     try {
-        if (WebApp?.colorScheme) return WebApp.colorScheme;
+        const passed = Boolean(WebApp?.themeParams?.bg_color);
+        if (passed && (WebApp.colorScheme === 'light' || WebApp.colorScheme === 'dark')) return WebApp.colorScheme;
     } catch { /* вне Telegram */ }
     return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 };
@@ -65,18 +70,7 @@ export const resolveScheme = (pref: ThemePreference = preference): ColorScheme =
 export const applyTheme = (pref: ThemePreference = preference) => {
     preference = pref;
     const scheme = resolveScheme(pref);
-    const tokens: Tokens = { ...FALLBACK[scheme] };
-
-    // Цвета Telegram используем, только если пользователь не форсировал другую схему
-    const tp = (() => { try { return WebApp?.themeParams || {}; } catch { return {}; } })() as Record<string, string | undefined>;
-    const useTg = pref === 'system' && tp.bg_color && (luminance(tp.bg_color) > 0.5) === (scheme === 'light');
-    if (useTg) {
-        if (tp.bg_color) tokens.bg = tp.bg_color;
-        const surface = scheme === 'dark' ? tp.section_bg_color : tp.secondary_bg_color;
-        if (surface) tokens.surface = surface;
-        if (tp.text_color) tokens.text = tp.text_color;
-        if (tp.hint_color) tokens['text-secondary'] = tp.hint_color;
-    }
+    const tokens = PALETTE[scheme];
 
     const root = document.documentElement;
     for (const [k, v] of Object.entries(tokens)) {
@@ -97,6 +91,7 @@ export const applyTheme = (pref: ThemePreference = preference) => {
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', tokens.bg);
+    window.dispatchEvent(new Event('tyrex:theme'));
 };
 
 let listening = false;

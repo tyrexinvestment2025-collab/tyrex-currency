@@ -19,7 +19,7 @@ export const SectionHeader: React.FC<{ title: string; action?: { label: string; 
     <div className="flex items-center justify-between mt-6 mb-2 min-h-[44px]">
         <h2 className="text-headline text-fg">{title}</h2>
         {action && (
-            <button onClick={action.onClick} className="text-callout text-accent min-h-[44px] px-1 active:opacity-60">{action.label}</button>
+            <button onClick={action.onClick} className="text-callout text-link min-h-[44px] px-1 active:opacity-60">{action.label}</button>
         )}
     </div>
 );

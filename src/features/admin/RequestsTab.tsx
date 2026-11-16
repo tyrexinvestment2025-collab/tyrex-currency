@@ -165,7 +165,7 @@ const RequestsTab: React.FC<{ initialFilter?: Filter; onChanged?: () => void }> 
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             placeholder={t('requests.reasonPlaceholder')}
-                            className="mt-1.5 w-full bg-surface rounded-control px-4 py-3 text-body text-fg outline-none border border-transparent focus:border-accent resize-none placeholder:text-muted/60"
+                            className="mt-1.5 w-full bg-surface rounded-control px-4 py-3 text-body text-fg outline-none border border-transparent focus:border-link resize-none placeholder:text-muted/60"
                         />
                         <p className="text-caption text-muted mt-1">{t('requests.reasonHint')}</p>
                     </>

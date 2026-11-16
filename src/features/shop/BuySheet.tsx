@@ -111,7 +111,7 @@ const BuySheetContent: React.FC<{ type: TyrexCardType; onClose: () => void }> = 
                     <p className="text-callout text-muted">
                         {items ? t('pick.free', { count: freeCount }) : t('pick.loading')}
                     </p>
-                    <label className="mt-3 flex items-center gap-2 bg-surface rounded-control px-3 h-12 border border-transparent focus-within:border-accent">
+                    <label className="mt-3 flex items-center gap-2 bg-surface rounded-control px-3 h-12 border border-transparent focus-within:border-link">
                         <Search className="w-5 h-5 text-muted" strokeWidth={1.75} aria-hidden />
                         <input
                             inputMode="numeric"
@@ -166,7 +166,7 @@ const BuySheetContent: React.FC<{ type: TyrexCardType; onClose: () => void }> = 
                             <p className="text-headline text-fg">{type.name} <span className="text-muted tabular-nums">#{selected}</span></p>
                             <p className="text-title text-fg tabular-nums mt-1">{priceReady ? usd(price) : '…'}</p>
                             <p className="text-callout text-muted">{type.nominalBtcDisplay}</p>
-                            <button onClick={() => setStep('pick')} className="text-callout text-accent min-h-[44px] active:opacity-60">{t('buy.changeNumber')}</button>
+                            <button onClick={() => setStep('pick')} className="text-callout text-link min-h-[44px] active:opacity-60">{t('buy.changeNumber')}</button>
                         </div>
                     </div>
 
