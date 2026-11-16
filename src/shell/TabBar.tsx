@@ -30,12 +30,19 @@ const TabBar: React.FC = () => {
                         end={'end' in rest ? rest.end : false}
                         onClick={() => haptic.tap()}
                         className={({ isActive }) => cn(
-                            'flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 min-h-[56px] transition-colors duration-150',
-                            isActive ? 'text-link' : 'text-muted',
+                            'flex flex-col items-center justify-center gap-1 pt-1.5 pb-1.5 min-h-[56px] transition-colors duration-150',
+                            isActive ? 'text-fg font-semibold' : 'text-muted',
                         )}
                     >
-                        <Icon className="w-6 h-6" strokeWidth={1.75} aria-hidden />
-                        <span className="text-caption leading-none text-center px-0.5">{t(`tabs.${key}`)}</span>
+                        {({ isActive }) => (
+                            <>
+                                {/* Активная вкладка — золотая заливка с тёмной иконкой (золото не используем как цвет текста) */}
+                                <span className={cn('flex items-center justify-center w-14 h-7 rounded-full transition-colors duration-150', isActive && 'bg-accent text-on-accent')}>
+                                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.75} aria-hidden />
+                                </span>
+                                <span className="text-caption leading-none text-center px-0.5">{t(`tabs.${key}`)}</span>
+                            </>
+                        )}
                     </NavLink>
                 ))}
             </div>

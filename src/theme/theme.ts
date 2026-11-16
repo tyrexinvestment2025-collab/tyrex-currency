@@ -1,12 +1,14 @@
 import WebApp from '@twa-dev/sdk';
 
 /**
- * Палитра «Ночное золото».
- * Золото и фиолетовый на глубоком синем (тёмная тема) / на светлом сине-сером (светлая).
- * Правило: золото — только заливкой с тёмным текстом (кнопки, активные элементы, графики Tyrex).
- * Текстовый акцент (ссылки, иконки, активная вкладка) — токен link: золото в тёмной теме,
- * фиолетовый в светлой, чтобы золото на белом не превращалось в коричневый.
- * Графики: chart — золото, в светлой теме чуть темнее (контраст ≥ 3:1 к белому).
+ * Палитра «Ночное золото» — токены из документа «Tyrex — концепция редизайна» (палитра A, уточнённая).
+ * Золото и фиолетовый на глубоком синем (тёмная) / на тёплом светлом (светлая).
+ * Правила:
+ *  - золото (accent → accent-2) — только заливкой с тёмным текстом: главная кнопка, активная вкладка, Tyrex на графиках;
+ *  - фиолетовый (violet, он же link) — второй акцент: ссылки, партнёры, сравниваемый актив;
+ *  - бирюзовый (third) — рынок и курс BTC;
+ *  - зелёный/красный — только знак изменения и статусы, не серии графиков;
+ *  - градиент и свечение — только у карточки баланса (hero-*) и главной кнопки.
  *
  * Из Telegram берём только схему (светлая/тёмная), цвета — фирменные.
  * Всё пишется в CSS-переменные --c-<token> в формате "R G B",
@@ -17,24 +19,27 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 
 type Tokens = Record<
     'bg' | 'surface' | 'raised' | 'border' | 'text' | 'text-secondary' |
-    'accent' | 'on-accent' | 'link' | 'violet' | 'chart' | 'positive' | 'negative' | 'info',
+    'accent' | 'accent-2' | 'on-accent' | 'link' | 'violet' | 'third' | 'chart' |
+    'positive' | 'negative' | 'info' | 'hero-from' | 'hero-to' | 'hero-glow',
     string
 >;
 
 export const PALETTE: Record<ColorScheme, Tokens> = {
     dark: {
-        bg: '#0B1026', surface: '#151B3A', raised: '#1E2649', border: '#2A335E',
-        text: '#EEF0FA', 'text-secondary': '#A0A7CC',
-        accent: '#F5B94A', 'on-accent': '#1A1203',
-        link: '#F5C463', violet: '#9D8CFF', chart: '#F5B94A',
-        positive: '#3DD68C', negative: '#FF7A7A', info: '#6CB2FF',
+        bg: '#0B0E17', surface: '#141A29', raised: '#1C2336', border: '#262E44',
+        text: '#F3F5FA', 'text-secondary': '#A3ACC2',
+        accent: '#F5B83D', 'accent-2': '#FFD978', 'on-accent': '#1A1200',
+        link: '#9686FF', violet: '#9686FF', third: '#3DD6F5', chart: '#F5B83D',
+        positive: '#3DDC97', negative: '#FF5D73', info: '#6CB2FF',
+        'hero-from': '#1F2740', 'hero-to': '#141A29', 'hero-glow': '#F5B83D',
     },
     light: {
-        bg: '#F3F4FA', surface: '#FFFFFF', raised: '#E9ECF7', border: '#DDE0EE',
-        text: '#121636', 'text-secondary': '#585E86',
-        accent: '#F2B33D', 'on-accent': '#1A1203',
-        link: '#5A43D1', violet: '#6E58E8', chart: '#C98A12',
-        positive: '#0F7A46', negative: '#C42B2B', info: '#1D5FC4',
+        bg: '#F6F4EF', surface: '#FFFFFF', raised: '#F1EEE6', border: '#E7E2D6',
+        text: '#14161F', 'text-secondary': '#5F6475',
+        accent: '#F5B83D', 'accent-2': '#FFD978', 'on-accent': '#1A1200',
+        link: '#5B4BD6', violet: '#5B4BD6', third: '#087E9C', chart: '#F5B83D',
+        positive: '#0B7A53', negative: '#D6334A', info: '#1D5FC4',
+        'hero-from': '#FFF8E6', 'hero-to': '#FFFFFF', 'hero-glow': '#F5B83D',
     },
 };
 

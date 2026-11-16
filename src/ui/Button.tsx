@@ -14,7 +14,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANTS: Record<Variant, string> = {
-    primary: 'bg-accent text-on-accent',
+    primary: 'bg-accent bg-gold text-on-accent',
     secondary: 'bg-surface text-fg',
     text: 'bg-transparent text-link',
     danger: 'bg-transparent text-negative',
@@ -49,7 +49,7 @@ export const ActionButton: React.FC<{ icon: React.ReactNode; label: string; onCl
         onClick={() => { haptic.tap(); onClick(); }}
         className="flex flex-col items-center gap-2 min-w-[72px] active:opacity-70 transition-opacity"
     >
-        <span className={cn('w-14 h-14 rounded-full flex items-center justify-center', accent ? 'bg-accent text-on-accent' : 'bg-surface text-fg')}>
+        <span className={cn('w-14 h-14 rounded-full flex items-center justify-center', accent ? 'bg-accent bg-gold text-on-accent' : 'bg-surface text-fg')}>
             {icon}
         </span>
         <span className="text-callout text-fg text-center leading-tight">{label}</span>

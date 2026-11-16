@@ -24,6 +24,8 @@ export default {
         link: token('link'),
         violet: token('violet'),
         chart: token('chart'),
+        third: token('third'),
+        'accent-2': token('accent-2'),
         positive: token('positive'),
         negative: token('negative'),
         info: token('info'),

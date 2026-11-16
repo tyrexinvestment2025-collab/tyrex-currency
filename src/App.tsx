@@ -18,7 +18,7 @@ import HomeScreen from './screens/HomeScreen';
 import ShopScreen from './screens/ShopScreen';
 import CardsScreen from './screens/CardsScreen';
 import WalletScreen from './screens/WalletScreen';
-import AnalyticsScreen from './pages/AnalyticsScreen';
+import AnalyticsScreen from './screens/AnalyticsScreen';
 import PartnersScreen from './screens/PartnersScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import AdminScreen from './screens/AdminScreen';
@@ -53,8 +53,7 @@ const Shell: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg text-fg pt-safe" style={{ ['--tabbar-h' as string]: isTab ? 'calc(57px + var(--safe-bottom))' : '0px' }}>
-      {/* У старой аналитики своё верхнее меню (FloatingNav) — шапку там не показываем */}
-      {isTab && location.pathname !== '/analytics' && <AppHeader />}
+      {isTab && <AppHeader />}
       <main className={isTab ? 'pb-[calc(72px+var(--safe-bottom))]' : 'pb-[calc(16px+var(--safe-bottom))]'}>
         <Routes>
           <Route path="/" element={<HomeScreen />} />

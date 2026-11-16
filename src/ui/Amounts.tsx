@@ -25,7 +25,7 @@ export const BalanceBlock: React.FC<{
     const { primary, secondary, priceReady, hideBalance } = useMoney();
     const Tag = onExplain ? 'button' : 'div';
     return (
-        <Tag onClick={onExplain} className="w-full text-center py-6 px-4 bg-surface rounded-card active:opacity-80 transition-opacity">
+        <Tag onClick={onExplain} className="w-full text-center py-6 px-4 hero-card border border-line/60 rounded-card active:opacity-80 transition-opacity">
             <p className="text-callout text-muted">{label}</p>
             {loading ? (
                 <div className="h-10 w-40 mx-auto my-1 bg-fg/10 rounded-control motion-safe:animate-pulse" />

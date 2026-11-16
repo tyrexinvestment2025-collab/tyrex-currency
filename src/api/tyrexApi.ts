@@ -143,4 +143,10 @@ export const adminApi = {
 
 export const analyticsApi = {
     getDashboard: () => request('/analytics/dashboard'),
+    getMarket: (range: string) => request(`/analytics/market?range=${encodeURIComponent(range)}`),
+    getQuiz: (lang: string) => request(`/analytics/quiz?lang=${encodeURIComponent(lang)}`),
+    submitQuiz: (questionId: string, answer: number, lang: string) =>
+        request('/analytics/quiz/submit', { method: 'POST', body: { questionId, answer, lang } }),
+    setReminder: (cardId: string, on: boolean) =>
+        request('/analytics/remind', { method: 'POST', body: { cardId, on } }),
 };

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ShoppingBag, ChevronRight } from 'lucide-react';
 import { Page, ScreenTitle, Surface, Badge, EmptyState, Skeleton, useMoney } from '../ui';
@@ -52,7 +53,12 @@ const ShopScreen: React.FC = () => {
     const types = useTyrexStore(s => s.marketCardTypes);
     const btcPrice = useTyrexStore(s => s.btcPrice);
     const status = useSession(s => s.status);
-    const [selected, setSelected] = useState<TyrexCardType | null>(null);
+    const [picked, setSelected] = useState<TyrexCardType | null>(null);
+    // ?series=<id> — открыть лист покупки сразу (например, из прогноза в аналитике)
+    const [params, setParams] = useSearchParams();
+    const fromUrl = params.get('series');
+    const selected = picked ?? (fromUrl ? types.find(x => String(x.id) === fromUrl) ?? null : null);
+    const closeSheet = () => { setSelected(null); if (fromUrl) setParams({}, { replace: true }); };
 
     // Сортировка по цене (номинал в BTC пропорционален цене при любом курсе)
     const sorted = useMemo(() => [...types].sort((a, b) => a.nominalSats - b.nominalSats), [types]);
@@ -81,7 +87,7 @@ const ShopScreen: React.FC = () => {
 
             <p className="text-callout text-muted mt-4">{t('disclaimer')}</p>
 
-            <BuySheet type={selected} onClose={() => setSelected(null)} />
+            <BuySheet type={selected} onClose={closeSheet} />
         </Page>
     );
 };
