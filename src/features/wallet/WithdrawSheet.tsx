@@ -7,7 +7,8 @@ import { fmtUsd } from '../../lib/format';
 import { userApi } from '../../api/tyrexApi';
 import { useSession } from '../../store/useSession';
 import { usePortfolio } from '../portfolio/usePortfolio';
-import { TRC20_RE, parseAmount, shorten } from './validation';
+import { parseAmount, shorten } from './validation';
+import { isValidTronAddress } from '../../lib/tron';
 
 /** Вывод USDT TRC20: сумма с «Макс.», адрес со сканером QR, комиссия и сумма к получению, подтверждение */
 const WithdrawSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted: () => void }> = ({ open, onClose, onSubmitted }) => {
@@ -27,8 +28,8 @@ const WithdrawSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted:
         : amountNum < minWithdrawal ? t('errors:BELOW_MINIMUM', { min: minWithdrawal })
         : amountNum > walletUsd ? t('errors:INSUFFICIENT_BALANCE')
         : null;
-    const addressError = addr !== '' && !TRC20_RE.test(addr) ? t('errors:INVALID_ADDRESS') : null;
-    const valid = amount !== '' && !amountError && TRC20_RE.test(addr);
+    const addressError = addr !== '' && !isValidTronAddress(addr) ? t('errors:INVALID_ADDRESS') : null;
+    const valid = amount !== '' && !amountError && isValidTronAddress(addr);
 
     useClosingConfirmation(open && (amount !== '' || address !== ''));
 

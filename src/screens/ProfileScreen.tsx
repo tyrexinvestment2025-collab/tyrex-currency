@@ -9,6 +9,7 @@ import { usePrefs, type MainCurrency } from '../store/usePrefs';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type AppLanguage } from '../i18n';
 import type { ThemePreference } from '../theme/theme';
 import { useTgBackButton, nativeBackAvailable } from '../lib/tgButtons';
+import { goBackOr } from '../lib/nav';
 import { copyText, openLink } from '../lib/telegram';
 import { InfoSheet, type InfoKind } from '../features/profile/InfoSheets';
 import NotificationSettings from '../features/profile/NotificationSettings';
@@ -26,7 +27,7 @@ const ProfileScreen: React.FC = () => {
     const [info, setInfo] = useState<InfoKind | null>(null);
     const [copied, setCopied] = useState(false);
 
-    const goBack = () => navigate(-1);
+    const goBack = () => goBackOr(navigate, '/');
     useTgBackButton(goBack);
     const nativeBack = nativeBackAvailable();
 

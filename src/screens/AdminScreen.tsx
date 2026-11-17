@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft } from 'lucide-react';
 import { Page, ScreenTitle, Segmented } from '../ui';
 import { useTgBackButton, nativeBackAvailable } from '../lib/tgButtons';
+import { goBackOr } from '../lib/nav';
 import OverviewTab from '../features/admin/OverviewTab';
 import RequestsTab from '../features/admin/RequestsTab';
 import UsersTab from '../features/admin/UsersTab';
@@ -19,7 +20,7 @@ const AdminScreen: React.FC = () => {
     const [section, setSection] = useState<Section>('overview');
     const [reqFilter, setReqFilter] = useState<ReqFilter>('ALL');
 
-    const back = () => navigate('/profile');
+    const back = () => goBackOr(navigate, '/profile');
     useTgBackButton(back);
 
     return (

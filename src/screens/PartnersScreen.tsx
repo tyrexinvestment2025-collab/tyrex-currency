@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Copy, Send, QrCode, Users, Lock, UserPlus, ShoppingBag, Coins, RefreshCw } from 'lucide-react';
+import { Copy, Check, Send, QrCode, Users, Lock, UserPlus, ShoppingBag, Coins, RefreshCw } from 'lucide-react';
 import {
     Page, ScreenTitle, Surface, SectionHeader, List, ListRow, EmptyState, Skeleton, SkeletonRows,
     Button, Badge, MainAction, notify, useMoney,
@@ -31,6 +31,7 @@ const PartnersScreen: React.FC = () => {
     const refreshAllData = useSession(s => s.refreshAllData);
 
     const [info, setInfo] = useState<ReferralInfo | null>(null);
+    const [copied, setCopied] = useState(false);
     const [partners, setPartners] = useState<PartnerItem[] | null>(null);
     const [failed, setFailed] = useState(false);
     const [reload, setReload] = useState(0);
@@ -70,7 +71,11 @@ const PartnersScreen: React.FC = () => {
     };
 
     const copy = async () => {
-        if (await copyText(link)) notify.success(t('link.copied'));
+        if (await copyText(link)) {
+            notify.success(t('link.copied'));
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
     const share = () => {
         openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(t('link.shareText'))}`);
@@ -155,7 +160,7 @@ const PartnersScreen: React.FC = () => {
             <Surface className="p-4">
                 <p className="font-mono text-callout text-fg break-all">{link}</p>
                 <div className="grid grid-cols-3 gap-2 mt-3">
-                    <Button variant="secondary" size="sm" icon={<Copy className="w-4 h-4" aria-hidden />} onClick={copy}>{t('link.copy')}</Button>
+                    <Button variant="secondary" size="sm" icon={copied ? <Check className="w-4 h-4" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />} onClick={copy}>{copied ? t('link.copied') : t('link.copy')}</Button>
                     <Button variant="secondary" size="sm" icon={<Send className="w-4 h-4" aria-hidden />} onClick={share}>{t('link.share')}</Button>
                     <Button variant="secondary" size="sm" icon={<QrCode className="w-4 h-4" aria-hidden />} onClick={() => setQrOpen(true)}>{t('link.qr')}</Button>
                 </div>

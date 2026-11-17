@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
-import { Copy, CheckCircle2, Clock } from 'lucide-react';
+import { Copy, Check, CheckCircle2, Clock } from 'lucide-react';
 import { Sheet, AmountInput, AddressInput, Surface, InfoRow, Button, notify, fmtBtcAmount, type SheetAction } from '../../ui';
 import { useClosingConfirmation } from '../../lib/tgButtons';
 import { copyText } from '../../lib/telegram';
+import { errorText } from '../../lib/i18nHelpers';
+import type { ApiError } from '../../api/tyrexApi';
 import { fmtUsd } from '../../lib/format';
 import { userApi } from '../../api/tyrexApi';
 import { useSession } from '../../store/useSession';
@@ -28,6 +30,9 @@ const DepositSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted: 
     const [amount, setAmount] = useState('');
     const [hash, setHash] = useState('');
     const [loading, setLoading] = useState(false);
+    // Ошибка сервера по хэшу (повтор, неверный формат) — прямо под полем, а не только во всплывающем уведомлении
+    const [hashServerError, setHashServerError] = useState<string | null>(null);
+    const [copied, setCopied] = useState<'address' | 'amount' | null>(null);
 
     const amountNum = parseAmount(amount);
     const amountValid = amountNum > 0;
@@ -44,11 +49,16 @@ const DepositSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted: 
         setStep('amount');
         setAmount('');
         setHash('');
+        setHashServerError(null);
         setLoading(false);
     };
 
-    const copy = async (text: string) => {
-        if (await copyText(text)) notify.success(t('common:actions.copied'));
+    const copy = async (text: string, which: 'address' | 'amount') => {
+        if (await copyText(text)) {
+            notify.success(t('common:actions.copied'));
+            setCopied(which);
+            setTimeout(() => setCopied(c => (c === which ? null : c)), 2000);
+        }
     };
 
     const submit = async () => {
@@ -59,6 +69,8 @@ const DepositSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted: 
             setStep('done');
             onSubmitted();
         } catch (e) {
+            const code = (e as ApiError)?.code;
+            if (code === 'DUPLICATE_TX' || code === 'INVALID_TX_HASH') setHashServerError(errorText(e));
             notify.error(e);
         } finally {
             setLoading(false);
@@ -108,16 +120,16 @@ const DepositSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted: 
                         <div className="py-3">
                             <p className="text-callout text-muted">{t('deposit.address')}</p>
                             <p className="font-mono text-callout text-fg break-all mt-1">{address}</p>
-                            <Button size="sm" variant="text" className="px-0" icon={<Copy className="w-4 h-4" aria-hidden />} onClick={() => copy(address)}>
-                                {t('deposit.copyAddress')}
+                            <Button size="sm" variant="text" className="px-0" icon={copied === 'address' ? <Check className="w-4 h-4" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />} onClick={() => copy(address, 'address')}>
+                                {copied === 'address' ? t('common:actions.copied') : t('deposit.copyAddress')}
                             </Button>
                         </div>
                         <div className="py-3">
                             <p className="text-callout text-muted">{t('deposit.btcAmount')}</p>
                             <p className="text-headline text-fg tabular-nums mt-1">{btcText ? `${btcText} BTC` : '…'}</p>
                             {btcText && (
-                                <Button size="sm" variant="text" className="px-0" icon={<Copy className="w-4 h-4" aria-hidden />} onClick={() => copy(btcText)}>
-                                    {t('deposit.copyAmount')}
+                                <Button size="sm" variant="text" className="px-0" icon={copied === 'amount' ? <Check className="w-4 h-4" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />} onClick={() => copy(btcText, 'amount')}>
+                                    {copied === 'amount' ? t('common:actions.copied') : t('deposit.copyAmount')}
                                 </Button>
                             )}
                         </div>
@@ -132,9 +144,9 @@ const DepositSheet: React.FC<{ open: boolean; onClose: () => void; onSubmitted: 
                     <AddressInput
                         label={t('deposit.hashLabel')}
                         value={hash}
-                        onChange={setHash}
+                        onChange={(v) => { setHash(v); setHashServerError(null); }}
                         placeholder={t('deposit.hashPlaceholder')}
-                        error={hash !== '' && !hashValid ? t('errors:INVALID_TX_HASH') : null}
+                        error={hash !== '' && !hashValid ? t('errors:INVALID_TX_HASH') : hashServerError}
                         hint={t('deposit.hashHint')}
                         scanHint={t('deposit.scanHint')}
                     />

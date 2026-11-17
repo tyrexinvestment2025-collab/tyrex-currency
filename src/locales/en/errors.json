@@ -9,7 +9,7 @@
   "CONFLICT": "The data has changed. Refresh and try again.",
   "INVALID_AMOUNT": "Enter a valid amount",
   "BELOW_MINIMUM": "Minimum amount is ${{min}}",
-  "INVALID_ADDRESS": "Enter a valid USDT TRC20 address (starts with T)",
+  "INVALID_ADDRESS": "Invalid USDT TRC20 address — check every character (it starts with T)",
   "INVALID_TX_HASH": "Enter a valid transaction hash (64 characters)",
   "DUPLICATE_TX": "This transaction has already been submitted",
   "NOT_SUBSCRIBED": "Subscribe to the channel first",

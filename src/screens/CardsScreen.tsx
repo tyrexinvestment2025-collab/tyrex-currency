@@ -17,12 +17,13 @@ import { cardsApi } from '../api/tyrexApi';
 import { haptic } from '../lib/telegram';
 import { fmtUsd } from '../lib/format';
 
-type Filter = 'all' | 'active' | 'waiting' | 'paused';
+type Filter = 'all' | 'active' | 'waiting' | 'paused' | 'finished';
 
 const matches = (c: TyrexCard, f: Filter) => {
     if (f === 'active') return c.status === 'Active';
     if (f === 'waiting') return needsStart(c);
     if (f === 'paused') return c.status === 'Cooling';
+    if (f === 'finished') return c.status === 'Finished';
     return true;
 };
 
@@ -142,6 +143,8 @@ const CardsScreen: React.FC = () => {
                             { value: 'active', label: t('filters.active'), count: p.counts.active },
                             { value: 'waiting', label: t('filters.waiting'), count: p.counts.needsStart },
                             { value: 'paused', label: t('filters.paused'), count: p.counts.cooling },
+                            // «Завершённые» — только если такие карты есть, чтобы не тесно было на узком экране
+                            ...(p.counts.finished > 0 ? [{ value: 'finished' as Filter, label: t('filters.finished'), count: p.counts.finished }] : []),
                         ]}
                     />
 

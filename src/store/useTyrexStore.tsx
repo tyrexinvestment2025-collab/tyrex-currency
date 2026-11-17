@@ -91,7 +91,7 @@ export const useTyrexStore = create<TyrexState>()(
                 
                 const updatedMarket = state.marketCardTypes.map(type => ({
                     ...type,
-                    priceUSDT: Math.round((type.nominalSats / SATS_IN_BTC) * price)
+                    priceUSDT: Math.round((type.nominalSats / SATS_IN_BTC) * price * 100) / 100
                 }));
                 
                 return { 
@@ -115,7 +115,7 @@ export const useTyrexStore = create<TyrexState>()(
                         imageUrl: type.imageUrl,
                         nominalBtcDisplay: `${nominalBtc.toFixed(8)} BTC`,
                         nominalSats: nominalSats,
-                        priceUSDT: price > 0 ? Math.round(nominalBtc * price) : (parseVal(type.priceUSDT) || 0),
+                        priceUSDT: price > 0 ? Math.round(nominalBtc * price * 100) / 100 : (parseVal(type.priceUSDT) || 0),
                         clientAPY: `${type.clientAPY}%`,
                         referralAPY: `${type.referralAPY || 0}%`,
                         available: type.available,

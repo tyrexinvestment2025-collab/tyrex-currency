@@ -58,7 +58,8 @@ const BuySheetContent: React.FC<{ type: TyrexCardType; onClose: () => void }> = 
         return q ? items.filter(i => String(i.serialNumber).includes(q)) : items;
     }, [items, query]);
 
-    const freeCount = items ? items.filter(i => !i.isSold).length : 0;
+    // Свободных номеров может быть больше, чем осталось к продаже (лимит серии задаёт админ) — показываем меньшее
+    const freeCount = items ? Math.min(items.filter(i => !i.isSold).length, Number.isFinite(type.available) ? type.available : Infinity) : 0;
     const price = priceUsdOf(type, btcPrice);
     const priceReady = btcPrice > 0 && price > 0;
     const deficit = Math.max(0, Math.ceil((price - walletUsd) * 100) / 100);

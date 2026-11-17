@@ -17,7 +17,7 @@
     "invited": "Invited",
     "bought_one": "{{count}} bought a card",
     "bought_other": "{{count}} bought a card",
-    "earned": "Earned in total"
+    "earned": "Earned in total, at the current BTC rate"
   },
   "link": {
     "title": "Your link",

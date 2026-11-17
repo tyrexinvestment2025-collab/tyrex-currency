@@ -2,10 +2,11 @@
   "title": "My cards",
   "subtitle_one": "{{count}} card",
   "subtitle_other": "{{count}} cards",
-  "filters": { "all": "All", "active": "Working", "waiting": "To start", "paused": "Paused" },
+  "filters": { "all": "All", "active": "Working", "waiting": "To start", "paused": "Paused", "finished": "Finished" },
   "needsStartHint_one": "{{count}} card is waiting to start — it doesn't earn until you start it.",
   "needsStartHint_other": "{{count}} cards are waiting to start — they don't earn until you start them.",
   "emptyFilter": {
+    "finished": "No finished cards",
     "all": "No cards",
     "active": "No working cards",
     "waiting": "All cards are started",
